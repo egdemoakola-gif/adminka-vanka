@@ -1,4 +1,4 @@
--- ◆ АДМИНКА ВАНЬКА v15.1 ◆
+-- ◆ АДМИНКА ВАНЬКА v15.2 ◆
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players = game:GetService("Players")
@@ -41,7 +41,7 @@ local S = {
     roleHighlight=false, roleHL={},
     aimbot=false, aimbotFOV=200, aimT=nil,
     hardAim=true,
-    autoTPShoot=false,
+    autoTPShoot=false, tpShootCooldown=0,
     autoPickup=false, sheriffThread=nil, lastSheriffPos=nil, lastSheriff=nil,
     camper=false, camperT=nil,
     spin=false, spinSpeed=30,
@@ -236,47 +236,61 @@ local function stopAutoPickup()
     S.lastSheriffPos = nil
 end
 
--- АВТО-ТП К МАРДЕРУ + ВЫСТРЕЛ (ЗА СПИНУ)
+-- ═════ МГНОВЕННЫЙ ТП ЗА СПИНУ + 10 ВЫСТРЕЛОВ ═════
 local function autoTPShootMurderer()
     local target = S.aimT
     if not target or not target.Character then return end
     if getRole(target) ~= "Murderer" then return end
     
+    -- ПИСТОЛЕТ мгновенно
     if not hasGunInHand() then
         if not equipGun() then return end
-        task.wait(0.15)
     end
     
     local myChar = LP.Character
     if not myChar then return end
     local myHrp = myChar:FindFirstChild("HumanoidRootPart")
     local targetHrp = target.Character:FindFirstChild("HumanoidRootPart")
+    local targetHead = target.Character:FindFirstChild("Head")
     if not myHrp or not targetHrp then return end
     
+    -- СВЕЖАЯ позиция
+    local targetPos = targetHrp.CFrame
     local myPos = myHrp.CFrame
     
-    -- ТЕЛЕПОРТ ЗА СПИНУ (положительная Z)
-    pcall(function()
-        myHrp.CFrame = targetHrp.CFrame * CFrame.new(0, 0, 3)
-    end)
-    task.wait(0.05)
+    -- МГНОВЕННЫЙ ТП ЗА СПИНУ (без wait)
+    myHrp.CFrame = targetPos * CFrame.new(0, 0, 2)
     
-    -- Выстрелы
+    -- СРАЗУ наводим камеру на голову
+    if targetHead then
+        Cam.CFrame = CFrame.new(Cam.CFrame.Position, targetHead.Position)
+    end
+    
+    -- 10 ВЫСТРЕЛОВ БЕЗ ЗАДЕРЖЕК
     local tool = myChar:FindFirstChildOfClass("Tool")
     if tool and isGun(tool) then
-        for i = 1, 3 do
+        for i = 1, 10 do
             pcall(function() tool:Activate() end)
-            task.wait(0.05)
         end
     end
     
-    -- Возврат
-    task.wait(0.1)
-    pcall(function()
-        if myHrp and myHrp.Parent then
-            myHrp.CFrame = myPos
+    -- Захват network ownership для регистрации
+    for _, p in ipairs(target.Character:GetDescendants()) do
+        if p:IsA("BasePart") then
+            pcall(function() p:SetNetworkOwner(LP) end)
         end
-    end)
+    end
+    
+    -- Ещё 5 выстрелов с микро-паузой (для сервера)
+    task.wait(0.03)
+    if tool and isGun(tool) then
+        for i = 1, 5 do
+            pcall(function() tool:Activate() end)
+        end
+    end
+    
+    -- МГНОВЕННЫЙ ВОЗВРАТ
+    myHrp.CFrame = myPos
 end
 
 local function refreshHL()
@@ -529,7 +543,7 @@ local function createGUI()
     ttl.Size = UDim2.new(1, -130, 1, 0)
     ttl.Position = UDim2.new(0, 50, 0, 0)
     ttl.BackgroundTransparency = 1
-    ttl.Text = "АДМИНКА ВАНЬКА v15.1"
+    ttl.Text = "АДМИНКА ВАНЬКА v15.2"
     ttl.TextColor3 = Color3.new(1,1,1)
     ttl.TextSize = 14
     ttl.Font = Enum.Font.GothamBold
@@ -769,7 +783,7 @@ local function createGUI()
         end
     end)
 
-    addLabel(tabMain, "АВТО-ПОДБОР (ТП на место смерти Шерифа)")
+    addLabel(tabMain, "АВТО-ПОДБОР")
     addToggle(tabMain, "Авто-подбор (ТП на 1 сек)", false, function(v)
         S.autoPickup = v
         if v then startAutoPickup() else stopAutoPickup() end
@@ -871,7 +885,7 @@ local function createGUI()
 
     addLabel(tabRage, "АИМ (только Мардер)")
     addToggle(tabRage, "Аимбот на Мардера", false, function(v) S.aimbot = v end)
-    addToggle(tabRage, "Авто-ТП ЗА СПИНУ + выстрел", false, function(v) S.autoTPShoot = v end)
+    addToggle(tabRage, "МГНОВЕННЫЙ ТП ЗА СПИНУ + выстрел", false, function(v) S.autoTPShoot = v end)
     addBtn(tabRage, "Убить цель аима", Color3.fromRGB(170,20,30), function()
         if S.aimT and S.aimT.Character then
             local h = S.aimT.Character:FindFirstChildOfClass("Humanoid")
@@ -1138,9 +1152,14 @@ local function mainLoop()
             targetInfo.Visible = false
         end
 
+        -- МГНОВЕННЫЙ ТП + ВЫСТРЕЛ (с кулдауном 0.1 сек чтобы не спамить)
         if S.autoTPShoot and S.aimT and S.aimT.Character then
             if getRole(S.aimT) == "Murderer" then
-                task.spawn(autoTPShootMurderer)
+                S.tpShootCooldown = S.tpShootCooldown - dt
+                if S.tpShootCooldown <= 0 then
+                    S.tpShootCooldown = 0.1
+                    task.spawn(autoTPShootMurderer)
+                end
             end
         end
 
@@ -1318,6 +1337,6 @@ mainLoop()
 setupInfJump()
 runLoading()
 
-task.delay(6, function() notify("Админка v15.1 загружена!", Color3.fromRGB(255,0,100)) end)
+task.delay(6, function() notify("Админка v15.2 загружена!", Color3.fromRGB(255,0,100)) end)
 
-print("[VANKA v15.1] OK")
+print("[VANKA v15.2] OK")
