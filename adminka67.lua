@@ -1,10 +1,9 @@
--- [[ АДМИНКА ВАНЬКА v3.1 - Bulletproof ]] --
+-- [[ АДМИНКА ВАНЬКА v4.0 - Без эмодзи ]] --
 if _G.VankaKill then pcall(_G.VankaKill) end
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 
 local LP = Players.LocalPlayer
 local Cam = workspace.CurrentCamera
@@ -52,10 +51,10 @@ local S = {
     hl = {}, aimT = nil,
 }
 
--- ===== ОСНОВНОЕ ОКНО (СРАЗУ ВИДНОЕ) =====
+-- ===== ГЛАВНОЕ ОКНО =====
 local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 340, 0, 450)
-main.Position = UDim2.new(0, 10, 0.5, -225)
+main.Size = UDim2.new(0, 340, 0, 460)
+main.Position = UDim2.new(0, 10, 0.5, -230)
 main.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
 main.BorderSizePixel = 0
 main.Active = true
@@ -65,6 +64,7 @@ main.Parent = gui
 local mc = Instance.new("UICorner")
 mc.CornerRadius = UDim.new(0, 12)
 mc.Parent = main
+
 local ms = Instance.new("UIStroke")
 ms.Color = Color3.fromRGB(255, 0, 100)
 ms.Thickness = 2
@@ -79,6 +79,7 @@ top.Parent = main
 local tc = Instance.new("UICorner")
 tc.CornerRadius = UDim.new(0, 12)
 tc.Parent = top
+
 local topFill = Instance.new("Frame")
 topFill.Size = UDim2.new(1, 0, 0, 18)
 topFill.Position = UDim2.new(0, 0, 1, -18)
@@ -102,8 +103,9 @@ else
     hem.Size = UDim2.new(0, 30, 1, 0)
     hem.Position = UDim2.new(0, 8, 0, 0)
     hem.BackgroundTransparency = 1
-    hem.Text = "🔥"
-    hem.TextSize = 20
+    hem.Text = "V"
+    hem.TextColor3 = Color3.fromRGB(255, 0, 100)
+    hem.TextSize = 22
     hem.Font = Enum.Font.GothamBold
     hem.Parent = top
 end
@@ -112,9 +114,9 @@ local ttl = Instance.new("TextLabel")
 ttl.Size = UDim2.new(1, -120, 1, 0)
 ttl.Position = UDim2.new(0, 46, 0, 0)
 ttl.BackgroundTransparency = 1
-ttl.Text = "АДМИНКА ВАНЬКА v3.1"
+ttl.Text = "АДМИНКА ВАНЬКА"
 ttl.TextColor3 = Color3.fromRGB(255, 255, 255)
-ttl.TextSize = 13
+ttl.TextSize = 14
 ttl.Font = Enum.Font.GothamBold
 ttl.TextXAlignment = Enum.TextXAlignment.Left
 ttl.Parent = top
@@ -123,8 +125,8 @@ local minB = Instance.new("TextButton")
 minB.Size = UDim2.new(0, 26, 0, 26)
 minB.Position = UDim2.new(1, -64, 0, 8)
 minB.BackgroundColor3 = Color3.fromRGB(60, 60, 75)
-minB.Text = "—"
-minB.TextColor3 = Color3.new(1,1,1)
+minB.Text = "-"
+minB.TextColor3 = Color3.new(1, 1, 1)
 minB.TextSize = 16
 minB.Font = Enum.Font.GothamBold
 minB.Parent = top
@@ -136,9 +138,9 @@ local closeB = Instance.new("TextButton")
 closeB.Size = UDim2.new(0, 26, 0, 26)
 closeB.Position = UDim2.new(1, -34, 0, 8)
 closeB.BackgroundColor3 = Color3.fromRGB(255, 55, 75)
-closeB.Text = "×"
-closeB.TextColor3 = Color3.new(1,1,1)
-closeB.TextSize = 18
+closeB.Text = "X"
+closeB.TextColor3 = Color3.new(1, 1, 1)
+closeB.TextSize = 14
 closeB.Font = Enum.Font.GothamBold
 closeB.Parent = top
 local cbc = Instance.new("UICorner")
@@ -150,7 +152,10 @@ local openB = Instance.new("TextButton")
 openB.Size = UDim2.new(0, 55, 0, 55)
 openB.Position = UDim2.new(0, 15, 0.5, -27)
 openB.BackgroundColor3 = Color3.fromRGB(255, 0, 100)
-openB.Text = ""
+openB.Text = "V"
+openB.TextColor3 = Color3.new(1, 1, 1)
+openB.TextSize = 22
+openB.Font = Enum.Font.GothamBold
 openB.Visible = false
 openB.Parent = gui
 local obc = Instance.new("UICorner")
@@ -158,6 +163,7 @@ obc.CornerRadius = UDim.new(0, 28)
 obc.Parent = openB
 
 if LOGO then
+    openB.Text = ""
     local oimg = Instance.new("ImageLabel")
     oimg.Size = UDim2.new(0, 36, 0, 36)
     oimg.Position = UDim2.new(0.5, -18, 0.5, -18)
@@ -165,11 +171,6 @@ if LOGO then
     oimg.Image = LOGO
     oimg.ScaleType = Enum.ScaleType.Fit
     oimg.Parent = openB
-else
-    openB.Text = "🔥"
-    openB.TextSize = 24
-    openB.Font = Enum.Font.GothamBold
-    openB.TextColor3 = Color3.new(1,1,1)
 end
 
 -- Табы
@@ -236,7 +237,7 @@ local function addTab(key, name)
         for k, pg in pairs(pages) do pg.Visible = (k == key) end
         for k, btn in pairs(tabs) do
             btn.BackgroundColor3 = (k == key) and Color3.fromRGB(255, 0, 100) or Color3.fromRGB(35, 35, 48)
-            btn.TextColor3 = (k == key) and Color3.new(1,1,1) or Color3.fromRGB(180, 180, 200)
+            btn.TextColor3 = (k == key) and Color3.new(1, 1, 1) or Color3.fromRGB(180, 180, 200)
         end
     end)
     return p
@@ -247,7 +248,7 @@ local function mkBtn(parent_, text, color, cb)
     b.Size = UDim2.new(1, -6, 0, 32)
     b.BackgroundColor3 = color
     b.Text = text
-    b.TextColor3 = Color3.new(1,1,1)
+    b.TextColor3 = Color3.new(1, 1, 1)
     b.TextSize = 12
     b.Font = Enum.Font.GothamMedium
     b.TextWrapped = true
@@ -297,7 +298,7 @@ local function mkToggle(parent_, text, state, setter)
     local kn = Instance.new("Frame")
     kn.Size = UDim2.new(0, 14, 0, 14)
     kn.Position = state and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
-    kn.BackgroundColor3 = Color3.new(1,1,1)
+    kn.BackgroundColor3 = Color3.new(1, 1, 1)
     kn.BorderSizePixel = 0
     kn.Parent = sw
     local kc = Instance.new("UICorner")
@@ -318,7 +319,7 @@ local function mkLabel(parent_, text)
     local l = Instance.new("TextLabel")
     l.Size = UDim2.new(1, -6, 0, 20)
     l.BackgroundTransparency = 1
-    l.Text = "▸ " .. text
+    l.Text = "> " .. text
     l.TextColor3 = Color3.fromRGB(255, 0, 100)
     l.TextSize = 11
     l.Font = Enum.Font.GothamBold
@@ -425,28 +426,28 @@ cdc.CornerRadius = UDim.new(1, 0)
 cdc.Parent = crossDot
 
 -- ===== ТАБЫ =====
-local tabMain = addTab("main", "🎮 Main")
-local tabVisual = addTab("visual", "👁 Visual")
-local tabRage = addTab("rage", "⚡ Rage")
+local tabMain = addTab("main", "MAIN")
+local tabVisual = addTab("visual", "VISUAL")
+local tabRage = addTab("rage", "RAGE")
 
 for k, pg in pairs(pages) do pg.Visible = (k == "main") end
 tabs["main"].BackgroundColor3 = Color3.fromRGB(255, 0, 100)
-tabs["main"].TextColor3 = Color3.new(1,1,1)
+tabs["main"].TextColor3 = Color3.new(1, 1, 1)
 
--- MAIN
+-- ===== MAIN =====
 mkLabel(tabMain, "РОЛИ")
 mkToggle(tabMain, "Подсветка ролей", false, function(v)
     S.roles = v
     if v then refreshHL() else clearHL() end
 end)
-mkBtn(tabMain, "🔄 Обновить подсветку", Color3.fromRGB(40, 80, 160), function() refreshHL() end)
+mkBtn(tabMain, "Обновить подсветку", Color3.fromRGB(40, 80, 160), function() refreshHL() end)
 
 mkLabel(tabMain, "АВТО-КАМПЕР")
 mkToggle(tabMain, "Кампер (за Шерифом)", false, function(v)
     S.camper = v
     if not v then S.camperT = nil end
 end)
-mkBtn(tabMain, "🔄 Найти Шерифа", Color3.fromRGB(80, 60, 130), function()
+mkBtn(tabMain, "Найти Шерифа", Color3.fromRGB(80, 60, 130), function()
     S.camperT = nil
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr ~= LP and getRole(plr) == "s" then S.camperT = plr; break end
@@ -460,7 +461,7 @@ mkToggle(tabMain, "Авто-подбор Пистолета", false, function(v)
 end)
 
 mkLabel(tabMain, "ДЕЙСТВИЯ")
-mkBtn(tabMain, "💀 Убить всех", Color3.fromRGB(170, 20, 30), function()
+mkBtn(tabMain, "Убить всех", Color3.fromRGB(170, 20, 30), function()
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr ~= LP and plr.Character then
             local h = plr.Character:FindFirstChildOfClass("Humanoid")
@@ -468,7 +469,7 @@ mkBtn(tabMain, "💀 Убить всех", Color3.fromRGB(170, 20, 30), function
         end
     end
 end)
-mkBtn(tabMain, "🧹 Очистить инвентарь", Color3.fromRGB(60, 60, 60), function()
+mkBtn(tabMain, "Очистить инвентарь", Color3.fromRGB(60, 60, 60), function()
     if LP.Backpack then
         for _, t in ipairs(LP.Backpack:GetChildren()) do
             if t:IsA("Tool") then t:Destroy() end
@@ -549,7 +550,7 @@ local function rebuildPlayerList()
         tpBtn.Position = UDim2.new(1, -56, 0.5, -13)
         tpBtn.BackgroundColor3 = Color3.fromRGB(40, 100, 200)
         tpBtn.Text = "ТП"
-        tpBtn.TextColor3 = Color3.new(1,1,1)
+        tpBtn.TextColor3 = Color3.new(1, 1, 1)
         tpBtn.TextSize = 11
         tpBtn.Font = Enum.Font.GothamBold
         tpBtn.Parent = row
@@ -570,7 +571,7 @@ end
 Players.PlayerAdded:Connect(function() task.wait(1) rebuildPlayerList() end)
 Players.PlayerRemoving:Connect(function() task.wait(0.3) rebuildPlayerList() end)
 
--- VISUAL
+-- ===== VISUAL =====
 mkLabel(tabVisual, "ПРИЦЕЛ")
 mkToggle(tabVisual, "Показывать прицел", true, function(v)
     S.crosshair = v
@@ -579,28 +580,28 @@ end)
 
 mkLabel(tabVisual, "FOV")
 mkToggle(tabVisual, "Показывать FOV", true, function(v) S.fov = v end)
-mkBtn(tabVisual, "➕ FOV +20", Color3.fromRGB(60, 60, 90), function() S.fovR = math.min(S.fovR + 20, 500) end)
-mkBtn(tabVisual, "➖ FOV -20", Color3.fromRGB(60, 60, 90), function() S.fovR = math.max(S.fovR - 20, 40) end)
+mkBtn(tabVisual, "FOV +20", Color3.fromRGB(60, 60, 90), function() S.fovR = math.min(S.fovR + 20, 500) end)
+mkBtn(tabVisual, "FOV -20", Color3.fromRGB(60, 60, 90), function() S.fovR = math.max(S.fovR - 20, 40) end)
 
 mkLabel(tabVisual, "ДВИЖЕНИЕ")
 mkToggle(tabVisual, "Полёт", false, function(v) S.fly = v end)
 mkToggle(tabVisual, "Noclip", false, function(v) S.noclip = v end)
 mkToggle(tabVisual, "Беск. прыжок", false, function(v) S.infjump = v end)
-mkBtn(tabVisual, "⚡ Скорость 16", Color3.fromRGB(60, 60, 90), function()
+mkBtn(tabVisual, "Скорость 16", Color3.fromRGB(60, 60, 90), function()
     if LP.Character then local h = LP.Character:FindFirstChildOfClass("Humanoid"); if h then h.WalkSpeed = 16 end end
 end)
-mkBtn(tabVisual, "⚡ Скорость 50", Color3.fromRGB(60, 60, 90), function()
+mkBtn(tabVisual, "Скорость 50", Color3.fromRGB(60, 60, 90), function()
     if LP.Character then local h = LP.Character:FindFirstChildOfClass("Humanoid"); if h then h.WalkSpeed = 50 end end
 end)
-mkBtn(tabVisual, "⚡ Скорость 100", Color3.fromRGB(60, 60, 90), function()
+mkBtn(tabVisual, "Скорость 100", Color3.fromRGB(60, 60, 90), function()
     if LP.Character then local h = LP.Character:FindFirstChildOfClass("Humanoid"); if h then h.WalkSpeed = 100 end end
 end)
 
--- RAGE
+-- ===== RAGE =====
 mkLabel(tabRage, "АИМ")
 mkToggle(tabRage, "Аимбот", false, function(v) S.aim = v end)
 mkToggle(tabRage, "Стрельба через стены", false, function(v) S.wall = v end)
-mkBtn(tabRage, "💥 Убить цель аима", Color3.fromRGB(170, 20, 30), function()
+mkBtn(tabRage, "Убить цель аима", Color3.fromRGB(170, 20, 30), function()
     if S.aimT and S.aimT.Character then
         local h = S.aimT.Character:FindFirstChildOfClass("Humanoid")
         if h then h.Health = 0 end
@@ -611,16 +612,16 @@ mkLabel(tabRage, "АВТО-СТРЕЛЬБА")
 mkToggle(tabRage, "Авто-стрельба в Мардера", false, function(v) S.autoShoot = v end)
 
 mkLabel(tabRage, "СПИНБОТ")
-mkToggle(tabRage, "🌀 Спинбот", false, function(v) S.spin = v end)
-mkBtn(tabRage, "🌀 Скорость 30", Color3.fromRGB(60, 60, 90), function(b) S.spinSpeed = 30; b.Text = "🌀 Скорость 30" end)
-mkBtn(tabRage, "🌀 Скорость 60", Color3.fromRGB(60, 60, 90), function(b) S.spinSpeed = 60; b.Text = "🌀 Скорость 60" end)
-mkBtn(tabRage, "🌀 Скорость 120", Color3.fromRGB(60, 60, 90), function(b) S.spinSpeed = 120; b.Text = "🌀 Скорость 120" end)
+mkToggle(tabRage, "Спинбот", false, function(v) S.spin = v end)
+mkBtn(tabRage, "Скорость 30", Color3.fromRGB(60, 60, 90), function(b) S.spinSpeed = 30; b.Text = "Скорость 30" end)
+mkBtn(tabRage, "Скорость 60", Color3.fromRGB(60, 60, 90), function(b) S.spinSpeed = 60; b.Text = "Скорость 60" end)
+mkBtn(tabRage, "Скорость 120", Color3.fromRGB(60, 60, 90), function(b) S.spinSpeed = 120; b.Text = "Скорость 120" end)
 
 mkLabel(tabRage, "УТИЛИТЫ")
-mkBtn(tabRage, "🔃 Respawn", Color3.fromRGB(100, 60, 150), function()
+mkBtn(tabRage, "Respawn", Color3.fromRGB(100, 60, 150), function()
     if LP.Character then LP.Character:BreakJoints() end
 end)
-mkBtn(tabRage, "⛔ ВЫКЛЮЧИТЬ ВСЁ", Color3.fromRGB(180, 0, 100), function()
+mkBtn(tabRage, "ВЫКЛЮЧИТЬ ВСЁ", Color3.fromRGB(180, 0, 100), function()
     S.aim = false; S.wall = false; S.camper = false; S.camperT = nil
     S.roles = false; S.fly = false; S.noclip = false; S.infjump = false
     S.spin = false; S.autoShoot = false; S.autoGun = false
@@ -654,10 +655,6 @@ end
 
 -- ===== ГЛАВНЫЙ ЦИКЛ =====
 local conn = RunService.RenderStepped:Connect(function(dt)
-    if not S.crosshair then
-        crossH.Visible = false; crossV.Visible = false; crossDot.Visible = false
-    end
-
     if S.aim and S.fov then
         fovC.Visible = true
         fovC.Size = UDim2.new(0, S.fovR * 2, 0, S.fovR * 2)
@@ -830,81 +827,5 @@ openB.MouseButton1Click:Connect(function()
 end)
 closeB.MouseButton1Click:Connect(cleanup)
 
--- ===== ЗАГРУЗКА (ОТДЕЛЬНО, ПОВЕРХ, САМА УБИРАЕТСЯ) =====
-task.spawn(function()
-    local ok = pcall(function()
-        local loadF = Instance.new("Frame")
-        loadF.Size = UDim2.new(1, 0, 1, 0)
-        loadF.BackgroundColor3 = Color3.fromRGB(8, 8, 14)
-        loadF.BorderSizePixel = 0
-        loadF.ZIndex = 500
-        loadF.Parent = gui
-
-        if LOGO then
-            local li = Instance.new("ImageLabel")
-            li.Size = UDim2.new(0, 140, 0, 140)
-            li.Position = UDim2.new(0.5, -70, 0.5, -120)
-            li.BackgroundTransparency = 1
-            li.Image = LOGO
-            li.ScaleType = Enum.ScaleType.Fit
-            li.ZIndex = 501
-            li.Parent = loadF
-        end
-
-        local lt = Instance.new("TextLabel")
-        lt.Size = UDim2.new(1, 0, 0, 30)
-        lt.Position = UDim2.new(0, 0, 0.5, 20)
-        lt.BackgroundTransparency = 1
-        lt.Text = "АДМИНКА ВАНЬКА"
-        lt.TextColor3 = Color3.fromRGB(255, 255, 255)
-        lt.TextSize = 22
-        lt.Font = Enum.Font.GothamBold
-        lt.ZIndex = 501
-        lt.Parent = loadF
-
-        local ls = Instance.new("TextLabel")
-        ls.Size = UDim2.new(1, 0, 0, 20)
-        ls.Position = UDim2.new(0, 0, 0.5, 55)
-        ls.BackgroundTransparency = 1
-        ls.Text = "Загрузка: 0%"
-        ls.TextColor3 = Color3.fromRGB(180, 180, 200)
-        ls.TextSize = 14
-        ls.Font = Enum.Font.GothamMedium
-        ls.ZIndex = 501
-        ls.Parent = loadF
-
-        local bb = Instance.new("Frame")
-        bb.Size = UDim2.new(0, 280, 0, 8)
-        bb.Position = UDim2.new(0.5, -140, 0.5, 85)
-        bb.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-        bb.BorderSizePixel = 0
-        bb.ZIndex = 501
-        bb.Parent = loadF
-        local bbc = Instance.new("UICorner")
-        bbc.CornerRadius = UDim.new(1, 0)
-        bbc.Parent = bb
-
-        local bf = Instance.new("Frame")
-        bf.Size = UDim2.new(0, 0, 1, 0)
-        bf.BackgroundColor3 = Color3.fromRGB(255, 0, 100)
-        bf.BorderSizePixel = 0
-        bf.ZIndex = 502
-        bf.Parent = bb
-        local bfc = Instance.new("UICorner")
-        bfc.CornerRadius = UDim.new(1, 0)
-        bfc.Parent = bf
-
-        for i = 1, 20 do
-            ls.Text = "Загрузка: " .. (i * 5) .. "%"
-            bf.Size = UDim2.new(i / 20, 0, 1, 0)
-            task.wait(0.08)
-        end
-        task.wait(0.2)
-        loadF:Destroy()
-    end)
-    -- Если что-то пошло не так — всё равно убираем через 3 сек
-end)
-
--- ===== СТАРТ =====
 rebuildPlayerList()
-print("[VANKA v3.1] Загружено! Лого: " .. (LOGO and "OK" or "NO"))
+print("[VANKA v4.0] Загружено. Лого: " .. (LOGO and "OK" or "NO"))
