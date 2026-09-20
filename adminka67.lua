@@ -1,4 +1,4 @@
--- ◆ АДМИНКА ВАНЬКА v13 ◆
+-- ◆ АДМИНКА ВАНЬКА v14 ◆
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players = game:GetService("Players")
@@ -41,9 +41,10 @@ local S = {
     roleHighlight=false, roleHL={},
     aimbot=false, aimbotFOV=200, aimT=nil,
     hardAim=true,
-    autoShoot=false, autoGun=false, gunESP=false, gunHL=nil,
+    autoShoot=false, autoTPShoot=false,
+    gunESP=false, gunHL=nil,
     autoDraw=false,
-    camper=false, camperT=nil, wall=false,
+    camper=false, camperT=nil,
     spin=false, spinSpeed=30,
     fly=false, noclip=false, infjump=false,
     crosshair=true, fovCircle=true,
@@ -169,10 +170,6 @@ local function equipMyKnife()
     return k
 end
 
--- ═════ УМНЫЙ ПОИСК ПИСТОЛЕТА ═════
--- 1. Если знаем где умер Шериф — ищем рядом с этой точкой
--- 2. Если не знаем — ищем по всему workspace
--- 3. Берём ЛЮБОЙ Tool который не в руках и не в рюкзаке
 local function isToolUsedByAnyone(obj)
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr.Character and obj:IsDescendantOf(plr.Character) then return true end
@@ -184,8 +181,6 @@ end
 local function findDroppedGun()
     local best, bestHandle, bestDist = nil, nil, math.huge
     local searchPos = S.lastSheriffPos
-    
-    -- Проходим по всем Tools в workspace
     for _, o in ipairs(workspace:GetDescendants()) do
         if o:IsA("Tool") and not isToolUsedByAnyone(o) then
             local handle = o:FindFirstChild("Handle")
@@ -193,28 +188,15 @@ local function findDroppedGun()
                 local nm = string.lower(o.Name)
                 local isGunish = isGunName(nm)
                 local isKnifeish = string.find(nm, "knife") or string.find(nm, "dagger")
-                
-                -- Не берём ножи (убийца их не подбирает — он их выкидывает)
                 if not isKnifeish then
                     local dist = 0
-                    
-                    -- Если знаем позицию Шерифа — ищем рядом
                     if searchPos then
                         dist = (handle.Position - searchPos).Magnitude
-                        -- Если далеко от точки смерти — пропускаем
-                        if dist > 100 then
-                            dist = math.huge
-                        end
+                        if dist > 100 then dist = math.huge end
                     else
-                        -- Не знаем позицию — берём первый подходящий
                         dist = 1
                     end
-                    
-                    -- Приоритет: похоже на gun + ближе всех
-                    if isGunish then
-                        dist = dist - 50
-                    end
-                    
+                    if isGunish then dist = dist - 50 end
                     if dist < bestDist then
                         bestDist = dist
                         best = o
@@ -224,7 +206,6 @@ local function findDroppedGun()
             end
         end
     end
-    
     return best, bestHandle
 end
 
@@ -245,6 +226,53 @@ local function equipGun()
         end
     end
     return false
+end
+
+-- ═════ АВТО-ТП К МАРДЕРУ + ВЫСТРЕЛ ═════
+local function autoTPShootMurderer()
+    local target = S.aimT
+    if not target or not target.Character then return end
+    if getRole(target) ~= "Murderer" then return end
+    
+    -- Пистолет в руках?
+    if not hasGunInHand() then
+        if not equipGun() then
+            return -- нет пистолета, не можем стрелять
+        end
+        task.wait(0.15)
+    end
+    
+    local myChar = LP.Character
+    if not myChar then return end
+    local myHrp = myChar:FindFirstChild("HumanoidRootPart")
+    local targetHrp = target.Character:FindFirstChild("HumanoidRootPart")
+    if not myHrp or not targetHrp then return end
+    
+    -- Запоминаем свою позицию
+    local myPos = myHrp.CFrame
+    
+    -- Телепорт к Мардеру
+    pcall(function()
+        myHrp.CFrame = targetHrp.CFrame * CFrame.new(0, 0, -3)
+    end)
+    task.wait(0.05)
+    
+    -- Активируем пистолет (выстрел)
+    local tool = myChar:FindFirstChildOfClass("Tool")
+    if tool and isGun(tool) then
+        for i = 1, 3 do
+            pcall(function() tool:Activate() end)
+            task.wait(0.05)
+        end
+    end
+    
+    -- Возврат на место
+    task.wait(0.1)
+    pcall(function()
+        if myHrp and myHrp.Parent then
+            myHrp.CFrame = myPos
+        end
+    end)
 end
 
 local function refreshHL()
@@ -281,22 +309,17 @@ local function fling(target)
     local hrp = target.Character:FindFirstChild("HumanoidRootPart")
     local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
     if not hrp or not myHrp then return end
-
     notify("ФЛИНГ: " .. target.Name, Color3.fromRGB(255,0,150))
     local myPos = myHrp.CFrame
-
     task.spawn(function()
         for _, p in ipairs(target.Character:GetDescendants()) do
             if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
         end
-
         for i = 1, 100 do
             if not LP.Character or not LP.Character:FindFirstChild("HumanoidRootPart") then break end
             if not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then break end
-            
             local tHrp = target.Character:FindFirstChild("HumanoidRootPart")
             if not tHrp then break end
-            
             pcall(function()
                 LP.Character.HumanoidRootPart.CFrame = tHrp.CFrame
                 LP.Character.HumanoidRootPart.Velocity = Vector3.new(
@@ -308,7 +331,6 @@ local function fling(target)
             end)
             task.wait()
         end
-
         for i = 1, 30 do
             if not target.Character then break end
             local tHrp = target.Character:FindFirstChild("HumanoidRootPart")
@@ -319,7 +341,6 @@ local function fling(target)
             end)
             task.wait()
         end
-
         task.wait(0.5)
         pcall(function()
             if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
@@ -327,7 +348,6 @@ local function fling(target)
                 LP.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
             end
         end)
-
         task.wait(2)
         if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
             local y = target.Character.HumanoidRootPart.Position.Y
@@ -348,25 +368,20 @@ local function killOneTarget(target)
     local targetHum = target.Character:FindFirstChildOfClass("Humanoid")
     if not myHrp or not targetHrp or not targetHum then return false end
     if targetHum.Health <= 0 then return true end
-    
     local knife = equipMyKnife()
     if not knife then return false end
     local handle = knife:FindFirstChild("Handle")
-    
     for _, p in ipairs(target.Character:GetDescendants()) do
         if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
     end
-    
     for attempt = 1, 15 do
         if targetHum.Health <= 0 then return true end
         targetHrp = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
         if not targetHrp then return true end
-        
         pcall(function()
             myHrp.CFrame = targetHrp.CFrame * CFrame.new(0, 0, 1.5)
         end)
         task.wait(0.02)
-        
         if handle then
             for _, part in ipairs(target.Character:GetDescendants()) do
                 if part:IsA("BasePart") then
@@ -377,11 +392,9 @@ local function killOneTarget(target)
                 end
             end
         end
-        
         pcall(function() knife:Activate() end)
         task.wait(0.05)
     end
-    
     task.wait(0.2)
     return targetHum and targetHum.Health <= 0
 end
@@ -389,13 +402,11 @@ end
 local function startAutoKillAll()
     if S.killThread then return end
     S.killList = {}
-    
     S.killThread = task.spawn(function()
         if getRole(LP) ~= "Murderer" then
             S.killThread = nil
             return
         end
-        
         while S.killAllEnabled do
             local target = nil
             for _, plr in ipairs(Players:GetPlayers()) do
@@ -407,20 +418,14 @@ local function startAutoKillAll()
                     end
                 end
             end
-            
             if not target then
                 notify("ВСЕ УБИТЫ ✓", Color3.fromRGB(0,200,100))
                 break
             end
-            
             local ok = killOneTarget(target)
             S.killList[target] = true
-            
-            if ok then
-                notify("Убит: " .. target.Name, Color3.fromRGB(255,100,100))
-            else
-                notify("Не убит: " .. target.Name, Color3.fromRGB(200,150,50))
-            end
+            if ok then notify("Убит: " .. target.Name, Color3.fromRGB(255,100,100))
+            else notify("Не убит: " .. target.Name, Color3.fromRGB(200,150,50)) end
             task.wait(0.3)
         end
         S.killThread = nil
@@ -434,13 +439,10 @@ end
 
 local function startKillAllLoop()
     if S.killLoopThread then return end
-    
     S.killLoopThread = task.spawn(function()
         notify("KILL ALL: жду роль Мардера...", Color3.fromRGB(255,150,0))
-        
         while S.killAllEnabled do
             local myRole = getRole(LP)
-            
             if myRole == "Murderer" then
                 if not S.killThread then
                     notify("Я МАРДЕР! Убиваю...", Color3.fromRGB(255,0,100))
@@ -452,7 +454,6 @@ local function startKillAllLoop()
                     notify("Раунд кончился, жду...", Color3.fromRGB(150,150,150))
                 end
             end
-            
             task.wait(1)
         end
         S.killLoopThread = nil
@@ -465,54 +466,37 @@ local function stopKillAllLoop()
     S.killLoopThread = nil
 end
 
--- ═════ СЛЕЖКА ЗА ШЕРИФОМ (запоминаем точку смерти) ═════
 local function startSheriffWatch()
     if S.watchThread then return end
     S.lastSheriff = nil
     S.lastSheriffPos = nil
-    
     S.watchThread = task.spawn(function()
         notify("Слежу за Шерифом...", Color3.fromRGB(60,150,255))
-        
         while S.sheriffWatch do
             local currentSheriff = nil
             local currentPos = nil
-            
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LP and plr.Character then
                     if getRole(plr) == "Sheriff" then
                         currentSheriff = plr
                         local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
-                        if hrp then
-                            currentPos = hrp.Position
-                        end
+                        if hrp then currentPos = hrp.Position end
                         break
                     end
                 end
             end
-            
-            -- Обновляем позицию пока Шериф жив
-            if currentSheriff and currentPos then
-                S.lastSheriffPos = currentPos
-            end
-            
-            -- Шериф пропал → умер
+            if currentSheriff and currentPos then S.lastSheriffPos = currentPos end
             if S.lastSheriff and not currentSheriff then
-                notify("Шериф умер! Ищу пистолет рядом с точкой смерти...", Color3.fromRGB(255,220,0))
+                notify("Шериф умер! Ищу пистолет рядом...", Color3.fromRGB(255,220,0))
                 task.wait(0.5)
-                
                 local gun, handle = findDroppedGun()
                 if gun and handle and LP.Character then
                     local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
                     if myHrp then
                         local myPos = myHrp.CFrame
-                        notify("Нашёл: " .. gun.Name .. "! Телепорт...", Color3.fromRGB(255,220,0))
-                        
-                        pcall(function()
-                            myHrp.CFrame = handle.CFrame * CFrame.new(0, 1, 0)
-                        end)
+                        notify("Нашёл: " .. gun.Name, Color3.fromRGB(255,220,0))
+                        pcall(function() myHrp.CFrame = handle.CFrame * CFrame.new(0, 1, 0) end)
                         task.wait(0.1)
-                        
                         pcall(function()
                             if firetouchinterest then
                                 firetouchinterest(myHrp, handle, 0)
@@ -520,23 +504,15 @@ local function startSheriffWatch()
                                 firetouchinterest(myHrp, handle, 1)
                             end
                         end)
-                        
-                        pcall(function()
-                            myHrp.CFrame = handle.CFrame * CFrame.new(0, 0.5, 0)
-                        end)
+                        pcall(function() myHrp.CFrame = handle.CFrame * CFrame.new(0, 0.5, 0) end)
                         task.wait(0.3)
-                        
-                        pcall(function()
-                            myHrp.CFrame = myPos
-                        end)
-                        
+                        pcall(function() myHrp.CFrame = myPos end)
                         notify("Пистолет подобран!", Color3.fromRGB(0,200,100))
                     end
                 else
                     notify("Не нашёл пистолет", Color3.fromRGB(255,60,60))
                 end
             end
-            
             S.lastSheriff = currentSheriff
             task.wait(0.3)
         end
@@ -625,7 +601,7 @@ local function createGUI()
     ttl.Size = UDim2.new(1, -130, 1, 0)
     ttl.Position = UDim2.new(0, 50, 0, 0)
     ttl.BackgroundTransparency = 1
-    ttl.Text = "АДМИНКА ВАНЬКА v13"
+    ttl.Text = "АДМИНКА ВАНЬКА v14"
     ttl.TextColor3 = Color3.new(1,1,1)
     ttl.TextSize = 14
     ttl.Font = Enum.Font.GothamBold
@@ -873,7 +849,7 @@ local function createGUI()
     addBtn(tabMain, "Найти пистолет сейчас", Color3.fromRGB(200,150,0), function()
         local gun, handle = findDroppedGun()
         if gun and handle then
-            notify("Нашёл: " .. gun.Name .. "!", Color3.fromRGB(0,200,100))
+            notify("Нашёл: " .. gun.Name, Color3.fromRGB(0,200,100))
             if LP.Character then
                 local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
                 if myHrp then
@@ -899,7 +875,6 @@ local function createGUI()
         S.gunESP = v
         if not v and S.gunHL then pcall(function() S.gunHL:Destroy() end) S.gunHL = nil end
     end)
-    addToggle(tabMain, "Авто-достать при аиме", false, function(v) S.autoDraw = v end)
 
     addLabel(tabMain, "ОЧИСТКА")
     addBtn(tabMain, "Очистить инвентарь", Color3.fromRGB(60,60,70), function()
@@ -981,8 +956,7 @@ local function createGUI()
 
     addLabel(tabRage, "АИМ (только Мардер)")
     addToggle(tabRage, "Аимбот на Мардера", false, function(v) S.aimbot = v end)
-    addToggle(tabRage, "Стрельба через стены", false, function(v) S.wall = v end)
-    addToggle(tabRage, "Авто-стрельба в Мардера", false, function(v) S.autoShoot = v end)
+    addToggle(tabRage, "Авто-ТП к Мардеру + выстрел", false, function(v) S.autoTPShoot = v end)
     addBtn(tabRage, "Убить цель аима", Color3.fromRGB(170,20,30), function()
         if S.aimT and S.aimT.Character then
             local h = S.aimT.Character:FindFirstChildOfClass("Humanoid")
@@ -1001,9 +975,9 @@ local function createGUI()
         if LP.Character then LP.Character:BreakJoints() end
     end)
     addBtn(tabRage, "ВЫКЛЮЧИТЬ ВСЁ", Color3.fromRGB(180,0,100), function()
-        S.aimbot=false S.wall=false S.camper=false S.camperT=nil
+        S.aimbot=false S.autoTPShoot=false S.camper=false S.camperT=nil
         S.roleHighlight=false S.fly=false S.noclip=false S.infjump=false
-        S.spin=false S.autoShoot=false S.autoDraw=false
+        S.spin=false
         S.gunESP=false
         S.killAllEnabled=false S.killList={}
         S.sheriffWatch=false
@@ -1253,34 +1227,10 @@ local function mainLoop()
             targetInfo.Visible = false
         end
 
-        if S.autoDraw and S.aimT and not hasGunInHand() then
-            equipGun()
-        end
-
-        if S.autoShoot and S.aimT and S.aimT.Character then
-            local t = S.aimT
-            if getRole(t) == "Murderer" then
-                if S.autoDraw and not hasGunInHand() then equipGun() end
-                if hasGunInHand() then
-                    local tool = LP.Character:FindFirstChildOfClass("Tool")
-                    if tool then
-                        pcall(function() tool:Activate() end)
-                        local head = t.Character:FindFirstChild("Head")
-                        if head and LP.Character then
-                            local rp = RaycastParams.new()
-                            rp.FilterType = Enum.RaycastFilterType.Exclude
-                            rp.FilterDescendantsInstances = {LP.Character}
-                            rp.IgnoreWater = true
-                            local result = workspace:Raycast(Cam.CFrame.Position, head.Position - Cam.CFrame.Position, rp)
-                            if S.wall and result and result.Instance then
-                                local hm = t.Character:FindFirstChildOfClass("Humanoid")
-                                if hm and hm.Health > 0 then
-                                    pcall(function() hm:TakeDamage(50) end)
-                                end
-                            end
-                        end
-                    end
-                end
+        -- АВТО-ТП К МАРДЕРУ + ВЫСТРЕЛ
+        if S.autoTPShoot and S.aimT and S.aimT.Character then
+            if getRole(S.aimT) == "Murderer" then
+                task.spawn(autoTPShootMurderer)
             end
         end
 
@@ -1357,25 +1307,6 @@ local function mainLoop()
         end
     end)
     table.insert(S.conns, conn)
-end
-
-local function setupWallbang()
-    local c = Mouse.Button1Down:Connect(function()
-        if not S.wall then return end
-        local t = S.aimT
-        if not t and Mouse.Target then
-            local m = Mouse.Target:FindFirstAncestorOfClass("Model")
-            if m then
-                local p = Players:GetPlayerFromCharacter(m)
-                if p and p ~= LP then t = p end
-            end
-        end
-        if t and t.Character then
-            local h = t.Character:FindFirstChildOfClass("Humanoid")
-            if h and h.Health > 0 then pcall(function() h:TakeDamage(200) end) end
-        end
-    end)
-    table.insert(S.conns, c)
 end
 
 local function setupInfJump()
@@ -1496,10 +1427,9 @@ _G.VankaPanel = {
 createGUI()
 createOverlays()
 mainLoop()
-setupWallbang()
 setupInfJump()
 runLoading()
 
-task.delay(6, function() notify("Админка v13 загружена!", Color3.fromRGB(255,0,100)) end)
+task.delay(6, function() notify("Админка v14 загружена!", Color3.fromRGB(255,0,100)) end)
 
-print("[VANKA v13] OK | Logo:" .. (LOGO and "Y" or "N") .. " Main:" .. (IMG_MAIN and "Y" or "N") .. " Vis:" .. (IMG_VIS and "Y" or "N") .. " Rage:" .. (IMG_RAGE and "Y" or "N"))
+print("[VANKA v14] OK")
