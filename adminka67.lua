@@ -1,4 +1,4 @@
--- ◆ АДМИНКА ВАНЬКА v15 ◆
+-- ◆ АДМИНКА ВАНЬКА v15.1 ◆
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players = game:GetService("Players")
@@ -173,14 +173,14 @@ local function equipMyKnife()
     return k
 end
 
--- ═════ АВТО-ПОДБОР (простой ТП на место смерти Шерифа) ═════
+-- АВТО-ПОДБОР
 local function startAutoPickup()
     if S.sheriffThread then return end
     S.lastSheriff = nil
     S.lastSheriffPos = nil
     
     S.sheriffThread = task.spawn(function()
-        notify("Авто-подбор ВКЛ (слежу за Шерифом)", Color3.fromRGB(60,150,255))
+        notify("Авто-подбор ВКЛ", Color3.fromRGB(60,150,255))
         
         while S.autoPickup do
             local currentSheriff = nil
@@ -197,36 +197,28 @@ local function startAutoPickup()
                 end
             end
             
-            -- Обновляем позицию Шерифа пока жив
             if currentSheriff and currentPos then
                 S.lastSheriffPos = currentPos
             end
             
-            -- Шериф пропал → умер, ТП на его место и обратно
             if S.lastSheriff and not currentSheriff and S.lastSheriffPos then
                 notify("Шериф умер! ТП на место...", Color3.fromRGB(255,220,0))
-                task.wait(0.4) -- даём серверу создать пистолет
+                task.wait(0.4)
                 
                 if LP.Character then
                     local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
                     if myHrp then
                         local myPos = myHrp.CFrame
-                        
-                        -- ТП на место смерти
                         pcall(function()
                             myHrp.CFrame = S.lastSheriffPos + Vector3.new(0, 3, 0)
                         end)
-                        task.wait(1) -- стоим 1 секунду (подбираем всё что рядом)
-                        
-                        -- ТП обратно
+                        task.wait(1)
                         pcall(function()
                             myHrp.CFrame = myPos
                         end)
-                        
                         notify("ТП назад", Color3.fromRGB(0,200,100))
                     end
                 end
-                
                 S.lastSheriffPos = nil
             end
             
@@ -244,7 +236,7 @@ local function stopAutoPickup()
     S.lastSheriffPos = nil
 end
 
--- ═════ АВТО-ТП К МАРДЕРУ + ВЫСТРЕЛ ═════
+-- АВТО-ТП К МАРДЕРУ + ВЫСТРЕЛ (ЗА СПИНУ)
 local function autoTPShootMurderer()
     local target = S.aimT
     if not target or not target.Character then return end
@@ -263,11 +255,13 @@ local function autoTPShootMurderer()
     
     local myPos = myHrp.CFrame
     
+    -- ТЕЛЕПОРТ ЗА СПИНУ (положительная Z)
     pcall(function()
-        myHrp.CFrame = targetHrp.CFrame * CFrame.new(0, 0, -3)
+        myHrp.CFrame = targetHrp.CFrame * CFrame.new(0, 0, 3)
     end)
     task.wait(0.05)
     
+    -- Выстрелы
     local tool = myChar:FindFirstChildOfClass("Tool")
     if tool and isGun(tool) then
         for i = 1, 3 do
@@ -276,6 +270,7 @@ local function autoTPShootMurderer()
         end
     end
     
+    -- Возврат
     task.wait(0.1)
     pcall(function()
         if myHrp and myHrp.Parent then
@@ -534,7 +529,7 @@ local function createGUI()
     ttl.Size = UDim2.new(1, -130, 1, 0)
     ttl.Position = UDim2.new(0, 50, 0, 0)
     ttl.BackgroundTransparency = 1
-    ttl.Text = "АДМИНКА ВАНЬКА v15"
+    ttl.Text = "АДМИНКА ВАНЬКА v15.1"
     ttl.TextColor3 = Color3.new(1,1,1)
     ttl.TextSize = 14
     ttl.Font = Enum.Font.GothamBold
@@ -876,7 +871,7 @@ local function createGUI()
 
     addLabel(tabRage, "АИМ (только Мардер)")
     addToggle(tabRage, "Аимбот на Мардера", false, function(v) S.aimbot = v end)
-    addToggle(tabRage, "Авто-ТП к Мардеру + выстрел", false, function(v) S.autoTPShoot = v end)
+    addToggle(tabRage, "Авто-ТП ЗА СПИНУ + выстрел", false, function(v) S.autoTPShoot = v end)
     addBtn(tabRage, "Убить цель аима", Color3.fromRGB(170,20,30), function()
         if S.aimT and S.aimT.Character then
             local h = S.aimT.Character:FindFirstChildOfClass("Humanoid")
@@ -1323,6 +1318,6 @@ mainLoop()
 setupInfJump()
 runLoading()
 
-task.delay(6, function() notify("Админка v15 загружена!", Color3.fromRGB(255,0,100)) end)
+task.delay(6, function() notify("Админка v15.1 загружена!", Color3.fromRGB(255,0,100)) end)
 
-print("[VANKA v15] OK")
+print("[VANKA v15.1] OK")
