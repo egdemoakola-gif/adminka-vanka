@@ -1,4 +1,4 @@
--- ◆ АДМИНКА ВАНЬКА v17 - АВТО-РЕЖИМ ◆
+-- ◆ АДМИНКА ВАНЬКА v18 - ПРИКЛЕЙКА К МАРДЕРУ ◆
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players = game:GetService("Players")
@@ -41,7 +41,7 @@ local S = {
     roleHighlight=false, roleHL={},
     aimbot=false, aimbotFOV=200, aimT=nil,
     hardAim=true,
-    autoGunPlay=false, autoGunThread=nil, autoGunKilled={},
+    autoGunPlay=false, autoGunThread=nil,
     autoPickup=false, sheriffThread=nil, lastSheriffPos=nil, lastSheriff=nil,
     camper=false, camperT=nil,
     spin=false, spinSpeed=30,
@@ -182,100 +182,135 @@ local function equipMyKnife()
     return k
 end
 
--- ═════ АВТО-РЕЖИМ: пистолет появился → ищем Мардера → ТП → выстрел ═════
+-- ═════════════════════════════════════════════════════════════════
+-- АВТО-РЕЖИМ: пистолет появился → ищем Мардера → приклеиваемся к спине
+-- → стреляем каждый кадр → ждём смерть → ищем следующего
+-- ═════════════════════════════════════════════════════════════════
 local function startAutoGunPlay()
     if S.autoGunThread then return end
-    S.autoGunKilled = {}
     
     S.autoGunThread = task.spawn(function()
-        notify("АВТО-РЕЖИМ ВКЛ: жду пистолет...", Color3.fromRGB(255,200,0))
+        notify("АВТО: жду пистолет...", Color3.fromRGB(255,200,0))
+        
+        local currentTarget = nil
         
         while S.autoGunPlay do
-            -- 1) Есть ли у меня пистолет?
+            
+            -- 1) Есть ли пистолет?
             if not hasGunAnywhere() then
+                if currentTarget then
+                    notify("Пистолет пропал", Color3.fromRGB(150,150,150))
+                    currentTarget = nil
+                end
                 task.wait(0.3)
                 continue
             end
             
-            -- 2) Пистолет есть — ищем Мардера
-            local murderer = nil
-            for _, plr in ipairs(Players:GetPlayers()) do
-                if plr ~= LP and plr.Character then
-                    if getRole(plr) == "Murderer" then
-                        -- пропускаем если уже убили
-                        if not S.autoGunKilled[plr] then
+            -- 2) Достать пистолет в руку
+            if not hasGunInHand() then
+                equipGun()
+                task.wait(0.1)
+                if not hasGunInHand() then
+                    task.wait(0.3)
+                    continue
+                end
+            end
+            
+            -- 3) Если цели нет — ищем Мардера
+            if not currentTarget or not currentTarget.Character then
+                currentTarget = nil
+                for _, plr in ipairs(Players:GetPlayers()) do
+                    if plr ~= LP and plr.Character then
+                        if getRole(plr) == "Murderer" then
                             local h = plr.Character:FindFirstChildOfClass("Humanoid")
                             if h and h.Health > 0 then
-                                murderer = plr
+                                currentTarget = plr
+                                notify("Прицепился к " .. plr.Name, Color3.fromRGB(255,0,100))
                                 break
                             end
                         end
                     end
                 end
+                
+                if not currentTarget then
+                    task.wait(0.3)
+                    continue
+                end
             end
             
-            if not murderer then
-                task.wait(0.3)
+            -- 4) Проверка цели
+            local tChar = currentTarget.Character
+            if not tChar then
+                currentTarget = nil
+                task.wait(0.2)
+                continue
+            end
+            local tHum = tChar:FindFirstChildOfClass("Humanoid")
+            local tHrp = tChar:FindFirstChild("HumanoidRootPart")
+            local tHead = tChar:FindFirstChild("Head")
+            
+            if not tHum or tHum.Health <= 0 or not tHrp then
+                notify("УБИЛ " .. currentTarget.Name .. "!", Color3.fromRGB(0,255,100))
+                currentTarget = nil
+                task.wait(0.2)
                 continue
             end
             
-            notify("Нашёл Мардера: " .. murderer.Name, Color3.fromRGB(255,0,100))
-            
-            -- 3) Достаём пистолет
-            if not hasGunInHand() then
-                equipGun()
-                task.wait(0.1)
-            end
-            
-            if not hasGunInHand() then
-                task.wait(0.3)
-                continue
-            end
-            
-            -- 4) ТП за спину
-            local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-            local tHrp = murderer.Character and murderer.Character:FindFirstChild("HumanoidRootPart")
-            local tHead = murderer.Character and murderer.Character:FindFirstChild("Head")
-            if not myHrp or not tHrp then task.wait(0.3) continue end
-            
-            local tPos = tHrp.CFrame
-            myHrp.CFrame = tPos * CFrame.new(0, 0, 2)
-            
-            -- 5) Камера на голову
-            if tHead then
-                Cam.CFrame = CFrame.new(Cam.CFrame.Position, tHead.Position)
-            end
-            
-            -- 6) Захват контроля
-            for _, p in ipairs(murderer.Character:GetDescendants()) do
+            -- 5) Захват network ownership
+            for _, p in ipairs(tChar:GetDescendants()) do
                 if p:IsA("BasePart") then
                     pcall(function() p:SetNetworkOwner(LP) end)
                 end
             end
             
-            -- 7) Стреляем 5 раз
-            local tool = LP.Character:FindFirstChildOfClass("Tool")
+            -- 6) ПРИКЛЕИТЬСЯ К СПИНЕ
+            local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+            if myHrp and tHrp then
+                pcall(function()
+                    myHrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 2)
+                end)
+                pcall(function()
+                    myHrp.Velocity = Vector3.new(0, 0, 0)
+                end)
+            end
+            
+            -- 7) Камера на голову
+            if tHead then
+                pcall(function()
+                    Cam.CFrame = CFrame.new(Cam.CFrame.Position, tHead.Position)
+                end)
+            end
+            
+            -- 8) Стреляем каждый кадр
+            local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
             if tool and isGun(tool) then
-                for i = 1, 5 do
+                for i = 1, 3 do
                     pcall(function() tool:Activate() end)
                 end
             end
             
-            -- 8) Помечаем что стреляли в него
-            S.autoGunKilled[murderer] = true
-            notify("Выстрелил в " .. murderer.Name, Color3.fromRGB(0,200,100))
+            -- 9) Проверка — не умер ли
+            if tHum.Health <= 0 then
+                notify("УБИЛ " .. currentTarget.Name .. "!", Color3.fromRGB(0,255,100))
+                currentTarget = nil
+            end
             
-            -- 9) Продолжаем цикл (ищем следующего если этот умер)
-            task.wait(0.5)
+            -- 10) Проверка роли
+            if currentTarget and getRole(currentTarget) ~= "Murderer" then
+                currentTarget = nil
+            end
+            
+            task.wait()
         end
+        
         S.autoGunThread = nil
+        notify("АВТО ВЫКЛ", Color3.fromRGB(150,150,150))
     end)
 end
 
 local function stopAutoGunPlay()
     S.autoGunPlay = false
     S.autoGunThread = nil
-    S.autoGunKilled = {}
 end
 
 -- АВТО-ПОДБОР
@@ -464,7 +499,7 @@ end
 local function startKillAllLoop()
     if S.killLoopThread then return end
     S.killLoopThread = task.spawn(function()
-        notify("KILL ALL: жду роль Мардера...", Color3.fromRGB(255,150,0))
+        notify("KILL ALL: жду Мардера...", Color3.fromRGB(255,150,0))
         while S.killAllEnabled do
             local myRole = getRole(LP)
             if myRole == "Murderer" then
@@ -564,7 +599,7 @@ local function createGUI()
     ttl.Size = UDim2.new(1, -130, 1, 0)
     ttl.Position = UDim2.new(0, 50, 0, 0)
     ttl.BackgroundTransparency = 1
-    ttl.Text = "АДМИНКА ВАНЬКА v17"
+    ttl.Text = "АДМИНКА ВАНЬКА v18"
     ttl.TextColor3 = Color3.new(1,1,1)
     ttl.TextSize = 14
     ttl.Font = Enum.Font.GothamBold
@@ -781,9 +816,9 @@ local function createGUI()
     local tabPlayers = addTab("players", nil)
     switchTab("main")
 
-    -- ═══ ГЛАВНАЯ КНОПКА — АВТО-РЕЖИМ ═══
-    addLabel(tabMain, "★ АВТО-РЕЖИМ (ПИСТОЛЕТ → ТП → ВЫСТРЕЛ)")
-    addToggle(tabMain, "АВТО: пистолет появился → ТП к Мардеру → выстрел", false, function(v)
+    -- ★ ГЛАВНАЯ КНОПКА АВТО-РЕЖИМА
+    addLabel(tabMain, "★ АВТО: ПРИКЛЕИТЬСЯ К МАРДЕРУ")
+    addToggle(tabMain, "АВТО (пестик → приклеился → убил → ждёт нового)", false, function(v)
         S.autoGunPlay = v
         if v then startAutoGunPlay() else stopAutoGunPlay() end
     end)
@@ -1093,7 +1128,6 @@ local function mainLoop()
                 fovCircle.Visible = false
             end
         end
-        -- Ручной аим (когда включен)
         if S.aimbot then
             local cl, dist = nil, S.aimbotFOV * 3
             for _, plr in ipairs(Players:GetPlayers()) do
@@ -1275,6 +1309,6 @@ mainLoop()
 setupInfJump()
 runLoading()
 
-task.delay(6, function() notify("Админка v17 загружена! Авто-режим готов", Color3.fromRGB(255,0,100)) end)
+task.delay(6, function() notify("Админка v18 загружена! Авто-приклейка готова", Color3.fromRGB(255,0,100)) end)
 
-print("[VANKA v17] OK")
+print("[VANKA v18] OK")
