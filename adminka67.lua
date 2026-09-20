@@ -1,4 +1,4 @@
--- [[ АДМИНКА ВАНЬКА v3.0 ]] --
+-- [[ АДМИНКА ВАНЬКА v3.1 - Bulletproof ]] --
 if _G.VankaKill then pcall(_G.VankaKill) end
 
 local Players = game:GetService("Players")
@@ -10,12 +10,12 @@ local LP = Players.LocalPlayer
 local Cam = workspace.CurrentCamera
 local Mouse = LP:GetMouse()
 
--- ===== ЛОГОТИП С GITHUB =====
+-- ===== ЛОГОТИП =====
 local LOGO_URL = "https://raw.githubusercontent.com/egdemoakola-gif/adminka-vanka/main/vanya.png"
 local LOGO_FILE = "vanka_logo.png"
 local LOGO = nil
 
-local function loadLogo()
+pcall(function()
     if isfile and getcustomasset then
         if isfile(LOGO_FILE) then
             local ok, a = pcall(getcustomasset, LOGO_FILE)
@@ -30,10 +30,9 @@ local function loadLogo()
             if ok2 and a and a ~= "" then LOGO = a end
         end
     end
-end
-pcall(loadLogo)
+end)
 
--- ===== GUI ROOT =====
+-- ===== GUI =====
 local parent = (gethui and gethui()) or game:GetService("CoreGui")
 
 local gui = Instance.new("ScreenGui")
@@ -42,69 +41,18 @@ gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
 gui.Parent = parent
 
--- ===== ЗАГРУЗОЧНЫЙ ЭКРАН =====
-local loadF = Instance.new("Frame")
-loadF.Size = UDim2.new(1, 0, 1, 0)
-loadF.BackgroundColor3 = Color3.fromRGB(8, 8, 14)
-loadF.BorderSizePixel = 0
-loadF.ZIndex = 500
-loadF.Parent = gui
+-- ===== СОСТОЯНИЕ =====
+local S = {
+    roles = false, aim = false, fov = true, fovR = 180,
+    camper = false, camperT = nil, wall = false,
+    fly = false, noclip = false, infjump = false,
+    spin = false, spinSpeed = 30, crosshair = true,
+    autoShoot = false, autoGun = false,
+    gunState = "idle", gunReturnPos = nil, gunCooldown = 0,
+    hl = {}, aimT = nil,
+}
 
-if LOGO then
-    local lImg = Instance.new("ImageLabel")
-    lImg.Size = UDim2.new(0, 140, 0, 140)
-    lImg.Position = UDim2.new(0.5, -70, 0.5, -120)
-    lImg.BackgroundTransparency = 1
-    lImg.Image = LOGO
-    lImg.ScaleType = Enum.ScaleType.Fit
-    lImg.ZIndex = 501
-    lImg.Parent = loadF
-end
-
-local lTitle = Instance.new("TextLabel")
-lTitle.Size = UDim2.new(1, 0, 0, 40)
-lTitle.Position = UDim2.new(0, 0, 0.5, 20)
-lTitle.BackgroundTransparency = 1
-lTitle.Text = "АДМИНКА ВАНЬКА"
-lTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-lTitle.TextSize = 24
-lTitle.Font = Enum.Font.GothamBold
-lTitle.ZIndex = 501
-lTitle.Parent = loadF
-
-local lStatus = Instance.new("TextLabel")
-lStatus.Size = UDim2.new(1, 0, 0, 24)
-lStatus.Position = UDim2.new(0, 0, 0.5, 60)
-lStatus.BackgroundTransparency = 1
-lStatus.Text = "Загрузка скрипта: 0%"
-lStatus.TextColor3 = Color3.fromRGB(180, 180, 200)
-lStatus.TextSize = 14
-lStatus.Font = Enum.Font.GothamMedium
-lStatus.ZIndex = 501
-lStatus.Parent = loadF
-
-local lBarBg = Instance.new("Frame")
-lBarBg.Size = UDim2.new(0, 300, 0, 8)
-lBarBg.Position = UDim2.new(0.5, -150, 0.5, 95)
-lBarBg.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-lBarBg.BorderSizePixel = 0
-lBarBg.ZIndex = 501
-lBarBg.Parent = loadF
-local lbc = Instance.new("UICorner")
-lbc.CornerRadius = UDim.new(1, 0)
-lbc.Parent = lBarBg
-
-local lBarFill = Instance.new("Frame")
-lBarFill.Size = UDim2.new(0, 0, 1, 0)
-lBarFill.BackgroundColor3 = Color3.fromRGB(255, 0, 100)
-lBarFill.BorderSizePixel = 0
-lBarFill.ZIndex = 502
-lBarFill.Parent = lBarBg
-local lfc = Instance.new("UICorner")
-lfc.CornerRadius = UDim.new(1, 0)
-lfc.Parent = lBarFill
-
--- ===== ОСНОВНОЕ ОКНО =====
+-- ===== ОСНОВНОЕ ОКНО (СРАЗУ ВИДНОЕ) =====
 local main = Instance.new("Frame")
 main.Size = UDim2.new(0, 340, 0, 450)
 main.Position = UDim2.new(0, 10, 0.5, -225)
@@ -112,13 +60,11 @@ main.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
 main.BorderSizePixel = 0
 main.Active = true
 main.Draggable = true
-main.Visible = false
 main.Parent = gui
 
 local mc = Instance.new("UICorner")
 mc.CornerRadius = UDim.new(0, 12)
 mc.Parent = main
-
 local ms = Instance.new("UIStroke")
 ms.Color = Color3.fromRGB(255, 0, 100)
 ms.Thickness = 2
@@ -133,7 +79,6 @@ top.Parent = main
 local tc = Instance.new("UICorner")
 tc.CornerRadius = UDim.new(0, 12)
 tc.Parent = top
-
 local topFill = Instance.new("Frame")
 topFill.Size = UDim2.new(1, 0, 0, 18)
 topFill.Position = UDim2.new(0, 0, 1, -18)
@@ -167,20 +112,19 @@ local ttl = Instance.new("TextLabel")
 ttl.Size = UDim2.new(1, -120, 1, 0)
 ttl.Position = UDim2.new(0, 46, 0, 0)
 ttl.BackgroundTransparency = 1
-ttl.Text = "АДМИНКА ВАНЬКА v3"
+ttl.Text = "АДМИНКА ВАНЬКА v3.1"
 ttl.TextColor3 = Color3.fromRGB(255, 255, 255)
 ttl.TextSize = 13
 ttl.Font = Enum.Font.GothamBold
 ttl.TextXAlignment = Enum.TextXAlignment.Left
 ttl.Parent = top
 
--- Свернуть
 local minB = Instance.new("TextButton")
 minB.Size = UDim2.new(0, 26, 0, 26)
 minB.Position = UDim2.new(1, -64, 0, 8)
 minB.BackgroundColor3 = Color3.fromRGB(60, 60, 75)
 minB.Text = "—"
-minB.TextColor3 = Color3.new(1, 1, 1)
+minB.TextColor3 = Color3.new(1,1,1)
 minB.TextSize = 16
 minB.Font = Enum.Font.GothamBold
 minB.Parent = top
@@ -188,13 +132,12 @@ local mbc = Instance.new("UICorner")
 mbc.CornerRadius = UDim.new(0, 6)
 mbc.Parent = minB
 
--- Закрыть
 local closeB = Instance.new("TextButton")
 closeB.Size = UDim2.new(0, 26, 0, 26)
 closeB.Position = UDim2.new(1, -34, 0, 8)
 closeB.BackgroundColor3 = Color3.fromRGB(255, 55, 75)
 closeB.Text = "×"
-closeB.TextColor3 = Color3.new(1, 1, 1)
+closeB.TextColor3 = Color3.new(1,1,1)
 closeB.TextSize = 18
 closeB.Font = Enum.Font.GothamBold
 closeB.Parent = top
@@ -202,7 +145,7 @@ local cbc = Instance.new("UICorner")
 cbc.CornerRadius = UDim.new(0, 6)
 cbc.Parent = closeB
 
--- Кнопка-открывашка
+-- Кнопка открывашка
 local openB = Instance.new("TextButton")
 openB.Size = UDim2.new(0, 55, 0, 55)
 openB.Position = UDim2.new(0, 15, 0.5, -27)
@@ -226,7 +169,7 @@ else
     openB.Text = "🔥"
     openB.TextSize = 24
     openB.Font = Enum.Font.GothamBold
-    openB.TextColor3 = Color3.new(1, 1, 1)
+    openB.TextColor3 = Color3.new(1,1,1)
 end
 
 -- Табы
@@ -247,7 +190,6 @@ tabLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 tabLayout.Parent = tabBar
 
--- Контент
 local content = Instance.new("Frame")
 content.Size = UDim2.new(1, -16, 1, -130)
 content.Position = UDim2.new(0, 8, 0, 88)
@@ -294,7 +236,7 @@ local function addTab(key, name)
         for k, pg in pairs(pages) do pg.Visible = (k == key) end
         for k, btn in pairs(tabs) do
             btn.BackgroundColor3 = (k == key) and Color3.fromRGB(255, 0, 100) or Color3.fromRGB(35, 35, 48)
-            btn.TextColor3 = (k == key) and Color3.new(1, 1, 1) or Color3.fromRGB(180, 180, 200)
+            btn.TextColor3 = (k == key) and Color3.new(1,1,1) or Color3.fromRGB(180, 180, 200)
         end
     end)
     return p
@@ -305,7 +247,7 @@ local function mkBtn(parent_, text, color, cb)
     b.Size = UDim2.new(1, -6, 0, 32)
     b.BackgroundColor3 = color
     b.Text = text
-    b.TextColor3 = Color3.new(1, 1, 1)
+    b.TextColor3 = Color3.new(1,1,1)
     b.TextSize = 12
     b.Font = Enum.Font.GothamMedium
     b.TextWrapped = true
@@ -355,7 +297,7 @@ local function mkToggle(parent_, text, state, setter)
     local kn = Instance.new("Frame")
     kn.Size = UDim2.new(0, 14, 0, 14)
     kn.Position = state and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
-    kn.BackgroundColor3 = Color3.new(1, 1, 1)
+    kn.BackgroundColor3 = Color3.new(1,1,1)
     kn.BorderSizePixel = 0
     kn.Parent = sw
     local kc = Instance.new("UICorner")
@@ -384,30 +326,6 @@ local function mkLabel(parent_, text)
     l.Parent = parent_
     return l
 end
-
--- ===== СОСТОЯНИЕ =====
-local S = {
-    roles = false,
-    aim = false,
-    fov = true,
-    fovR = 180,
-    camper = false,
-    camperT = nil,
-    wall = false,
-    fly = false,
-    noclip = false,
-    infjump = false,
-    spin = false,
-    spinSpeed = 30,
-    crosshair = true,
-    autoShoot = false,
-    autoGun = false,
-    gunState = "idle",
-    gunReturnPos = nil,
-    gunCooldown = 0,
-    hl = {},
-    aimT = nil,
-}
 
 -- ===== РОЛИ =====
 local function getRole(plr)
@@ -490,20 +408,12 @@ crossH.Position = UDim2.new(0.5, -8, 0.5, -1)
 crossH.BackgroundColor3 = Color3.fromRGB(255, 0, 100)
 crossH.BorderSizePixel = 0
 crossH.Parent = gui
-local chc = Instance.new("UICorner")
-chc.CornerRadius = UDim.new(1, 0)
-chc.Parent = crossH
-
 local crossV = Instance.new("Frame")
 crossV.Size = UDim2.new(0, 2, 0, 16)
 crossV.Position = UDim2.new(0.5, -1, 0.5, -8)
 crossV.BackgroundColor3 = Color3.fromRGB(255, 0, 100)
 crossV.BorderSizePixel = 0
 crossV.Parent = gui
-local cvc = Instance.new("UICorner")
-cvc.CornerRadius = UDim.new(1, 0)
-cvc.Parent = crossV
-
 local crossDot = Instance.new("Frame")
 crossDot.Size = UDim2.new(0, 4, 0, 4)
 crossDot.Position = UDim2.new(0.5, -2, 0.5, -2)
@@ -519,20 +429,17 @@ local tabMain = addTab("main", "🎮 Main")
 local tabVisual = addTab("visual", "👁 Visual")
 local tabRage = addTab("rage", "⚡ Rage")
 
--- показать main по умолчанию
 for k, pg in pairs(pages) do pg.Visible = (k == "main") end
 tabs["main"].BackgroundColor3 = Color3.fromRGB(255, 0, 100)
-tabs["main"].TextColor3 = Color3.new(1, 1, 1)
+tabs["main"].TextColor3 = Color3.new(1,1,1)
 
--- ============ MAIN ============
+-- MAIN
 mkLabel(tabMain, "РОЛИ")
-mkToggle(tabMain, "Подсветка ролей (К/С/З)", false, function(v)
+mkToggle(tabMain, "Подсветка ролей", false, function(v)
     S.roles = v
     if v then refreshHL() else clearHL() end
 end)
-mkBtn(tabMain, "🔄 Обновить подсветку", Color3.fromRGB(40, 80, 160), function()
-    refreshHL()
-end)
+mkBtn(tabMain, "🔄 Обновить подсветку", Color3.fromRGB(40, 80, 160), function() refreshHL() end)
 
 mkLabel(tabMain, "АВТО-КАМПЕР")
 mkToggle(tabMain, "Кампер (за Шерифом)", false, function(v)
@@ -542,10 +449,7 @@ end)
 mkBtn(tabMain, "🔄 Найти Шерифа", Color3.fromRGB(80, 60, 130), function()
     S.camperT = nil
     for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= LP and getRole(plr) == "s" then
-            S.camperT = plr
-            break
-        end
+        if plr ~= LP and getRole(plr) == "s" then S.camperT = plr; break end
     end
 end)
 
@@ -554,18 +458,13 @@ mkToggle(tabMain, "Авто-подбор Пистолета", false, function(v)
     S.autoGun = v
     if not v then S.gunState = "idle"; S.gunReturnPos = nil end
 end)
-mkBtn(tabMain, "ℹ️ Как работает", Color3.fromRGB(60, 60, 90), function(b)
-    b.Text = "Когда Шериф умирает и пистолет падает — я телепортируюсь к нему, подбираю и возвращаюсь назад"
-end)
 
 mkLabel(tabMain, "ДЕЙСТВИЯ")
 mkBtn(tabMain, "💀 Убить всех", Color3.fromRGB(170, 20, 30), function()
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr ~= LP and plr.Character then
             local h = plr.Character:FindFirstChildOfClass("Humanoid")
-            if h and h.Health > 0 then
-                pcall(function() h.Health = 0 end)
-            end
+            if h and h.Health > 0 then pcall(function() h.Health = 0 end) end
         end
     end
 end)
@@ -584,7 +483,7 @@ end)
 
 mkLabel(tabMain, "ИГРОКИ")
 local playersList = Instance.new("Frame")
-playersList.Size = UDim2.new(1, -6, 0, 200)
+playersList.Size = UDim2.new(1, -6, 0, 180)
 playersList.BackgroundColor3 = Color3.fromRGB(18, 18, 26)
 playersList.BorderSizePixel = 0
 playersList.Parent = tabMain
@@ -610,11 +509,9 @@ plLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 end)
 
 local playerRows = {}
-
 local function rebuildPlayerList()
     for _, r in pairs(playerRows) do r:Destroy() end
     playerRows = {}
-
     for _, plr in ipairs(Players:GetPlayers()) do
         local row = Instance.new("Frame")
         row.Size = UDim2.new(1, -4, 0, 36)
@@ -652,24 +549,20 @@ local function rebuildPlayerList()
         tpBtn.Position = UDim2.new(1, -56, 0.5, -13)
         tpBtn.BackgroundColor3 = Color3.fromRGB(40, 100, 200)
         tpBtn.Text = "ТП"
-        tpBtn.TextColor3 = Color3.new(1, 1, 1)
+        tpBtn.TextColor3 = Color3.new(1,1,1)
         tpBtn.TextSize = 11
         tpBtn.Font = Enum.Font.GothamBold
         tpBtn.Parent = row
         local tbc2 = Instance.new("UICorner")
         tbc2.CornerRadius = UDim.new(0, 5)
         tbc2.Parent = tpBtn
-
         tpBtn.MouseButton1Click:Connect(function()
             if plr ~= LP and plr.Character and LP.Character then
                 local t = plr.Character:FindFirstChild("HumanoidRootPart")
                 local m = LP.Character:FindFirstChild("HumanoidRootPart")
-                if t and m then
-                    pcall(function() m.CFrame = t.CFrame * CFrame.new(0, 0, 4) end)
-                end
+                if t and m then pcall(function() m.CFrame = t.CFrame * CFrame.new(0, 0, 4) end) end
             end
         end)
-
         playerRows[plr] = row
     end
 end
@@ -677,22 +570,20 @@ end
 Players.PlayerAdded:Connect(function() task.wait(1) rebuildPlayerList() end)
 Players.PlayerRemoving:Connect(function() task.wait(0.3) rebuildPlayerList() end)
 
--- ============ VISUAL ============
+-- VISUAL
 mkLabel(tabVisual, "ПРИЦЕЛ")
 mkToggle(tabVisual, "Показывать прицел", true, function(v)
     S.crosshair = v
-    crossH.Visible = v
-    crossV.Visible = v
-    crossDot.Visible = v
+    crossH.Visible = v; crossV.Visible = v; crossDot.Visible = v
 end)
 
 mkLabel(tabVisual, "FOV")
-mkToggle(tabVisual, "Показывать круг FOV", true, function(v) S.fov = v end)
+mkToggle(tabVisual, "Показывать FOV", true, function(v) S.fov = v end)
 mkBtn(tabVisual, "➕ FOV +20", Color3.fromRGB(60, 60, 90), function() S.fovR = math.min(S.fovR + 20, 500) end)
 mkBtn(tabVisual, "➖ FOV -20", Color3.fromRGB(60, 60, 90), function() S.fovR = math.max(S.fovR - 20, 40) end)
 
 mkLabel(tabVisual, "ДВИЖЕНИЕ")
-mkToggle(tabVisual, "Полёт (WASD+Space)", false, function(v) S.fly = v end)
+mkToggle(tabVisual, "Полёт", false, function(v) S.fly = v end)
 mkToggle(tabVisual, "Noclip", false, function(v) S.noclip = v end)
 mkToggle(tabVisual, "Беск. прыжок", false, function(v) S.infjump = v end)
 mkBtn(tabVisual, "⚡ Скорость 16", Color3.fromRGB(60, 60, 90), function()
@@ -705,7 +596,7 @@ mkBtn(tabVisual, "⚡ Скорость 100", Color3.fromRGB(60, 60, 90), functio
     if LP.Character then local h = LP.Character:FindFirstChildOfClass("Humanoid"); if h then h.WalkSpeed = 100 end end
 end)
 
--- ============ RAGE ============
+-- RAGE
 mkLabel(tabRage, "АИМ")
 mkToggle(tabRage, "Аимбот", false, function(v) S.aim = v end)
 mkToggle(tabRage, "Стрельба через стены", false, function(v) S.wall = v end)
@@ -721,15 +612,9 @@ mkToggle(tabRage, "Авто-стрельба в Мардера", false, function
 
 mkLabel(tabRage, "СПИНБОТ")
 mkToggle(tabRage, "🌀 Спинбот", false, function(v) S.spin = v end)
-mkBtn(tabRage, "🌀 Скорость: 30", Color3.fromRGB(60, 60, 90), function(b)
-    S.spinSpeed = 30; b.Text = "🌀 Скорость: 30"
-end)
-mkBtn(tabRage, "🌀 Скорость: 60", Color3.fromRGB(60, 60, 90), function(b)
-    S.spinSpeed = 60; b.Text = "🌀 Скорость: 60"
-end)
-mkBtn(tabRage, "🌀 Скорость: 120", Color3.fromRGB(60, 60, 90), function(b)
-    S.spinSpeed = 120; b.Text = "🌀 Скорость: 120"
-end)
+mkBtn(tabRage, "🌀 Скорость 30", Color3.fromRGB(60, 60, 90), function(b) S.spinSpeed = 30; b.Text = "🌀 Скорость 30" end)
+mkBtn(tabRage, "🌀 Скорость 60", Color3.fromRGB(60, 60, 90), function(b) S.spinSpeed = 60; b.Text = "🌀 Скорость 60" end)
+mkBtn(tabRage, "🌀 Скорость 120", Color3.fromRGB(60, 60, 90), function(b) S.spinSpeed = 120; b.Text = "🌀 Скорость 120" end)
 
 mkLabel(tabRage, "УТИЛИТЫ")
 mkBtn(tabRage, "🔃 Respawn", Color3.fromRGB(100, 60, 150), function()
@@ -747,16 +632,16 @@ mkBtn(tabRage, "⛔ ВЫКЛЮЧИТЬ ВСЁ", Color3.fromRGB(180, 0, 100), fun
     end
 end)
 
--- ===== АВТО-ПИСТОЛЕТ ЛОГИКА =====
+-- ===== АВТО-ПИСТОЛЕТ =====
 local function findDroppedGun()
     for _, obj in ipairs(workspace:GetDescendants()) do
         if obj:IsA("Tool") then
-            local inChar = false
+            local inUse = false
             for _, plr in ipairs(Players:GetPlayers()) do
-                if plr.Character and obj:IsDescendantOf(plr.Character) then inChar = true; break end
-                if plr.Backpack and obj:IsDescendantOf(plr.Backpack) then inChar = true; break end
+                if plr.Character and obj:IsDescendantOf(plr.Character) then inUse = true; break end
+                if plr.Backpack and obj:IsDescendantOf(plr.Backpack) then inUse = true; break end
             end
-            if not inChar then
+            if not inUse then
                 local nm = string.lower(obj.Name)
                 if string.find(nm, "gun") or string.find(nm, "pistol") or string.find(nm, "revolver") then
                     return obj
@@ -767,14 +652,12 @@ local function findDroppedGun()
     return nil
 end
 
--- ===== ОСНОВНОЙ ЦИКЛ =====
+-- ===== ГЛАВНЫЙ ЦИКЛ =====
 local conn = RunService.RenderStepped:Connect(function(dt)
-    -- прицел
     if not S.crosshair then
         crossH.Visible = false; crossV.Visible = false; crossDot.Visible = false
     end
 
-    -- FOV
     if S.aim and S.fov then
         fovC.Visible = true
         fovC.Size = UDim2.new(0, S.fovR * 2, 0, S.fovR * 2)
@@ -782,7 +665,6 @@ local conn = RunService.RenderStepped:Connect(function(dt)
         fovC.Visible = false
     end
 
-    -- AIM
     if S.aim then
         local closest, dist = nil, S.fovR * 3
         for _, plr in ipairs(Players:GetPlayers()) do
@@ -794,9 +676,7 @@ local conn = RunService.RenderStepped:Connect(function(dt)
                         local cx = Cam.ViewportSize.X / 2
                         local cy = Cam.ViewportSize.Y / 2
                         local d = math.sqrt((sp.X - cx) ^ 2 + (sp.Y - cy) ^ 2)
-                        if d < S.fovR and d < dist then
-                            dist = d; closest = plr
-                        end
+                        if d < S.fovR and d < dist then dist = d; closest = plr end
                     end
                 end
             end
@@ -808,20 +688,16 @@ local conn = RunService.RenderStepped:Connect(function(dt)
         end
     end
 
-    -- AUTO SHOOT (мардер)
     if S.autoShoot and S.aimT and S.aimT.Character then
         if getRole(S.aimT) == "k" then
             local char = LP.Character
             if char then
                 local tool = char:FindFirstChildOfClass("Tool")
-                if tool then
-                    pcall(function() tool:Activate() end)
-                end
+                if tool then pcall(function() tool:Activate() end) end
             end
         end
     end
 
-    -- SPINBOT
     if S.spin and LP.Character then
         local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
@@ -829,7 +705,6 @@ local conn = RunService.RenderStepped:Connect(function(dt)
         end
     end
 
-    -- AUTO GUN
     if S.autoGun then
         S.gunCooldown = S.gunCooldown - dt
         if S.gunState == "idle" then
@@ -855,12 +730,9 @@ local conn = RunService.RenderStepped:Connect(function(dt)
                 end
             end
         elseif S.gunState == "pickup" and S.gunCooldown <= 0 then
-            -- возвращаемся
             if S.gunReturnPos and LP.Character then
                 local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    pcall(function() hrp.CFrame = S.gunReturnPos end)
-                end
+                if hrp then pcall(function() hrp.CFrame = S.gunReturnPos end) end
             end
             S.gunState = "idle"
             S.gunReturnPos = nil
@@ -868,7 +740,6 @@ local conn = RunService.RenderStepped:Connect(function(dt)
         end
     end
 
-    -- CAMPER
     if S.camper then
         local valid = S.camperT and S.camperT.Parent and S.camperT.Character
         if valid then
@@ -879,25 +750,19 @@ local conn = RunService.RenderStepped:Connect(function(dt)
             S.camperT = nil
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LP and plr.Character and getRole(plr) == "s" then
-                    S.camperT = plr
-                    break
+                    S.camperT = plr; break
                 end
             end
         end
         if S.camperT and S.camperT.Character then
             local t = S.camperT.Character:FindFirstChild("HumanoidRootPart")
             local m = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-            if t and m then
-                pcall(function()
-                    m.CFrame = t.CFrame * CFrame.new(0, 0, 3)
-                end)
-            end
+            if t and m then pcall(function() m.CFrame = t.CFrame * CFrame.new(0, 0, 3) end) end
         end
     end
 
     if S.roles then refreshHL() end
 
-    -- FLY
     if S.fly and LP.Character then
         local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
@@ -908,15 +773,10 @@ local conn = RunService.RenderStepped:Connect(function(dt)
             if UIS:IsKeyDown(Enum.KeyCode.D) then dir = dir + Cam.CFrame.RightVector end
             if UIS:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0, 1, 0) end
             if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir = dir - Vector3.new(0, 1, 0) end
-            if dir.Magnitude > 0 then
-                hrp.Velocity = dir.Unit * 60
-            else
-                hrp.Velocity = Vector3.new(0, 0, 0)
-            end
+            if dir.Magnitude > 0 then hrp.Velocity = dir.Unit * 60 else hrp.Velocity = Vector3.new(0, 0, 0) end
         end
     end
 
-    -- NOCLIP
     if S.noclip and LP.Character then
         for _, p in ipairs(LP.Character:GetDescendants()) do
             if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end
@@ -937,9 +797,7 @@ local wbConn = Mouse.Button1Down:Connect(function()
     end
     if target and target.Character then
         local h = target.Character:FindFirstChildOfClass("Humanoid")
-        if h and h.Health > 0 then
-            pcall(function() h:TakeDamage(200) end)
-        end
+        if h and h.Health > 0 then pcall(function() h:TakeDamage(200) end) end
     end
 end)
 
@@ -960,54 +818,93 @@ local function cleanup()
     pcall(function() gui:Destroy() end)
     _G.VankaKill = nil
 end
-
 _G.VankaKill = cleanup
 
 minB.MouseButton1Click:Connect(function()
     main.Visible = false
     openB.Visible = true
 end)
-
 openB.MouseButton1Click:Connect(function()
     main.Visible = true
     openB.Visible = false
 end)
-
 closeB.MouseButton1Click:Connect(cleanup)
 
--- ===== ЗАГРУЗКА 0-100% =====
-local function runLoading()
-    local steps = {
-        {p=10, t="Загрузка логотипа..."},
-        {p=30, t="Подключение к серверу..."},
-        {p=50, t="Загрузка модулей..."},
-        {p=70, t="Настройка интерфейса..."},
-        {p=90, t="Почти готово..."},
-        {p=100, t="Готово!"},
-    }
-    for _, step in ipairs(steps) do
-        lStatus.Text = "Загрузка скрипта: " .. step.p .. "%"
-        TweenService:Create(lBarFill, TweenInfo.new(0.25), {
-            Size = UDim2.new(step.p / 100, 0, 1, 0)
-        }):Play()
-        task.wait(0.28)
-    end
-    task.wait(0.3)
-    -- закрываем загрузочный экран
-    TweenService:Create(loadF, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
-    for _, c in ipairs(loadF:GetChildren()) do
-        if c:IsA("TextLabel") or c:IsA("ImageLabel") or c:IsA("Frame") then
-            pcall(function()
-                TweenService:Create(c, TweenInfo.new(0.4), {BackgroundTransparency = 1, TextTransparency = 1}):Play()
-            end)
+-- ===== ЗАГРУЗКА (ОТДЕЛЬНО, ПОВЕРХ, САМА УБИРАЕТСЯ) =====
+task.spawn(function()
+    local ok = pcall(function()
+        local loadF = Instance.new("Frame")
+        loadF.Size = UDim2.new(1, 0, 1, 0)
+        loadF.BackgroundColor3 = Color3.fromRGB(8, 8, 14)
+        loadF.BorderSizePixel = 0
+        loadF.ZIndex = 500
+        loadF.Parent = gui
+
+        if LOGO then
+            local li = Instance.new("ImageLabel")
+            li.Size = UDim2.new(0, 140, 0, 140)
+            li.Position = UDim2.new(0.5, -70, 0.5, -120)
+            li.BackgroundTransparency = 1
+            li.Image = LOGO
+            li.ScaleType = Enum.ScaleType.Fit
+            li.ZIndex = 501
+            li.Parent = loadF
         end
-    end
-    task.wait(0.5)
-    loadF:Destroy()
-    main.Visible = true
-    rebuildPlayerList()
-end
 
-task.spawn(runLoading)
+        local lt = Instance.new("TextLabel")
+        lt.Size = UDim2.new(1, 0, 0, 30)
+        lt.Position = UDim2.new(0, 0, 0.5, 20)
+        lt.BackgroundTransparency = 1
+        lt.Text = "АДМИНКА ВАНЬКА"
+        lt.TextColor3 = Color3.fromRGB(255, 255, 255)
+        lt.TextSize = 22
+        lt.Font = Enum.Font.GothamBold
+        lt.ZIndex = 501
+        lt.Parent = loadF
 
-print("[VANKA v3.0] Загружено! Логотип: " .. (LOGO and "OK" or "NO"))
+        local ls = Instance.new("TextLabel")
+        ls.Size = UDim2.new(1, 0, 0, 20)
+        ls.Position = UDim2.new(0, 0, 0.5, 55)
+        ls.BackgroundTransparency = 1
+        ls.Text = "Загрузка: 0%"
+        ls.TextColor3 = Color3.fromRGB(180, 180, 200)
+        ls.TextSize = 14
+        ls.Font = Enum.Font.GothamMedium
+        ls.ZIndex = 501
+        ls.Parent = loadF
+
+        local bb = Instance.new("Frame")
+        bb.Size = UDim2.new(0, 280, 0, 8)
+        bb.Position = UDim2.new(0.5, -140, 0.5, 85)
+        bb.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        bb.BorderSizePixel = 0
+        bb.ZIndex = 501
+        bb.Parent = loadF
+        local bbc = Instance.new("UICorner")
+        bbc.CornerRadius = UDim.new(1, 0)
+        bbc.Parent = bb
+
+        local bf = Instance.new("Frame")
+        bf.Size = UDim2.new(0, 0, 1, 0)
+        bf.BackgroundColor3 = Color3.fromRGB(255, 0, 100)
+        bf.BorderSizePixel = 0
+        bf.ZIndex = 502
+        bf.Parent = bb
+        local bfc = Instance.new("UICorner")
+        bfc.CornerRadius = UDim.new(1, 0)
+        bfc.Parent = bf
+
+        for i = 1, 20 do
+            ls.Text = "Загрузка: " .. (i * 5) .. "%"
+            bf.Size = UDim2.new(i / 20, 0, 1, 0)
+            task.wait(0.08)
+        end
+        task.wait(0.2)
+        loadF:Destroy()
+    end)
+    -- Если что-то пошло не так — всё равно убираем через 3 сек
+end)
+
+-- ===== СТАРТ =====
+rebuildPlayerList()
+print("[VANKA v3.1] Загружено! Лого: " .. (LOGO and "OK" or "NO"))
