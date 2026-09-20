@@ -1,4 +1,4 @@
--- ◆ АДМИНКА ВАНЬКА v12 ◆
+-- ◆ АДМИНКА ВАНЬКА v13 ◆
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players = game:GetService("Players")
@@ -12,7 +12,6 @@ local LP = Players.LocalPlayer
 local Cam = workspace.CurrentCamera
 local Mouse = LP:GetMouse()
 
--- ЗАГРУЗКА КАРТИНОК
 local GH = "https://raw.githubusercontent.com/egdemoakola-gif/adminka-vanka/main/"
 local function downloadImg(name)
     local file = "vanka_" .. name
@@ -38,24 +37,22 @@ local IMG_MAIN = downloadImg("main.png")
 local IMG_VIS  = downloadImg("visial.png")
 local IMG_RAGE = downloadImg("rage.png")
 
--- СОСТОЯНИЕ
 local S = {
     roleHighlight=false, roleHL={},
     aimbot=false, aimbotFOV=200, aimT=nil,
     hardAim=true,
     autoShoot=false, autoGun=false, gunESP=false, gunHL=nil,
-    autoDraw=false, gunState="idle", gunReturnPos=nil, gunCooldown=0,
+    autoDraw=false,
     camper=false, camperT=nil, wall=false,
     spin=false, spinSpeed=30,
     fly=false, noclip=false, infjump=false,
     crosshair=true, fovCircle=true,
     killAllEnabled=false, killList={}, killThread=nil, killLoopThread=nil,
-    sheriffWatch=false, lastSheriff=nil, watchThread=nil,
+    sheriffWatch=false, lastSheriff=nil, lastSheriffPos=nil, watchThread=nil,
     conns={}, gui=nil,
     fullbright=false, oldLighting=nil,
 }
 
--- УВЕДОМЛЕНИЯ
 local function notify(text, color)
     color = color or Color3.fromRGB(255,0,100)
     if not S.gui then return end
@@ -97,7 +94,6 @@ local function notify(text, color)
     end)
 end
 
--- РОЛИ
 local function getRole(plr)
     if not plr or not plr.Character then return "Innocent" end
     local function has(nm)
@@ -128,7 +124,7 @@ local function isGunName(nm)
     local n = string.lower(nm)
     return string.find(n,"gun") or string.find(n,"pistol") or string.find(n,"revolver") or 
            string.find(n,"weapon") or string.find(n,"firearm") or string.find(n,"colt") or
-           string.find(n,"magnum") or string.find(n,"sheriffgun")
+           string.find(n,"magnum") or string.find(n,"sheriff") or string.find(n,"shoot")
 end
 
 local function isGun(t)
@@ -173,47 +169,63 @@ local function equipMyKnife()
     return k
 end
 
--- ═════ УЛУЧШЕННЫЙ ПОИСК ПИСТОЛЕТА ═════
+-- ═════ УМНЫЙ ПОИСК ПИСТОЛЕТА ═════
+-- 1. Если знаем где умер Шериф — ищем рядом с этой точкой
+-- 2. Если не знаем — ищем по всему workspace
+-- 3. Берём ЛЮБОЙ Tool который не в руках и не в рюкзаке
+local function isToolUsedByAnyone(obj)
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr.Character and obj:IsDescendantOf(plr.Character) then return true end
+        if plr.Backpack and obj:IsDescendantOf(plr.Backpack) then return true end
+    end
+    return false
+end
+
 local function findDroppedGun()
-    local gunNames = {"gun", "pistol", "revolver", "weapon", "firearm", "sheriffgun", "colt", "magnum"}
+    local best, bestHandle, bestDist = nil, nil, math.huge
+    local searchPos = S.lastSheriffPos
     
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("Tool") or obj:IsA("Model") or obj:IsA("BasePart") then
-            local nm = string.lower(obj.Name)
-            local isGunName2 = false
-            for _, gn in ipairs(gunNames) do
-                if string.find(nm, gn) then isGunName2 = true break end
-            end
-            
-            if isGunName2 then
-                local used = false
-                for _, plr in ipairs(Players:GetPlayers()) do
-                    if plr.Character and obj:IsDescendantOf(plr.Character) then used = true break end
-                    if plr.Backpack and obj:IsDescendantOf(plr.Backpack) then used = true break end
-                end
+    -- Проходим по всем Tools в workspace
+    for _, o in ipairs(workspace:GetDescendants()) do
+        if o:IsA("Tool") and not isToolUsedByAnyone(o) then
+            local handle = o:FindFirstChild("Handle")
+            if handle and handle:IsA("BasePart") then
+                local nm = string.lower(o.Name)
+                local isGunish = isGunName(nm)
+                local isKnifeish = string.find(nm, "knife") or string.find(nm, "dagger")
                 
-                if not used then
-                    local handle = nil
-                    if obj:IsA("Tool") then
-                        handle = obj:FindFirstChild("Handle")
-                    elseif obj:IsA("Model") then
-                        handle = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                    elseif obj:IsA("BasePart") then
-                        handle = obj
+                -- Не берём ножи (убийца их не подбирает — он их выкидывает)
+                if not isKnifeish then
+                    local dist = 0
+                    
+                    -- Если знаем позицию Шерифа — ищем рядом
+                    if searchPos then
+                        dist = (handle.Position - searchPos).Magnitude
+                        -- Если далеко от точки смерти — пропускаем
+                        if dist > 100 then
+                            dist = math.huge
+                        end
+                    else
+                        -- Не знаем позицию — берём первый подходящий
+                        dist = 1
                     end
                     
-                    if handle and handle:IsA("BasePart") then
-                        -- Проверяем TouchInterest (главный признак что можно подобрать)
-                        local hasTouch = handle:FindFirstChildOfClass("TouchInterest") ~= nil
-                        if hasTouch then
-                            return obj, handle
-                        end
+                    -- Приоритет: похоже на gun + ближе всех
+                    if isGunish then
+                        dist = dist - 50
+                    end
+                    
+                    if dist < bestDist then
+                        bestDist = dist
+                        best = o
+                        bestHandle = handle
                     end
                 end
             end
         end
     end
-    return nil, nil
+    
+    return best, bestHandle
 end
 
 local function hasGunInHand()
@@ -235,7 +247,6 @@ local function equipGun()
     return false
 end
 
--- ESP
 local function refreshHL()
     if not S.roleHighlight then return end
     for _, plr in ipairs(Players:GetPlayers()) do
@@ -262,7 +273,6 @@ local function clearHL()
     S.roleHL = {}
 end
 
--- ФЛИНГ
 local function fling(target)
     if not target or target == LP or not target.Character then
         notify("Нет цели", Color3.fromRGB(255,60,60))
@@ -329,7 +339,6 @@ local function fling(target)
     end)
 end
 
--- KILL ALL
 local function killOneTarget(target)
     if not target or target == LP or not target.Character then return false end
     local myChar = LP.Character
@@ -423,7 +432,6 @@ local function stopAutoKillAll()
     S.killThread = nil
 end
 
--- ВЕЧНЫЙ ЦИКЛ KILL ALL (проверка роли каждый раунд)
 local function startKillAllLoop()
     if S.killLoopThread then return end
     
@@ -457,27 +465,40 @@ local function stopKillAllLoop()
     S.killLoopThread = nil
 end
 
--- СЛЕЖКА ЗА ШЕРИФОМ
+-- ═════ СЛЕЖКА ЗА ШЕРИФОМ (запоминаем точку смерти) ═════
 local function startSheriffWatch()
     if S.watchThread then return end
     S.lastSheriff = nil
+    S.lastSheriffPos = nil
     
     S.watchThread = task.spawn(function()
         notify("Слежу за Шерифом...", Color3.fromRGB(60,150,255))
         
         while S.sheriffWatch do
             local currentSheriff = nil
+            local currentPos = nil
+            
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LP and plr.Character then
                     if getRole(plr) == "Sheriff" then
                         currentSheriff = plr
+                        local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+                        if hrp then
+                            currentPos = hrp.Position
+                        end
                         break
                     end
                 end
             end
             
+            -- Обновляем позицию пока Шериф жив
+            if currentSheriff and currentPos then
+                S.lastSheriffPos = currentPos
+            end
+            
+            -- Шериф пропал → умер
             if S.lastSheriff and not currentSheriff then
-                notify("Шериф умер! Ищу пистолет...", Color3.fromRGB(255,220,0))
+                notify("Шериф умер! Ищу пистолет рядом с точкой смерти...", Color3.fromRGB(255,220,0))
                 task.wait(0.5)
                 
                 local gun, handle = findDroppedGun()
@@ -485,6 +506,7 @@ local function startSheriffWatch()
                     local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
                     if myHrp then
                         local myPos = myHrp.CFrame
+                        notify("Нашёл: " .. gun.Name .. "! Телепорт...", Color3.fromRGB(255,220,0))
                         
                         pcall(function()
                             myHrp.CFrame = handle.CFrame * CFrame.new(0, 1, 0)
@@ -511,7 +533,7 @@ local function startSheriffWatch()
                         notify("Пистолет подобран!", Color3.fromRGB(0,200,100))
                     end
                 else
-                    notify("Пистолет не найден", Color3.fromRGB(255,60,60))
+                    notify("Не нашёл пистолет", Color3.fromRGB(255,60,60))
                 end
             end
             
@@ -525,10 +547,10 @@ end
 local function stopSheriffWatch()
     S.sheriffWatch = false
     S.lastSheriff = nil
+    S.lastSheriffPos = nil
     S.watchThread = nil
 end
 
--- СОЗДАНИЕ GUI
 local function createGUI()
     local parent = (gethui and gethui()) or game:GetService("CoreGui")
     local gui = Instance.new("ScreenGui")
@@ -603,7 +625,7 @@ local function createGUI()
     ttl.Size = UDim2.new(1, -130, 1, 0)
     ttl.Position = UDim2.new(0, 50, 0, 0)
     ttl.BackgroundTransparency = 1
-    ttl.Text = "АДМИНКА ВАНЬКА v12"
+    ttl.Text = "АДМИНКА ВАНЬКА v13"
     ttl.TextColor3 = Color3.new(1,1,1)
     ttl.TextSize = 14
     ttl.Font = Enum.Font.GothamBold
@@ -820,7 +842,6 @@ local function createGUI()
     local tabPlayers = addTab("players", nil)
     switchTab("main")
 
-    -- MAIN
     addLabel(tabMain, "РОЛИ И ESP")
     addToggle(tabMain, "Подсветка ролей (К/С/З)", false, function(v)
         S.roleHighlight = v
@@ -845,9 +866,34 @@ local function createGUI()
     end)
 
     addLabel(tabMain, "АВТО-ПИСТОЛЕТ")
-    addToggle(tabMain, "Следить за Шерифом (подбор)", false, function(v)
+    addToggle(tabMain, "Следить за Шерифом", false, function(v)
         S.sheriffWatch = v
         if v then startSheriffWatch() else stopSheriffWatch() end
+    end)
+    addBtn(tabMain, "Найти пистолет сейчас", Color3.fromRGB(200,150,0), function()
+        local gun, handle = findDroppedGun()
+        if gun and handle then
+            notify("Нашёл: " .. gun.Name .. "!", Color3.fromRGB(0,200,100))
+            if LP.Character then
+                local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
+                if myHrp then
+                    local myPos = myHrp.CFrame
+                    pcall(function() myHrp.CFrame = handle.CFrame * CFrame.new(0, 1, 0) end)
+                    task.wait(0.1)
+                    pcall(function()
+                        if firetouchinterest then
+                            firetouchinterest(myHrp, handle, 0)
+                            task.wait(0.05)
+                            firetouchinterest(myHrp, handle, 1)
+                        end
+                    end)
+                    task.wait(0.2)
+                    pcall(function() myHrp.CFrame = myPos end)
+                end
+            end
+        else
+            notify("Пистолет не найден", Color3.fromRGB(255,60,60))
+        end
     end)
     addToggle(tabMain, "ESP для пистолета", false, function(v)
         S.gunESP = v
@@ -869,11 +915,10 @@ local function createGUI()
         end
     end)
 
-    -- VISUAL
     addLabel(tabVisual, "ПРИЦЕЛ")
     addToggle(tabVisual, "Показывать прицел", true, function(v) S.crosshair = v end)
     addToggle(tabVisual, "Показывать FOV", true, function(v) S.fovCircle = v end)
-    addToggle(tabVisual, "Жёсткий аим (без плавности)", true, function(v) S.hardAim = v end)
+    addToggle(tabVisual, "Жёсткий аим", true, function(v) S.hardAim = v end)
     addBtn(tabVisual, "FOV +20", Color3.fromRGB(60,60,90), function()
         S.aimbotFOV = math.min(S.aimbotFOV + 20, 600)
         notify("FOV: " .. S.aimbotFOV, Color3.fromRGB(100,200,255))
@@ -924,7 +969,6 @@ local function createGUI()
         end
     end)
 
-    -- RAGE
     addLabel(tabRage, "KILL ALL (авто)")
     addToggle(tabRage, "KILL ALL (проверка роли)", false, function(v)
         S.killAllEnabled = v
@@ -959,8 +1003,8 @@ local function createGUI()
     addBtn(tabRage, "ВЫКЛЮЧИТЬ ВСЁ", Color3.fromRGB(180,0,100), function()
         S.aimbot=false S.wall=false S.camper=false S.camperT=nil
         S.roleHighlight=false S.fly=false S.noclip=false S.infjump=false
-        S.spin=false S.autoShoot=false S.autoGun=false S.autoDraw=false
-        S.gunESP=false S.gunState="idle"
+        S.spin=false S.autoShoot=false S.autoDraw=false
+        S.gunESP=false
         S.killAllEnabled=false S.killList={}
         S.sheriffWatch=false
         stopKillAllLoop()
@@ -974,7 +1018,6 @@ local function createGUI()
         notify("Всё выключено", Color3.fromRGB(255,60,60))
     end)
 
-    -- PLAYERS
     addLabel(tabPlayers, "СПИСОК ИГРОКОВ")
     local pList = Instance.new("Frame")
     pList.Size = UDim2.new(1, -6, 0, 340)
@@ -1172,8 +1215,6 @@ local function mainLoop()
                 fovCircle.Visible = false
             end
         end
-
-        -- ═ АИМ ═
         if S.aimbot then
             local cl, dist = nil, S.aimbotFOV * 3
             for _, plr in ipairs(Players:GetPlayers()) do
@@ -1194,7 +1235,6 @@ local function mainLoop()
             end
             if cl and cl.Character and cl.Character:FindFirstChild("Head") then
                 S.aimT = cl
-                -- ЖЁСТКИЙ АИМ без Lerp
                 if S.hardAim then
                     Cam.CFrame = CFrame.new(Cam.CFrame.Position, cl.Character.Head.Position)
                 else
@@ -1217,7 +1257,6 @@ local function mainLoop()
             equipGun()
         end
 
-        -- ═ АВТО-СТРЕЛЬБА ЧЕРЕЗ СТЕНЫ ═
         if S.autoShoot and S.aimT and S.aimT.Character then
             local t = S.aimT
             if getRole(t) == "Murderer" then
@@ -1225,9 +1264,7 @@ local function mainLoop()
                 if hasGunInHand() then
                     local tool = LP.Character:FindFirstChildOfClass("Tool")
                     if tool then
-                        -- Стреляем всегда — сквозь стены
                         pcall(function() tool:Activate() end)
-                        -- Дополнительно raycast сквозь стены
                         local head = t.Character:FindFirstChild("Head")
                         if head and LP.Character then
                             local rp = RaycastParams.new()
@@ -1235,7 +1272,6 @@ local function mainLoop()
                             rp.FilterDescendantsInstances = {LP.Character}
                             rp.IgnoreWater = true
                             local result = workspace:Raycast(Cam.CFrame.Position, head.Position - Cam.CFrame.Position, rp)
-                            -- Если стена и wallbang включен — прямой урон
                             if S.wall and result and result.Instance then
                                 local hm = t.Character:FindFirstChildOfClass("Humanoid")
                                 if hm and hm.Health > 0 then
@@ -1464,6 +1500,6 @@ setupWallbang()
 setupInfJump()
 runLoading()
 
-task.delay(6, function() notify("Админка v12 загружена!", Color3.fromRGB(255,0,100)) end)
+task.delay(6, function() notify("Админка v13 загружена!", Color3.fromRGB(255,0,100)) end)
 
-print("[VANKA v12] OK | Logo:" .. (LOGO and "Y" or "N") .. " Main:" .. (IMG_MAIN and "Y" or "N") .. " Vis:" .. (IMG_VIS and "Y" or "N") .. " Rage:" .. (IMG_RAGE and "Y" or "N"))
+print("[VANKA v13] OK | Logo:" .. (LOGO and "Y" or "N") .. " Main:" .. (IMG_MAIN and "Y" or "N") .. " Vis:" .. (IMG_VIS and "Y" or "N") .. " Rage:" .. (IMG_RAGE and "Y" or "N"))
