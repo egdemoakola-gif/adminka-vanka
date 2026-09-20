@@ -1,4 +1,4 @@
--- ◆ АДМИНКА ВАНЬКА v14 ◆
+-- ◆ АДМИНКА ВАНЬКА v15 ◆
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players = game:GetService("Players")
@@ -41,15 +41,13 @@ local S = {
     roleHighlight=false, roleHL={},
     aimbot=false, aimbotFOV=200, aimT=nil,
     hardAim=true,
-    autoShoot=false, autoTPShoot=false,
-    gunESP=false, gunHL=nil,
-    autoDraw=false,
+    autoTPShoot=false,
+    autoPickup=false, sheriffThread=nil, lastSheriffPos=nil, lastSheriff=nil,
     camper=false, camperT=nil,
     spin=false, spinSpeed=30,
     fly=false, noclip=false, infjump=false,
     crosshair=true, fovCircle=true,
     killAllEnabled=false, killList={}, killThread=nil, killLoopThread=nil,
-    sheriffWatch=false, lastSheriff=nil, lastSheriffPos=nil, watchThread=nil,
     conns={}, gui=nil,
     fullbright=false, oldLighting=nil,
 }
@@ -120,93 +118,10 @@ local function roleColor(plr)
     return Color3.fromRGB(60,220,100)
 end
 
-local function isGunName(nm)
-    if not nm then return false end
-    local n = string.lower(nm)
-    return string.find(n,"gun") or string.find(n,"pistol") or string.find(n,"revolver") or 
-           string.find(n,"weapon") or string.find(n,"firearm") or string.find(n,"colt") or
-           string.find(n,"magnum") or string.find(n,"sheriff") or string.find(n,"shoot")
-end
-
 local function isGun(t)
     if not t or not t.Name then return false end
-    return isGunName(t.Name)
-end
-
-local function findMyKnife()
-    if LP.Character then
-        for _, t in ipairs(LP.Character:GetChildren()) do
-            if t:IsA("Tool") then
-                local n = string.lower(t.Name)
-                if string.find(n,"knife") or string.find(n,"dagger") or string.find(n,"sword") then
-                    return t
-                end
-            end
-        end
-    end
-    if LP.Backpack then
-        for _, t in ipairs(LP.Backpack:GetChildren()) do
-            if t:IsA("Tool") then
-                local n = string.lower(t.Name)
-                if string.find(n,"knife") or string.find(n,"dagger") or string.find(n,"sword") then
-                    return t
-                end
-            end
-        end
-    end
-    return nil
-end
-
-local function equipMyKnife()
-    local k = findMyKnife()
-    if not k then return nil end
-    if k.Parent ~= LP.Character then
-        local hm = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
-        if hm then
-            pcall(function() hm:EquipTool(k) end)
-            task.wait(0.15)
-        end
-    end
-    return k
-end
-
-local function isToolUsedByAnyone(obj)
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr.Character and obj:IsDescendantOf(plr.Character) then return true end
-        if plr.Backpack and obj:IsDescendantOf(plr.Backpack) then return true end
-    end
-    return false
-end
-
-local function findDroppedGun()
-    local best, bestHandle, bestDist = nil, nil, math.huge
-    local searchPos = S.lastSheriffPos
-    for _, o in ipairs(workspace:GetDescendants()) do
-        if o:IsA("Tool") and not isToolUsedByAnyone(o) then
-            local handle = o:FindFirstChild("Handle")
-            if handle and handle:IsA("BasePart") then
-                local nm = string.lower(o.Name)
-                local isGunish = isGunName(nm)
-                local isKnifeish = string.find(nm, "knife") or string.find(nm, "dagger")
-                if not isKnifeish then
-                    local dist = 0
-                    if searchPos then
-                        dist = (handle.Position - searchPos).Magnitude
-                        if dist > 100 then dist = math.huge end
-                    else
-                        dist = 1
-                    end
-                    if isGunish then dist = dist - 50 end
-                    if dist < bestDist then
-                        bestDist = dist
-                        best = o
-                        bestHandle = handle
-                    end
-                end
-            end
-        end
-    end
-    return best, bestHandle
+    local n = string.lower(t.Name)
+    return string.find(n,"gun") or string.find(n,"pistol") or string.find(n,"revolver")
 end
 
 local function hasGunInHand()
@@ -228,17 +143,115 @@ local function equipGun()
     return false
 end
 
+local function findMyKnife()
+    if LP.Character then
+        for _, t in ipairs(LP.Character:GetChildren()) do
+            if t:IsA("Tool") then
+                local n = string.lower(t.Name)
+                if string.find(n,"knife") or string.find(n,"dagger") or string.find(n,"sword") then return t end
+            end
+        end
+    end
+    if LP.Backpack then
+        for _, t in ipairs(LP.Backpack:GetChildren()) do
+            if t:IsA("Tool") then
+                local n = string.lower(t.Name)
+                if string.find(n,"knife") or string.find(n,"dagger") or string.find(n,"sword") then return t end
+            end
+        end
+    end
+    return nil
+end
+
+local function equipMyKnife()
+    local k = findMyKnife()
+    if not k then return nil end
+    if k.Parent ~= LP.Character then
+        local hm = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+        if hm then pcall(function() hm:EquipTool(k) end) task.wait(0.15) end
+    end
+    return k
+end
+
+-- ═════ АВТО-ПОДБОР (простой ТП на место смерти Шерифа) ═════
+local function startAutoPickup()
+    if S.sheriffThread then return end
+    S.lastSheriff = nil
+    S.lastSheriffPos = nil
+    
+    S.sheriffThread = task.spawn(function()
+        notify("Авто-подбор ВКЛ (слежу за Шерифом)", Color3.fromRGB(60,150,255))
+        
+        while S.autoPickup do
+            local currentSheriff = nil
+            local currentPos = nil
+            
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= LP and plr.Character then
+                    if getRole(plr) == "Sheriff" then
+                        currentSheriff = plr
+                        local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+                        if hrp then currentPos = hrp.CFrame end
+                        break
+                    end
+                end
+            end
+            
+            -- Обновляем позицию Шерифа пока жив
+            if currentSheriff and currentPos then
+                S.lastSheriffPos = currentPos
+            end
+            
+            -- Шериф пропал → умер, ТП на его место и обратно
+            if S.lastSheriff and not currentSheriff and S.lastSheriffPos then
+                notify("Шериф умер! ТП на место...", Color3.fromRGB(255,220,0))
+                task.wait(0.4) -- даём серверу создать пистолет
+                
+                if LP.Character then
+                    local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
+                    if myHrp then
+                        local myPos = myHrp.CFrame
+                        
+                        -- ТП на место смерти
+                        pcall(function()
+                            myHrp.CFrame = S.lastSheriffPos + Vector3.new(0, 3, 0)
+                        end)
+                        task.wait(1) -- стоим 1 секунду (подбираем всё что рядом)
+                        
+                        -- ТП обратно
+                        pcall(function()
+                            myHrp.CFrame = myPos
+                        end)
+                        
+                        notify("ТП назад", Color3.fromRGB(0,200,100))
+                    end
+                end
+                
+                S.lastSheriffPos = nil
+            end
+            
+            S.lastSheriff = currentSheriff
+            task.wait(0.3)
+        end
+        S.sheriffThread = nil
+    end)
+end
+
+local function stopAutoPickup()
+    S.autoPickup = false
+    S.sheriffThread = nil
+    S.lastSheriff = nil
+    S.lastSheriffPos = nil
+end
+
 -- ═════ АВТО-ТП К МАРДЕРУ + ВЫСТРЕЛ ═════
 local function autoTPShootMurderer()
     local target = S.aimT
     if not target or not target.Character then return end
     if getRole(target) ~= "Murderer" then return end
     
-    -- Пистолет в руках?
     if not hasGunInHand() then
-        if not equipGun() then
-            return -- нет пистолета, не можем стрелять
-        end
+        if not equipGun() then return end
         task.wait(0.15)
     end
     
@@ -248,16 +261,13 @@ local function autoTPShootMurderer()
     local targetHrp = target.Character:FindFirstChild("HumanoidRootPart")
     if not myHrp or not targetHrp then return end
     
-    -- Запоминаем свою позицию
     local myPos = myHrp.CFrame
     
-    -- Телепорт к Мардеру
     pcall(function()
         myHrp.CFrame = targetHrp.CFrame * CFrame.new(0, 0, -3)
     end)
     task.wait(0.05)
     
-    -- Активируем пистолет (выстрел)
     local tool = myChar:FindFirstChildOfClass("Tool")
     if tool and isGun(tool) then
         for i = 1, 3 do
@@ -266,7 +276,6 @@ local function autoTPShootMurderer()
         end
     end
     
-    -- Возврат на место
     task.wait(0.1)
     pcall(function()
         if myHrp and myHrp.Parent then
@@ -322,11 +331,7 @@ local function fling(target)
             if not tHrp then break end
             pcall(function()
                 LP.Character.HumanoidRootPart.CFrame = tHrp.CFrame
-                LP.Character.HumanoidRootPart.Velocity = Vector3.new(
-                    math.random(-1e5, 1e5),
-                    math.random(-1e5, 1e5),
-                    math.random(-1e5, 1e5)
-                )
+                LP.Character.HumanoidRootPart.Velocity = Vector3.new(math.random(-1e5,1e5), math.random(-1e5,1e5), math.random(-1e5,1e5))
                 LP.Character.HumanoidRootPart.RotVelocity = Vector3.new(1e5, 1e5, 1e5)
             end)
             task.wait()
@@ -378,9 +383,7 @@ local function killOneTarget(target)
         if targetHum.Health <= 0 then return true end
         targetHrp = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
         if not targetHrp then return true end
-        pcall(function()
-            myHrp.CFrame = targetHrp.CFrame * CFrame.new(0, 0, 1.5)
-        end)
+        pcall(function() myHrp.CFrame = targetHrp.CFrame * CFrame.new(0, 0, 1.5) end)
         task.wait(0.02)
         if handle then
             for _, part in ipairs(target.Character:GetDescendants()) do
@@ -403,25 +406,16 @@ local function startAutoKillAll()
     if S.killThread then return end
     S.killList = {}
     S.killThread = task.spawn(function()
-        if getRole(LP) ~= "Murderer" then
-            S.killThread = nil
-            return
-        end
+        if getRole(LP) ~= "Murderer" then S.killThread = nil return end
         while S.killAllEnabled do
             local target = nil
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LP and plr.Character then
                     local h = plr.Character:FindFirstChildOfClass("Humanoid")
-                    if h and h.Health > 0 and not S.killList[plr] then
-                        target = plr
-                        break
-                    end
+                    if h and h.Health > 0 and not S.killList[plr] then target = plr break end
                 end
             end
-            if not target then
-                notify("ВСЕ УБИТЫ ✓", Color3.fromRGB(0,200,100))
-                break
-            end
+            if not target then notify("ВСЕ УБИТЫ ✓", Color3.fromRGB(0,200,100)) break end
             local ok = killOneTarget(target)
             S.killList[target] = true
             if ok then notify("Убит: " .. target.Name, Color3.fromRGB(255,100,100))
@@ -464,67 +458,6 @@ local function stopKillAllLoop()
     S.killAllEnabled = false
     stopAutoKillAll()
     S.killLoopThread = nil
-end
-
-local function startSheriffWatch()
-    if S.watchThread then return end
-    S.lastSheriff = nil
-    S.lastSheriffPos = nil
-    S.watchThread = task.spawn(function()
-        notify("Слежу за Шерифом...", Color3.fromRGB(60,150,255))
-        while S.sheriffWatch do
-            local currentSheriff = nil
-            local currentPos = nil
-            for _, plr in ipairs(Players:GetPlayers()) do
-                if plr ~= LP and plr.Character then
-                    if getRole(plr) == "Sheriff" then
-                        currentSheriff = plr
-                        local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
-                        if hrp then currentPos = hrp.Position end
-                        break
-                    end
-                end
-            end
-            if currentSheriff and currentPos then S.lastSheriffPos = currentPos end
-            if S.lastSheriff and not currentSheriff then
-                notify("Шериф умер! Ищу пистолет рядом...", Color3.fromRGB(255,220,0))
-                task.wait(0.5)
-                local gun, handle = findDroppedGun()
-                if gun and handle and LP.Character then
-                    local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
-                    if myHrp then
-                        local myPos = myHrp.CFrame
-                        notify("Нашёл: " .. gun.Name, Color3.fromRGB(255,220,0))
-                        pcall(function() myHrp.CFrame = handle.CFrame * CFrame.new(0, 1, 0) end)
-                        task.wait(0.1)
-                        pcall(function()
-                            if firetouchinterest then
-                                firetouchinterest(myHrp, handle, 0)
-                                task.wait(0.05)
-                                firetouchinterest(myHrp, handle, 1)
-                            end
-                        end)
-                        pcall(function() myHrp.CFrame = handle.CFrame * CFrame.new(0, 0.5, 0) end)
-                        task.wait(0.3)
-                        pcall(function() myHrp.CFrame = myPos end)
-                        notify("Пистолет подобран!", Color3.fromRGB(0,200,100))
-                    end
-                else
-                    notify("Не нашёл пистолет", Color3.fromRGB(255,60,60))
-                end
-            end
-            S.lastSheriff = currentSheriff
-            task.wait(0.3)
-        end
-        S.watchThread = nil
-    end)
-end
-
-local function stopSheriffWatch()
-    S.sheriffWatch = false
-    S.lastSheriff = nil
-    S.lastSheriffPos = nil
-    S.watchThread = nil
 end
 
 local function createGUI()
@@ -601,7 +534,7 @@ local function createGUI()
     ttl.Size = UDim2.new(1, -130, 1, 0)
     ttl.Position = UDim2.new(0, 50, 0, 0)
     ttl.BackgroundTransparency = 1
-    ttl.Text = "АДМИНКА ВАНЬКА v14"
+    ttl.Text = "АДМИНКА ВАНЬКА v15"
     ttl.TextColor3 = Color3.new(1,1,1)
     ttl.TextSize = 14
     ttl.Font = Enum.Font.GothamBold
@@ -841,39 +774,26 @@ local function createGUI()
         end
     end)
 
-    addLabel(tabMain, "АВТО-ПИСТОЛЕТ")
-    addToggle(tabMain, "Следить за Шерифом", false, function(v)
-        S.sheriffWatch = v
-        if v then startSheriffWatch() else stopSheriffWatch() end
+    addLabel(tabMain, "АВТО-ПОДБОР (ТП на место смерти Шерифа)")
+    addToggle(tabMain, "Авто-подбор (ТП на 1 сек)", false, function(v)
+        S.autoPickup = v
+        if v then startAutoPickup() else stopAutoPickup() end
     end)
-    addBtn(tabMain, "Найти пистолет сейчас", Color3.fromRGB(200,150,0), function()
-        local gun, handle = findDroppedGun()
-        if gun and handle then
-            notify("Нашёл: " .. gun.Name, Color3.fromRGB(0,200,100))
-            if LP.Character then
-                local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
-                if myHrp then
-                    local myPos = myHrp.CFrame
-                    pcall(function() myHrp.CFrame = handle.CFrame * CFrame.new(0, 1, 0) end)
-                    task.wait(0.1)
-                    pcall(function()
-                        if firetouchinterest then
-                            firetouchinterest(myHrp, handle, 0)
-                            task.wait(0.05)
-                            firetouchinterest(myHrp, handle, 1)
-                        end
-                    end)
-                    task.wait(0.2)
-                    pcall(function() myHrp.CFrame = myPos end)
-                end
-            end
-        else
-            notify("Пистолет не найден", Color3.fromRGB(255,60,60))
+    addBtn(tabMain, "ТП на место сейчас", Color3.fromRGB(200,150,0), function()
+        if not S.lastSheriffPos then
+            notify("Позиция Шерифа неизвестна", Color3.fromRGB(255,60,60))
+            return
         end
-    end)
-    addToggle(tabMain, "ESP для пистолета", false, function(v)
-        S.gunESP = v
-        if not v and S.gunHL then pcall(function() S.gunHL:Destroy() end) S.gunHL = nil end
+        if LP.Character then
+            local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
+            if myHrp then
+                local myPos = myHrp.CFrame
+                pcall(function() myHrp.CFrame = S.lastSheriffPos + Vector3.new(0, 3, 0) end)
+                task.wait(1)
+                pcall(function() myHrp.CFrame = myPos end)
+                notify("ТП на место + назад", Color3.fromRGB(0,200,100))
+            end
+        end
     end)
 
     addLabel(tabMain, "ОЧИСТКА")
@@ -977,14 +897,11 @@ local function createGUI()
     addBtn(tabRage, "ВЫКЛЮЧИТЬ ВСЁ", Color3.fromRGB(180,0,100), function()
         S.aimbot=false S.autoTPShoot=false S.camper=false S.camperT=nil
         S.roleHighlight=false S.fly=false S.noclip=false S.infjump=false
-        S.spin=false
-        S.gunESP=false
+        S.spin=false S.autoPickup=false
         S.killAllEnabled=false S.killList={}
-        S.sheriffWatch=false
         stopKillAllLoop()
-        stopSheriffWatch()
+        stopAutoPickup()
         clearHL()
-        if S.gunHL then pcall(function() S.gunHL:Destroy() end) S.gunHL=nil end
         if LP.Character then
             local h = LP.Character:FindFirstChildOfClass("Humanoid")
             if h then h.WalkSpeed=16 h.JumpPower=50 end
@@ -1096,10 +1013,9 @@ local function createGUI()
     Players.PlayerRemoving:Connect(function() task.wait(0.3) rebuild() end)
 
     closeB.MouseButton1Click:Connect(function()
-        pcall(function() if S.gunHL then S.gunHL:Destroy() end end)
         pcall(clearHL)
         stopKillAllLoop()
-        stopSheriffWatch()
+        stopAutoPickup()
         for _, c in ipairs(S.conns) do
             pcall(function() if c and c.Disconnect then c:Disconnect() end end)
         end
@@ -1227,7 +1143,6 @@ local function mainLoop()
             targetInfo.Visible = false
         end
 
-        -- АВТО-ТП К МАРДЕРУ + ВЫСТРЕЛ
         if S.autoTPShoot and S.aimT and S.aimT.Character then
             if getRole(S.aimT) == "Murderer" then
                 task.spawn(autoTPShootMurderer)
@@ -1239,27 +1154,6 @@ local function mainLoop()
             if hrp then
                 hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(S.spinSpeed * dt * 60), 0)
             end
-        end
-
-        if S.gunESP then
-            local gun, handle = findDroppedGun()
-            if gun and handle then
-                if not S.gunHL or S.gunHL.Parent ~= handle then
-                    if S.gunHL then pcall(function() S.gunHL:Destroy() end) end
-                    S.gunHL = Instance.new("Highlight")
-                    S.gunHL.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                    S.gunHL.FillColor = Color3.fromRGB(255,220,0)
-                    S.gunHL.OutlineColor = Color3.new(1,1,1)
-                    S.gunHL.FillTransparency = 0.3
-                    S.gunHL.Parent = handle
-                end
-            elseif S.gunHL then
-                pcall(function() S.gunHL:Destroy() end)
-                S.gunHL = nil
-            end
-        elseif S.gunHL then
-            pcall(function() S.gunHL:Destroy() end)
-            S.gunHL = nil
         end
 
         if S.camper then
@@ -1417,8 +1311,7 @@ _G.VankaPanel = {
         end
         clearHL()
         stopKillAllLoop()
-        stopSheriffWatch()
-        if S.gunHL then pcall(function() S.gunHL:Destroy() end) end
+        stopAutoPickup()
         if S.gui then pcall(function() S.gui:Destroy() end) end
         _G.VankaPanel = nil
     end
@@ -1430,6 +1323,6 @@ mainLoop()
 setupInfJump()
 runLoading()
 
-task.delay(6, function() notify("Админка v14 загружена!", Color3.fromRGB(255,0,100)) end)
+task.delay(6, function() notify("Админка v15 загружена!", Color3.fromRGB(255,0,100)) end)
 
-print("[VANKA v14] OK")
+print("[VANKA v15] OK")
