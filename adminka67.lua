@@ -1,4 +1,4 @@
--- ◆ АДМИНКА ВАНЬКА v18 - ПРИКЛЕЙКА К МАРДЕРУ ◆
+-- ◆ АДМИНКА ВАНЬКА v20 ◆
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players = game:GetService("Players")
@@ -48,6 +48,7 @@ local S = {
     fly=false, noclip=false, infjump=false,
     crosshair=true, fovCircle=true,
     killAllEnabled=false, killList={}, killThread=nil, killLoopThread=nil,
+    deadPose=false, deadAnim=nil,
     conns={}, gui=nil,
     fullbright=false, oldLighting=nil,
 }
@@ -183,20 +184,142 @@ local function equipMyKnife()
 end
 
 -- ═════════════════════════════════════════════════════════════════
--- АВТО-РЕЖИМ: пистолет появился → ищем Мардера → приклеиваемся к спине
--- → стреляем каждый кадр → ждём смерть → ищем следующего
+-- ФЛИНГ v20: ХАОТИЧНЫЕ ВРЕЗАНИЯ СО ВСЕХ СТОРОН
 -- ═════════════════════════════════════════════════════════════════
+local function fling(target)
+    if not target or target == LP or not target.Character then
+        notify("Нет цели", Color3.fromRGB(255,60,60))
+        return
+    end
+    local hrp = target.Character:FindFirstChild("HumanoidRootPart")
+    local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp or not myHrp then return end
+    
+    notify("ФЛИНГ: " .. target.Name, Color3.fromRGB(255,0,150))
+    
+    task.spawn(function()
+        for _, p in ipairs(target.Character:GetDescendants()) do
+            if p:IsA("BasePart") then 
+                pcall(function() p:SetNetworkOwner(LP) end) 
+            end
+        end
+        
+        local wasAnchored = myHrp.Anchored
+        myHrp.Anchored = true
+        
+        local bv = Instance.new("BodyVelocity")
+        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bv.Velocity = Vector3.new(0, 0, 0)
+        bv.Parent = hrp
+        
+        local bav = Instance.new("BodyAngularVelocity")
+        bav.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bav.AngularVelocity = Vector3.new(0, 0, 0)
+        bav.Parent = hrp
+        
+        local successCount = 0
+        local startTime = tick()
+        while tick() - startTime < 3 do
+            if not target.Character then break end
+            local tHrp = target.Character:FindFirstChild("HumanoidRootPart")
+            if not tHrp then break end
+            
+            -- Случайная точка вокруг цели (сфера)
+            local angle1 = math.random() * math.pi * 2
+            local angle2 = math.random() * math.pi - math.pi/2
+            local radius = math.random(1, 4)
+            
+            local offsetX = math.cos(angle1) * math.cos(angle2) * radius
+            local offsetY = math.sin(angle2) * radius
+            local offsetZ = math.sin(angle1) * math.cos(angle2) * radius
+            
+            pcall(function()
+                myHrp.CFrame = tHrp.CFrame * CFrame.new(offsetX, offsetY, offsetZ)
+            end)
+            
+            pcall(function()
+                local dir = (tHrp.Position - myHrp.Position)
+                if dir.Magnitude < 0.1 then
+                    dir = Vector3.new(math.random(-1,1)*10, math.random(5,15), math.random(-1,1)*10)
+                else
+                    dir = dir.Unit * 5000
+                end
+                bv.Velocity = dir + Vector3.new(
+                    math.random(-500, 500),
+                    math.random(200, 800),
+                    math.random(-500, 500)
+                )
+                bav.AngularVelocity = Vector3.new(
+                    math.random(-1000, 1000),
+                    math.random(-1000, 1000),
+                    math.random(-1000, 1000)
+                )
+            end)
+            
+            pcall(function()
+                tHrp.Velocity = Vector3.new(
+                    math.random(-800, 800) * 10,
+                    math.random(500, 1500) * 10,
+                    math.random(-800, 800) * 10
+                )
+            end)
+            
+            successCount = successCount + 1
+            task.wait()
+        end
+        
+        if bv then pcall(function() bv:Destroy() end) end
+        if bav then pcall(function() bav:Destroy() end) end
+        
+        myHrp.Anchored = wasAnchored
+        
+        task.wait(1.5)
+        if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            local y = target.Character.HumanoidRootPart.Position.Y
+            if y > 500 then 
+                notify(target.Name .. " В КОСМОСЕ! (" .. successCount .. " врезаний)", Color3.fromRGB(255,100,200))
+            else 
+                notify(target.Name .. " отфлингался (" .. successCount .. " врезаний)", Color3.fromRGB(100,200,255))
+            end
+        else
+            notify(target.Name .. " УНИЧТОЖЕН!", Color3.fromRGB(255,0,100))
+        end
+    end)
+end
+
+-- ═════════════════════════════════════════════════════════════════
+-- ШЕРИФ v20: БЫСТРЫЕ ТОЧНЫЕ ВЫСТРЕЛЫ ПО ХИТБОКСАМ
+-- ═════════════════════════════════════════════════════════════════
+local function findAnyHitbox(tChar)
+    -- Ищем любую часть тела Мардера
+    local parts = {}
+    for _, p in ipairs(tChar:GetChildren()) do
+        if p:IsA("BasePart") then
+            table.insert(parts, p)
+        end
+    end
+    -- Приоритет голове
+    for _, p in ipairs(parts) do
+        if p.Name == "Head" then return p end
+    end
+    -- Потом UpperTorso/Torso
+    for _, p in ipairs(parts) do
+        if p.Name == "UpperTorso" or p.Name == "Torso" then return p end
+    end
+    -- Потом любая
+    if #parts > 0 then return parts[1] end
+    return nil
+end
+
 local function startAutoGunPlay()
     if S.autoGunThread then return end
     
     S.autoGunThread = task.spawn(function()
-        notify("АВТО: жду пистолет...", Color3.fromRGB(255,200,0))
+        notify("ШЕРИФ: жду пистолет...", Color3.fromRGB(255,200,0))
         
         local currentTarget = nil
         
         while S.autoGunPlay do
-            
-            -- 1) Есть ли пистолет?
             if not hasGunAnywhere() then
                 if currentTarget then
                     notify("Пистолет пропал", Color3.fromRGB(150,150,150))
@@ -206,7 +329,6 @@ local function startAutoGunPlay()
                 continue
             end
             
-            -- 2) Достать пистолет в руку
             if not hasGunInHand() then
                 equipGun()
                 task.wait(0.1)
@@ -216,7 +338,6 @@ local function startAutoGunPlay()
                 end
             end
             
-            -- 3) Если цели нет — ищем Мардера
             if not currentTarget or not currentTarget.Character then
                 currentTarget = nil
                 for _, plr in ipairs(Players:GetPlayers()) do
@@ -225,20 +346,18 @@ local function startAutoGunPlay()
                             local h = plr.Character:FindFirstChildOfClass("Humanoid")
                             if h and h.Health > 0 then
                                 currentTarget = plr
-                                notify("Прицепился к " .. plr.Name, Color3.fromRGB(255,0,100))
+                                notify("Цель: " .. plr.Name, Color3.fromRGB(255,0,100))
                                 break
                             end
                         end
                     end
                 end
-                
                 if not currentTarget then
                     task.wait(0.3)
                     continue
                 end
             end
             
-            -- 4) Проверка цели
             local tChar = currentTarget.Character
             if not tChar then
                 currentTarget = nil
@@ -247,7 +366,6 @@ local function startAutoGunPlay()
             end
             local tHum = tChar:FindFirstChildOfClass("Humanoid")
             local tHrp = tChar:FindFirstChild("HumanoidRootPart")
-            local tHead = tChar:FindFirstChild("Head")
             
             if not tHum or tHum.Health <= 0 or not tHrp then
                 notify("УБИЛ " .. currentTarget.Name .. "!", Color3.fromRGB(0,255,100))
@@ -256,55 +374,60 @@ local function startAutoGunPlay()
                 continue
             end
             
-            -- 5) Захват network ownership
+            -- Захват контроля
             for _, p in ipairs(tChar:GetDescendants()) do
                 if p:IsA("BasePart") then
                     pcall(function() p:SetNetworkOwner(LP) end)
                 end
             end
             
-            -- 6) ПРИКЛЕИТЬСЯ К СПИНЕ
+            -- Находим любую хитбокс-часть для прицела
+            local hitbox = findAnyHitbox(tChar)
+            if not hitbox then
+                task.wait(0.1)
+                continue
+            end
+            
+            -- ТП рядом с целью (не в тело, чтоб не убили)
             local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
             if myHrp and tHrp then
                 pcall(function()
-                    myHrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 2)
-                end)
-                pcall(function()
+                    myHrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
                     myHrp.Velocity = Vector3.new(0, 0, 0)
                 end)
             end
             
-            -- 7) Камера на голову
-            if tHead then
-                pcall(function()
-                    Cam.CFrame = CFrame.new(Cam.CFrame.Position, tHead.Position)
-                end)
-            end
+            -- КАМЕРА ТОЧНО НА ХИТБОКС
+            pcall(function()
+                Cam.CFrame = CFrame.new(Cam.CFrame.Position, hitbox.Position)
+            end)
             
-            -- 8) Стреляем каждый кадр
+            -- СТРЕЛЯЕМ ОЧЕНЬ БЫСТРО
             local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
             if tool and isGun(tool) then
-                for i = 1, 3 do
-                    pcall(function() tool:Activate() end)
+                -- Проверяем что камера смотрит примерно на цель
+                local lookDir = Cam.CFrame.LookVector
+                local toTarget = (hitbox.Position - Cam.CFrame.Position).Unit
+                local dot = lookDir:Dot(toTarget)
+                
+                if dot > 0.98 then
+                    -- 10 выстрелов подряд
+                    for i = 1, 10 do
+                        pcall(function() tool:Activate() end)
+                    end
+                else
+                    -- Наводим ещё точнее
+                    for _ = 1, 3 do
+                        Cam.CFrame = CFrame.new(Cam.CFrame.Position, hitbox.Position)
+                    end
                 end
-            end
-            
-            -- 9) Проверка — не умер ли
-            if tHum.Health <= 0 then
-                notify("УБИЛ " .. currentTarget.Name .. "!", Color3.fromRGB(0,255,100))
-                currentTarget = nil
-            end
-            
-            -- 10) Проверка роли
-            if currentTarget and getRole(currentTarget) ~= "Murderer" then
-                currentTarget = nil
             end
             
             task.wait()
         end
         
         S.autoGunThread = nil
-        notify("АВТО ВЫКЛ", Color3.fromRGB(150,150,150))
+        notify("ШЕРИФ ВЫКЛ", Color3.fromRGB(150,150,150))
     end)
 end
 
@@ -360,6 +483,41 @@ local function stopAutoPickup()
     S.lastSheriffPos = nil
 end
 
+-- МЁРТВАЯ ПОЗА
+local DEATH_ANIM_ID = "rbxassetid://282574440"
+
+local function toggleDeadPose(enabled)
+    S.deadPose = enabled
+    if not LP.Character then return end
+    local humanoid = LP.Character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+    local animator = humanoid:FindFirstChildOfClass("Animator")
+    if not animator then
+        animator = Instance.new("Animator")
+        animator.Parent = humanoid
+    end
+    
+    if enabled then
+        if not S.deadAnim then
+            local anim = Instance.new("Animation")
+            anim.AnimationId = DEATH_ANIM_ID
+            S.deadAnim = animator:LoadAnimation(anim)
+            S.deadAnim.Looped = true
+            S.deadAnim.Priority = Enum.AnimationPriority.Action4
+        end
+        if S.deadAnim then
+            pcall(function() S.deadAnim:Play(0.1) end)
+        end
+        pcall(function() humanoid.PlatformStand = false end)
+        notify("Мёртвая поза ВКЛ", Color3.fromRGB(150,50,150))
+    else
+        if S.deadAnim then
+            pcall(function() S.deadAnim:Stop(0.1) end)
+        end
+        notify("Мёртвая поза ВЫКЛ", Color3.fromRGB(150,150,150))
+    end
+end
+
 local function refreshHL()
     if not S.roleHighlight then return end
     for _, plr in ipairs(Players:GetPlayers()) do
@@ -384,49 +542,6 @@ end
 local function clearHL()
     for _, hl in pairs(S.roleHL) do pcall(function() hl:Destroy() end) end
     S.roleHL = {}
-end
-
-local function fling(target)
-    if not target or target == LP or not target.Character then return end
-    local hrp = target.Character:FindFirstChild("HumanoidRootPart")
-    local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-    if not hrp or not myHrp then return end
-    notify("ФЛИНГ: " .. target.Name, Color3.fromRGB(255,0,150))
-    local myPos = myHrp.CFrame
-    task.spawn(function()
-        for _, p in ipairs(target.Character:GetDescendants()) do
-            if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
-        end
-        for i = 1, 100 do
-            if not LP.Character or not LP.Character:FindFirstChild("HumanoidRootPart") then break end
-            if not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then break end
-            local tHrp = target.Character:FindFirstChild("HumanoidRootPart")
-            if not tHrp then break end
-            pcall(function()
-                LP.Character.HumanoidRootPart.CFrame = tHrp.CFrame
-                LP.Character.HumanoidRootPart.Velocity = Vector3.new(math.random(-1e5,1e5), math.random(-1e5,1e5), math.random(-1e5,1e5))
-                LP.Character.HumanoidRootPart.RotVelocity = Vector3.new(1e5, 1e5, 1e5)
-            end)
-            task.wait()
-        end
-        for i = 1, 30 do
-            if not target.Character then break end
-            local tHrp = target.Character:FindFirstChild("HumanoidRootPart")
-            if not tHrp then break end
-            pcall(function()
-                tHrp.Velocity = Vector3.new(1e6, 1e6, 1e6)
-                tHrp.RotVelocity = Vector3.new(1e6, 1e6, 1e6)
-            end)
-            task.wait()
-        end
-        task.wait(0.5)
-        pcall(function()
-            if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
-                LP.Character.HumanoidRootPart.CFrame = myPos
-                LP.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
-            end
-        end)
-    end)
 end
 
 local function killOneTarget(target)
@@ -504,13 +619,11 @@ local function startKillAllLoop()
             local myRole = getRole(LP)
             if myRole == "Murderer" then
                 if not S.killThread then
-                    notify("Я МАРДЕР!", Color3.fromRGB(255,0,100))
                     startAutoKillAll()
                 end
             else
                 if S.killThread then
                     stopAutoKillAll()
-                    notify("Раунд кончился...", Color3.fromRGB(150,150,150))
                 end
             end
             task.wait(1)
@@ -548,36 +661,45 @@ local function createGUI()
 
     local main = Instance.new("Frame")
     main.Name = "MainFrame"
-    main.Size = UDim2.new(0, 380, 0, 500)
-    main.Position = UDim2.new(0, 15, 0.5, -250)
-    main.BackgroundColor3 = Color3.fromRGB(13,13,20)
+    main.Size = UDim2.new(0, 400, 0, 540)
+    main.Position = UDim2.new(0, 15, 0.5, -270)
+    main.BackgroundColor3 = Color3.fromRGB(11, 11, 18)
     main.BorderSizePixel = 0
     main.Active = true
     main.Draggable = true
     main.Parent = gui
-    Instance.new("UICorner", main).CornerRadius = UDim.new(0, 14)
+    Instance.new("UICorner", main).CornerRadius = UDim.new(0, 16)
+    
+    local bgGrad = Instance.new("UIGradient")
+    bgGrad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 15, 30)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 8, 14)),
+    }
+    bgGrad.Rotation = 45
+    bgGrad.Parent = main
+    
     local mstk = Instance.new("UIStroke")
     mstk.Color = Color3.fromRGB(255,0,100)
     mstk.Thickness = 2
     mstk.Parent = main
 
     local top = Instance.new("Frame")
-    top.Size = UDim2.new(1, 0, 0, 46)
+    top.Size = UDim2.new(1, 0, 0, 50)
     top.BackgroundColor3 = Color3.fromRGB(22,22,32)
     top.BorderSizePixel = 0
     top.Parent = main
-    Instance.new("UICorner", top).CornerRadius = UDim.new(0, 14)
+    Instance.new("UICorner", top).CornerRadius = UDim.new(0, 16)
     local tf = Instance.new("Frame")
-    tf.Size = UDim2.new(1, 0, 0, 20)
-    tf.Position = UDim2.new(0, 0, 1, -20)
+    tf.Size = UDim2.new(1, 0, 0, 24)
+    tf.Position = UDim2.new(0, 0, 1, -24)
     tf.BackgroundColor3 = Color3.fromRGB(22,22,32)
     tf.BorderSizePixel = 0
     tf.Parent = top
 
     if LOGO then
         local li = Instance.new("ImageLabel")
-        li.Size = UDim2.new(0, 32, 0, 32)
-        li.Position = UDim2.new(0, 10, 0.5, -16)
+        li.Size = UDim2.new(0, 36, 0, 36)
+        li.Position = UDim2.new(0, 12, 0.5, -18)
         li.BackgroundTransparency = 1
         li.Image = LOGO
         li.ScaleType = Enum.ScaleType.Fit
@@ -585,30 +707,30 @@ local function createGUI()
         Instance.new("UICorner", li).CornerRadius = UDim.new(0, 8)
     else
         local he = Instance.new("TextLabel")
-        he.Size = UDim2.new(0, 32, 1, 0)
-        he.Position = UDim2.new(0, 10, 0, 0)
+        he.Size = UDim2.new(0, 36, 1, 0)
+        he.Position = UDim2.new(0, 12, 0, 0)
         he.BackgroundTransparency = 1
         he.Text = "V"
         he.TextColor3 = Color3.fromRGB(255,0,100)
-        he.TextSize = 22
+        he.TextSize = 24
         he.Font = Enum.Font.GothamBold
         he.Parent = top
     end
 
     local ttl = Instance.new("TextLabel")
     ttl.Size = UDim2.new(1, -130, 1, 0)
-    ttl.Position = UDim2.new(0, 50, 0, 0)
+    ttl.Position = UDim2.new(0, 56, 0, 0)
     ttl.BackgroundTransparency = 1
-    ttl.Text = "АДМИНКА ВАНЬКА v18"
+    ttl.Text = "АДМИНКА ВАНЬКА v20"
     ttl.TextColor3 = Color3.new(1,1,1)
-    ttl.TextSize = 14
+    ttl.TextSize = 15
     ttl.Font = Enum.Font.GothamBold
     ttl.TextXAlignment = Enum.TextXAlignment.Left
     ttl.Parent = top
 
     local minB = Instance.new("TextButton")
-    minB.Size = UDim2.new(0, 28, 0, 28)
-    minB.Position = UDim2.new(1, -70, 0, 9)
+    minB.Size = UDim2.new(0, 30, 0, 30)
+    minB.Position = UDim2.new(1, -74, 0, 10)
     minB.BackgroundColor3 = Color3.fromRGB(55,55,70)
     minB.Text = "−"
     minB.TextColor3 = Color3.new(1,1,1)
@@ -618,8 +740,8 @@ local function createGUI()
     Instance.new("UICorner", minB).CornerRadius = UDim.new(0, 7)
 
     local closeB = Instance.new("TextButton")
-    closeB.Size = UDim2.new(0, 28, 0, 28)
-    closeB.Position = UDim2.new(1, -38, 0, 9)
+    closeB.Size = UDim2.new(0, 30, 0, 30)
+    closeB.Position = UDim2.new(1, -40, 0, 10)
     closeB.BackgroundColor3 = Color3.fromRGB(255,55,75)
     closeB.Text = "×"
     closeB.TextColor3 = Color3.new(1,1,1)
@@ -651,12 +773,12 @@ local function createGUI()
     end
 
     local tabBar = Instance.new("Frame")
-    tabBar.Size = UDim2.new(1, -16, 0, 38)
-    tabBar.Position = UDim2.new(0, 8, 0, 52)
+    tabBar.Size = UDim2.new(1, -20, 0, 40)
+    tabBar.Position = UDim2.new(0, 10, 0, 56)
     tabBar.BackgroundColor3 = Color3.fromRGB(20,20,28)
     tabBar.BorderSizePixel = 0
     tabBar.Parent = main
-    Instance.new("UICorner", tabBar).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", tabBar).CornerRadius = UDim.new(0, 10)
     local tl = Instance.new("UIListLayout")
     tl.FillDirection = Enum.FillDirection.Horizontal
     tl.Padding = UDim.new(0, 4)
@@ -665,8 +787,8 @@ local function createGUI()
     tl.Parent = tabBar
 
     local content = Instance.new("Frame")
-    content.Size = UDim2.new(1, -16, 1, -146)
-    content.Position = UDim2.new(0, 8, 0, 98)
+    content.Size = UDim2.new(1, -20, 1, -160)
+    content.Position = UDim2.new(0, 10, 0, 104)
     content.BackgroundTransparency = 1
     content.Parent = main
 
@@ -680,12 +802,12 @@ local function createGUI()
 
     local function addTab(key, img)
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(0, 84, 0, 30)
+        b.Size = UDim2.new(0, 88, 0, 32)
         b.BackgroundColor3 = Color3.fromRGB(32,32,44)
         b.Text = ""
         b.AutoButtonColor = false
         b.Parent = tabBar
-        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
         tabs[key] = b
         if img then
             local im = Instance.new("ImageLabel")
@@ -712,7 +834,7 @@ local function createGUI()
         p.Parent = content
         pages[key] = p
         local lay = Instance.new("UIListLayout")
-        lay.Padding = UDim.new(0, 5)
+        lay.Padding = UDim.new(0, 6)
         lay.SortOrder = Enum.SortOrder.LayoutOrder
         lay.Parent = p
         lay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
@@ -724,7 +846,7 @@ local function createGUI()
 
     local function addBtn(parent, text, color, cb)
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(1, -6, 0, 32)
+        b.Size = UDim2.new(1, -6, 0, 34)
         b.BackgroundColor3 = color or Color3.fromRGB(40,40,60)
         b.Text = text
         b.TextColor3 = Color3.new(1,1,1)
@@ -732,7 +854,7 @@ local function createGUI()
         b.Font = Enum.Font.GothamMedium
         b.TextWrapped = true
         b.Parent = parent
-        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 7)
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
         b.MouseButton1Click:Connect(function()
             local ok, err = pcall(cb, b)
             if not ok then notify("Ошибка: " .. tostring(err), Color3.fromRGB(255,60,60)) end
@@ -742,12 +864,12 @@ local function createGUI()
 
     local function addToggle(parent, text, initial, cb)
         local row = Instance.new("TextButton")
-        row.Size = UDim2.new(1, -6, 0, 36)
+        row.Size = UDim2.new(1, -6, 0, 38)
         row.BackgroundColor3 = Color3.fromRGB(22,22,32)
         row.Text = ""
         row.AutoButtonColor = false
         row.Parent = parent
-        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 7)
+        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
         local lbl = Instance.new("TextLabel")
         lbl.Size = UDim2.new(1, -64, 1, 0)
         lbl.Position = UDim2.new(0, 12, 0, 0)
@@ -788,12 +910,12 @@ local function createGUI()
 
     local function addLabel(parent, text)
         local w = Instance.new("Frame")
-        w.Size = UDim2.new(1, -6, 0, 24)
+        w.Size = UDim2.new(1, -6, 0, 26)
         w.BackgroundTransparency = 1
         w.Parent = parent
         local a = Instance.new("Frame")
-        a.Size = UDim2.new(0, 3, 0, 14)
-        a.Position = UDim2.new(0, 0, 0.5, -7)
+        a.Size = UDim2.new(0, 3, 0, 16)
+        a.Position = UDim2.new(0, 0, 0.5, -8)
         a.BackgroundColor3 = Color3.fromRGB(255,0,100)
         a.BorderSizePixel = 0
         a.Parent = w
@@ -816,9 +938,8 @@ local function createGUI()
     local tabPlayers = addTab("players", nil)
     switchTab("main")
 
-    -- ★ ГЛАВНАЯ КНОПКА АВТО-РЕЖИМА
-    addLabel(tabMain, "★ АВТО: ПРИКЛЕИТЬСЯ К МАРДЕРУ")
-    addToggle(tabMain, "АВТО (пестик → приклеился → убил → ждёт нового)", false, function(v)
+    addLabel(tabMain, "★ ШЕРИФ (пистолет → точные выстрелы)")
+    addToggle(tabMain, "ШЕРИФ (точный авто-выстрел по хитбоксам)", false, function(v)
         S.autoGunPlay = v
         if v then startAutoGunPlay() else stopAutoGunPlay() end
     end)
@@ -863,6 +984,11 @@ local function createGUI()
     end)
     addBtn(tabVisual, "Скорость 100", Color3.fromRGB(60,60,90), function()
         if LP.Character then local h = LP.Character:FindFirstChildOfClass("Humanoid") if h then h.WalkSpeed = 100 end end
+    end)
+
+    addLabel(tabVisual, "★ МЁРТВАЯ ПОЗА (эмоция)")
+    addToggle(tabVisual, "Мёртвая поза (лежу но хожу)", false, function(v)
+        toggleDeadPose(v)
     end)
 
     addLabel(tabVisual, "ВИЗУАЛ")
@@ -937,7 +1063,7 @@ local function createGUI()
     pList.BackgroundColor3 = Color3.fromRGB(16,16,24)
     pList.BorderSizePixel = 0
     pList.Parent = tabPlayers
-    Instance.new("UICorner", pList).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", pList).CornerRadius = UDim.new(0, 10)
     local pScroll = Instance.new("ScrollingFrame")
     pScroll.Size = UDim2.new(1, -10, 1, -10)
     pScroll.Position = UDim2.new(0, 5, 0, 5)
@@ -1096,19 +1222,6 @@ local function createOverlays()
     fs.Thickness = 1.5
     fs.Transparency = 0.35
     fs.Parent = fovCircle
-
-    targetInfo = Instance.new("TextLabel")
-    targetInfo.Size = UDim2.new(0, 240, 0, 24)
-    targetInfo.Position = UDim2.new(0.5, -120, 0, 40)
-    targetInfo.BackgroundColor3 = Color3.fromRGB(20,20,30)
-    targetInfo.BackgroundTransparency = 0.3
-    targetInfo.Text = ""
-    targetInfo.TextColor3 = Color3.fromRGB(255,100,150)
-    targetInfo.TextSize = 12
-    targetInfo.Font = Enum.Font.GothamBold
-    targetInfo.Visible = false
-    targetInfo.Parent = S.gui
-    Instance.new("UICorner", targetInfo).CornerRadius = UDim.new(0, 6)
 end
 
 local function mainLoop()
@@ -1148,12 +1261,7 @@ local function mainLoop()
             end
             if cl and cl.Character and cl.Character:FindFirstChild("Head") then
                 S.aimT = cl
-                if S.hardAim then
-                    Cam.CFrame = CFrame.new(Cam.CFrame.Position, cl.Character.Head.Position)
-                else
-                    local t = CFrame.new(Cam.CFrame.Position, cl.Character.Head.Position)
-                    Cam.CFrame = Cam.CFrame:Lerp(t, 0.35)
-                end
+                Cam.CFrame = CFrame.new(Cam.CFrame.Position, cl.Character.Head.Position)
             else
                 S.aimT = nil
             end
@@ -1209,8 +1317,8 @@ local function runLoading()
 
         if LOGO then
             local li = Instance.new("ImageLabel")
-            li.Size = UDim2.new(0,160,0,160)
-            li.Position = UDim2.new(0.5,-80,0.5,-150)
+            li.Size = UDim2.new(0,180,0,180)
+            li.Position = UDim2.new(0.5,-90,0.5,-170)
             li.BackgroundTransparency = 1
             li.Image = LOGO
             li.ScaleType = Enum.ScaleType.Fit
@@ -1219,19 +1327,19 @@ local function runLoading()
         end
 
         local lt = Instance.new("TextLabel")
-        lt.Size = UDim2.new(1,0,0,36)
+        lt.Size = UDim2.new(1,0,0,40)
         lt.Position = UDim2.new(0,0,0.5,30)
         lt.BackgroundTransparency = 1
         lt.Text = "АДМИНКА ВАНЬКА"
         lt.TextColor3 = Color3.new(1,1,1)
-        lt.TextSize = 26
+        lt.TextSize = 28
         lt.Font = Enum.Font.GothamBold
         lt.ZIndex = 501
         lt.Parent = lf
 
         local ls = Instance.new("TextLabel")
         ls.Size = UDim2.new(1,0,0,22)
-        ls.Position = UDim2.new(0,0,0.5,70)
+        ls.Position = UDim2.new(0,0,0.5,75)
         ls.BackgroundTransparency = 1
         ls.Text = "Загрузка: 0%"
         ls.TextColor3 = Color3.fromRGB(180,180,210)
@@ -1240,9 +1348,20 @@ local function runLoading()
         ls.ZIndex = 501
         ls.Parent = lf
 
+        local sub = Instance.new("TextLabel")
+        sub.Size = UDim2.new(1,0,0,18)
+        sub.Position = UDim2.new(0,0,0.5,100)
+        sub.BackgroundTransparency = 1
+        sub.Text = "Инициализация..."
+        sub.TextColor3 = Color3.fromRGB(120,120,150)
+        sub.TextSize = 12
+        sub.Font = Enum.Font.Gotham
+        sub.ZIndex = 501
+        sub.Parent = lf
+
         local bb = Instance.new("Frame")
-        bb.Size = UDim2.new(0,320,0,10)
-        bb.Position = UDim2.new(0.5,-160,0.5,130)
+        bb.Size = UDim2.new(0,360,0,12)
+        bb.Position = UDim2.new(0.5,-180,0.5,140)
         bb.BackgroundColor3 = Color3.fromRGB(28,28,40)
         bb.BorderSizePixel = 0
         bb.ZIndex = 501
@@ -1257,34 +1376,41 @@ local function runLoading()
         bf.Parent = bb
         Instance.new("UICorner", bf).CornerRadius = UDim.new(1,0)
 
+        -- ДОЛГАЯ ЗАГРУЗКА (10 сек)
         local stages = {
-            {p=10,t="Загрузка...",d=0.4},
-            {p=30,t="Подключение...",d=0.4},
-            {p=50,t="Модули...",d=0.4},
-            {p=70,t="Интерфейс...",d=0.4},
-            {p=90,t="Почти готово...",d=0.4},
-            {p=100,t="Готово!",d=0.6},
+            {p=5,   t="Инициализация...",       d=0.7},
+            {p=12,  t="Загрузка логотипа...",   d=0.7},
+            {p=20,  t="Подключение к серверу...", d=0.8},
+            {p=30,  t="Загрузка модулей...",    d=0.7},
+            {p=40,  t="Настройка интерфейса...", d=0.8},
+            {p=50,  t="Проверка обновлений...", d=0.7},
+            {p=60,  t="Загрузка функций...",    d=0.8},
+            {p=70,  t="Синхронизация данных...", d=0.7},
+            {p=80,  t="Настройка аима...",      d=0.8},
+            {p=90,  t="Финальная настройка...", d=0.7},
+            {p=100, t="Готово!",                d=0.9},
         }
         for _, st in ipairs(stages) do
             ls.Text = "Загрузка: " .. st.p .. "%"
+            sub.Text = st.t
             local tw = TweenService:Create(bf, TweenInfo.new(st.d, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 Size = UDim2.new(st.p/100, 0, 1, 0)
             })
             tw:Play()
             task.wait(st.d)
         end
-        task.wait(0.3)
-        TweenService:Create(lf, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+        task.wait(0.5)
+        TweenService:Create(lf, TweenInfo.new(0.7), {BackgroundTransparency = 1}):Play()
         for _, c in ipairs(lf:GetDescendants()) do
             if c:IsA("TextLabel") then
-                pcall(function() TweenService:Create(c, TweenInfo.new(0.5), {TextTransparency = 1}):Play() end)
+                pcall(function() TweenService:Create(c, TweenInfo.new(0.7), {TextTransparency = 1}):Play() end)
             elseif c:IsA("ImageLabel") then
-                pcall(function() TweenService:Create(c, TweenInfo.new(0.5), {ImageTransparency = 1}):Play() end)
+                pcall(function() TweenService:Create(c, TweenInfo.new(0.7), {ImageTransparency = 1}):Play() end)
             elseif c:IsA("Frame") then
-                pcall(function() TweenService:Create(c, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play() end)
+                pcall(function() TweenService:Create(c, TweenInfo.new(0.7), {BackgroundTransparency = 1}):Play() end)
             end
         end
-        task.wait(0.6)
+        task.wait(0.8)
         lf:Destroy()
     end)
 end
@@ -1309,6 +1435,6 @@ mainLoop()
 setupInfJump()
 runLoading()
 
-task.delay(6, function() notify("Админка v18 загружена! Авто-приклейка готова", Color3.fromRGB(255,0,100)) end)
+task.delay(12, function() notify("Админка v20 загружена!", Color3.fromRGB(255,0,100)) end)
 
-print("[VANKA v18] OK")
+print("[VANKA v20] OK")
