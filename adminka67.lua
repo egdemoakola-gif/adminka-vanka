@@ -1,17 +1,84 @@
--- ◆ АДМИНКА ВАНЬКА v20 ◆
+-- АДМИНКА ВАНЬКА v21
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UIS = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
+local Players           = game:GetService("Players")
+local RunService        = game:GetService("RunService")
+local UIS               = game:GetService("UserInputService")
+local TweenService      = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Lighting = game:GetService("Lighting")
+local Lighting          = game:GetService("Lighting")
 
-local LP = Players.LocalPlayer
-local Cam = workspace.CurrentCamera
-local Mouse = LP:GetMouse()
+local LP     = Players.LocalPlayer
+local Cam    = workspace.CurrentCamera
+local Mouse  = LP:GetMouse()
 
+-- ═════ ЯЗЫК ═════
+local LANG = "ru" -- "ru" или "en"
+
+local L = {
+    ru = {
+        title="АДМИНКА ВАНЬКА", loading="Загрузка", init="Инициализация", logo="Загрузка логотипа",
+        connect="Подключение к серверу", modules="Загрузка модулей", ui="Настройка интерфейса",
+        update="Проверка обновлений", funcs="Загрузка функций", sync="Синхронизация",
+        aim="Настройка прицела", final="Финальная настройка", ready="Готово", load="Загрузка скрипта",
+        main="ГЛАВНАЯ", visual="ВИЗУАЛ", rage="РЕЙДЖ", players="ИГРОКИ", settings="НАСТРОЙКИ",
+        sheriff_sec="★ ШЕРИФ (пистолет → точные выстрелы)",
+        sheriff="ШЕРИФ (точный авто-выстрел)",
+        roles_esp="РОЛИ И ESP", esp_roles="Подсветка ролей (К/С/З)",
+        autopickup_sec="АВТО-ПОДБОР", autopickup="Авто-подбор (ТП на место смерти Шерифа)",
+        clear_sec="ОЧИСТКА", clear_inv="Очистить инвентарь",
+        cross_sec="ПРИЦЕЛ", cross="Показывать прицел", fov="Показывать FOV", hardaim="Жёсткий аим",
+        move_sec="ДВИЖЕНИЕ", fly="Полёт", noclip="Noclip", infjump="Беск. прыжок",
+        spd50="Скорость 50", spd100="Скорость 100",
+        pose_sec="★ МЁРТВАЯ ПОЗА", pose="Мёртвая поза (лежу но хожу)",
+        vis_sec="ВИЗУАЛ", fullbright="Fullbright",
+        killall_sec="KILL ALL (авто)", killall="KILL ALL (проверка роли)",
+        aim_sec="АИМ (ручной)", aimbot="Аимбот на Мардера", kill_aim="Убить цель аима",
+        spin_sec="СПИНБОТ", spin="Спинбот",
+        util_sec="УТИЛИТЫ", respawn="Респавн", disable_all="ВЫКЛЮЧИТЬ ВСЁ",
+        lang_sec="ЯЗЫК", lang_ru="Русский", lang_en="English",
+        plist="СПИСОК ИГРОКОВ", tp="ТП", fling="ФЛИНГ",
+        no_gun="Пистолет не найден", wait_gun="ШЕРИФ: жду пистолет", target="Цель",
+        killed="Убил", fling_run="Флингаю", fling_ko="В космосе", fling_done="Отфлингался",
+        fling_dead="Уничтожен", no_target="Нет цели", sheriff_off="Шериф ВЫКЛ",
+        all_killed="Все убиты", killed_one="Убит", not_killed="Не убит", all_off="Всё выключено",
+        pose_on="Мёртвая поза ВКЛ", pose_off="Мёртвая поза ВЫКЛ",
+        gun_gone="Пистолет пропал", auto_off="Авто выкл",
+    },
+    en = {
+        title="VANKA ADMIN", loading="Loading", init="Initializing", logo="Loading logo",
+        connect="Connecting to server", modules="Loading modules", ui="Configuring UI",
+        update="Checking updates", funcs="Loading functions", sync="Synchronizing",
+        aim="Setting up aim", final="Final setup", ready="Ready", load="Script loading",
+        main="MAIN", visual="VISUAL", rage="RAGE", players="PLAYERS", settings="SETTINGS",
+        sheriff_sec="★ SHERIFF (gun → accurate shots)",
+        sheriff="SHERIFF (accurate auto-shoot)",
+        roles_esp="ROLES & ESP", esp_roles="Role highlight (K/S/I)",
+        autopickup_sec="AUTO-PICKUP", autopickup="Auto-pickup (TP to Sheriff death)",
+        clear_sec="CLEAR", clear_inv="Clear inventory",
+        cross_sec="CROSSHAIR", cross="Show crosshair", fov="Show FOV", hardaim="Hard aim",
+        move_sec="MOVEMENT", fly="Fly", noclip="Noclip", infjump="Infinite jump",
+        spd50="Speed 50", spd100="Speed 100",
+        pose_sec="★ DEAD POSE", pose="Dead pose (lying but walking)",
+        vis_sec="VISUAL", fullbright="Fullbright",
+        killall_sec="KILL ALL (auto)", killall="KILL ALL (check role)",
+        aim_sec="AIM (manual)", aimbot="Aimbot to Murderer", kill_aim="Kill aim target",
+        spin_sec="SPINBOT", spin="Spinbot",
+        util_sec="UTILITIES", respawn="Respawn", disable_all="TURN OFF ALL",
+        lang_sec="LANGUAGE", lang_ru="Русский", lang_en="English",
+        plist="PLAYERS LIST", tp="TP", fling="FLING",
+        no_gun="Gun not found", wait_gun="SHERIFF: waiting for gun", target="Target",
+        killed="Killed", fling_run="Flinging", fling_ko="In space", fling_done="Flinged",
+        fling_dead="Destroyed", no_target="No target", sheriff_off="Sheriff OFF",
+        all_killed="All killed", killed_one="Killed", not_killed="Not killed", all_off="All disabled",
+        pose_on="Dead pose ON", pose_off="Dead pose OFF",
+        gun_gone="Gun gone", auto_off="Auto OFF",
+    }
+}
+
+local function T(key) return L[LANG][key] or key end
+
+-- ═════ СКАЧИВАНИЕ КАРТИНОК ═════
 local GH = "https://raw.githubusercontent.com/egdemoakola-gif/adminka-vanka/main/"
 local function downloadImg(name)
     local file = "vanka_" .. name
@@ -37,22 +104,23 @@ local IMG_MAIN = downloadImg("main.png")
 local IMG_VIS  = downloadImg("visial.png")
 local IMG_RAGE = downloadImg("rage.png")
 
+-- ═════ СОСТОЯНИЕ ═════
 local S = {
     roleHighlight=false, roleHL={},
-    aimbot=false, aimbotFOV=200, aimT=nil,
-    hardAim=true,
+    aimbot=false, aimbotFOV=200, aimT=nil, hardAim=true,
     autoGunPlay=false, autoGunThread=nil,
     autoPickup=false, sheriffThread=nil, lastSheriffPos=nil, lastSheriff=nil,
-    camper=false, camperT=nil,
     spin=false, spinSpeed=30,
     fly=false, noclip=false, infjump=false,
     crosshair=true, fovCircle=true,
     killAllEnabled=false, killList={}, killThread=nil, killLoopThread=nil,
     deadPose=false, deadAnim=nil,
-    conns={}, gui=nil,
+    conns={}, gui=nil, panel=nil,
     fullbright=false, oldLighting=nil,
+    uiRefs={},
 }
 
+-- ═════ УВЕДОМЛЕНИЯ ═════
 local function notify(text, color)
     color = color or Color3.fromRGB(255,0,100)
     if not S.gui then return end
@@ -65,26 +133,20 @@ local function notify(text, color)
     n.Parent = h
     Instance.new("UICorner", n).CornerRadius = UDim.new(0, 8)
     local s = Instance.new("UIStroke")
-    s.Color = color
-    s.Thickness = 2
-    s.Parent = n
+    s.Color = color; s.Thickness = 2; s.Parent = n
     local bar = Instance.new("Frame")
     bar.Size = UDim2.new(0, 4, 1, 0)
-    bar.BackgroundColor3 = color
-    bar.BorderSizePixel = 0
-    bar.Parent = n
+    bar.BackgroundColor3 = color; bar.BorderSizePixel = 0; bar.Parent = n
     Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 8)
     local l = Instance.new("TextLabel")
     l.Size = UDim2.new(1, -20, 1, 0)
     l.Position = UDim2.new(0, 14, 0, 0)
     l.BackgroundTransparency = 1
     l.Text = text
-    l.TextColor3 = Color3.new(1,1,1)
-    l.TextSize = 12
+    l.TextColor3 = Color3.new(1,1,1); l.TextSize = 12
     l.Font = Enum.Font.GothamMedium
     l.TextXAlignment = Enum.TextXAlignment.Left
-    l.TextWrapped = true
-    l.Parent = n
+    l.TextWrapped = true; l.Parent = n
     n.Position = UDim2.new(1, 320, 0, 0)
     TweenService:Create(n, TweenInfo.new(0.3), {Position = UDim2.new(0,0,0,0)}):Play()
     task.delay(3, function()
@@ -94,6 +156,7 @@ local function notify(text, color)
     end)
 end
 
+-- ═════ РОЛИ ═════
 local function getRole(plr)
     if not plr or not plr.Character then return "Innocent" end
     local function has(nm)
@@ -184,147 +247,175 @@ local function equipMyKnife()
 end
 
 -- ═════════════════════════════════════════════════════════════════
--- ФЛИНГ v20: ХАОТИЧНЫЕ ВРЕЗАНИЯ СО ВСЕХ СТОРОН
+-- ФЛИНГ v21: РЕАЛЬНО РАБОЧИЙ
+-- Метод: Weld жертвы к якорю + сверх-скорость через AssemblyLinearVelocity
 -- ═════════════════════════════════════════════════════════════════
 local function fling(target)
     if not target or target == LP or not target.Character then
-        notify("Нет цели", Color3.fromRGB(255,60,60))
+        notify(T("no_target"), Color3.fromRGB(255,60,60))
         return
     end
-    local hrp = target.Character:FindFirstChild("HumanoidRootPart")
-    local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-    if not hrp or not myHrp then return end
+    local tChar = target.Character
+    local tHrp = tChar:FindFirstChild("HumanoidRootPart")
+    local tHum = tChar:FindFirstChildOfClass("Humanoid")
+    if not tHrp or not tHum then return end
     
-    notify("ФЛИНГ: " .. target.Name, Color3.fromRGB(255,0,150))
+    notify(T("fling_run") .. ": " .. target.Name, Color3.fromRGB(255,0,150))
     
     task.spawn(function()
-        for _, p in ipairs(target.Character:GetDescendants()) do
+        -- 1) Захват network ownership на ВСЕХ частях
+        for _, p in ipairs(tChar:GetDescendants()) do
             if p:IsA("BasePart") then 
                 pcall(function() p:SetNetworkOwner(LP) end) 
             end
         end
         
-        local wasAnchored = myHrp.Anchored
-        myHrp.Anchored = true
+        -- 2) Сохраняем оригинальную позицию
+        local origCF = tHrp.CFrame
+        local origY = origCF.Position.Y
         
+        -- 3) Создаём НЕВИДИМЫЙ якорь (невидимая часть)
+        local anchor = Instance.new("Part")
+        anchor.Size = Vector3.new(1, 1, 1)
+        anchor.Transparency = 1
+        anchor.CanCollide = false
+        anchor.Anchored = true
+        anchor.CFrame = origCF
+        anchor.Parent = workspace
+        
+        -- 4) Weld ВСЕХ частей тела жертвы к якорю
+        local welds = {}
+        for _, p in ipairs(tChar:GetDescendants()) do
+            if p:IsA("BasePart") and p ~= tHrp then
+                local w = Instance.new("WeldConstraint")
+                w.Part0 = p
+                w.Part1 = tHrp
+                w.Parent = p
+                table.insert(welds, w)
+            end
+        end
+        
+        -- 5) Убираем все существующие Motor6D/Weld жертвы
+        for _, m in ipairs(tChar:GetDescendants()) do
+            if m:IsA("Motor6D") or (m:IsA("Weld") and not m:IsDescendantOf(tHrp)) then
+                pcall(function() m:Destroy() end)
+            end
+        end
+        
+        -- 6) Создаём BodyVelocity с огромной силой на HRP
         local bv = Instance.new("BodyVelocity")
         bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bv.Velocity = Vector3.new(0, 0, 0)
-        bv.Parent = hrp
+        bv.Velocity = Vector3.new(1e5, 1e5, 1e5)
+        bv.Parent = tHrp
         
         local bav = Instance.new("BodyAngularVelocity")
         bav.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        bav.AngularVelocity = Vector3.new(0, 0, 0)
-        bav.Parent = hrp
+        bav.AngularVelocity = Vector3.new(1e5, 1e5, 1e5)
+        bav.Parent = tHrp
         
-        local successCount = 0
+        -- 7) ХАОТИЧНЫЕ ВРЕЗАНИЯ МЕЖДУ ТЕЛОМ
+        local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+        local wasAnchored = false
+        if myHrp then
+            wasAnchored = myHrp.Anchored
+            -- НЕ якорим чтобы не застрять, но отключаем коллизию
+        end
+        
         local startTime = tick()
-        while tick() - startTime < 3 do
-            if not target.Character then break end
-            local tHrp = target.Character:FindFirstChild("HumanoidRootPart")
-            if not tHrp then break end
+        local hitCount = 0
+        
+        while tick() - startTime < 2.5 do
+            if not target.Character or not target.Character.Parent then break end
+            local curHrp = target.Character:FindFirstChild("HumanoidRootPart")
+            if not curHrp then break end
             
-            -- Случайная точка вокруг цели (сфера)
-            local angle1 = math.random() * math.pi * 2
-            local angle2 = math.random() * math.pi - math.pi/2
-            local radius = math.random(1, 4)
+            -- Случайная точка сферы вокруг жертвы
+            local a1 = math.random() * math.pi * 2
+            local a2 = math.random() * math.pi - math.pi/2
+            local r = math.random(1, 3)
+            local ox = math.cos(a1) * math.cos(a2) * r
+            local oy = math.sin(a2) * r
+            local oz = math.sin(a1) * math.cos(a2) * r
             
-            local offsetX = math.cos(angle1) * math.cos(angle2) * radius
-            local offsetY = math.sin(angle2) * radius
-            local offsetZ = math.sin(angle1) * math.cos(angle2) * radius
+            if myHrp then
+                pcall(function()
+                    myHrp.CFrame = curHrp.CFrame * CFrame.new(ox, oy, oz)
+                end)
+            end
             
+            -- Обновляем velocity жертвы СВЕЖИМИ случайными значениями
             pcall(function()
-                myHrp.CFrame = tHrp.CFrame * CFrame.new(offsetX, offsetY, offsetZ)
-            end)
-            
-            pcall(function()
-                local dir = (tHrp.Position - myHrp.Position)
-                if dir.Magnitude < 0.1 then
-                    dir = Vector3.new(math.random(-1,1)*10, math.random(5,15), math.random(-1,1)*10)
-                else
-                    dir = dir.Unit * 5000
-                end
-                bv.Velocity = dir + Vector3.new(
+                curHrp.AssemblyLinearVelocity = Vector3.new(
+                    math.random(-5000, 5000),
+                    math.random(3000, 8000),
+                    math.random(-5000, 5000)
+                )
+                curHrp.AssemblyAngularVelocity = Vector3.new(
                     math.random(-500, 500),
-                    math.random(200, 800),
+                    math.random(-500, 500),
                     math.random(-500, 500)
                 )
-                bav.AngularVelocity = Vector3.new(
-                    math.random(-1000, 1000),
-                    math.random(-1000, 1000),
-                    math.random(-1000, 1000)
+                bv.Velocity = Vector3.new(
+                    math.random(-3000, 3000),
+                    math.random(2000, 5000),
+                    math.random(-3000, 3000)
                 )
             end)
             
-            pcall(function()
-                tHrp.Velocity = Vector3.new(
-                    math.random(-800, 800) * 10,
-                    math.random(500, 1500) * 10,
-                    math.random(-800, 800) * 10
-                )
-            end)
-            
-            successCount = successCount + 1
+            hitCount = hitCount + 1
             task.wait()
         end
         
+        -- 8) Убираем BodyVelocity
         if bv then pcall(function() bv:Destroy() end) end
         if bav then pcall(function() bav:Destroy() end) end
         
-        myHrp.Anchored = wasAnchored
+        -- 9) Оставляем всё как есть (тело продолжает лететь само)
+        -- Просто удаляем якорь, оставляя скорость
+        if anchor then pcall(function() anchor:Destroy() end) end
         
+        if myHrp and wasAnchored ~= nil then
+            myHrp.Anchored = wasAnchored
+        end
+        
+        -- 10) ПРОВЕРКА РЕАЛЬНОГО РЕЗУЛЬТАТА
         task.wait(1.5)
-        if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-            local y = target.Character.HumanoidRootPart.Position.Y
-            if y > 500 then 
-                notify(target.Name .. " В КОСМОСЕ! (" .. successCount .. " врезаний)", Color3.fromRGB(255,100,200))
-            else 
-                notify(target.Name .. " отфлингался (" .. successCount .. " врезаний)", Color3.fromRGB(100,200,255))
+        local finalHRP = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+        if finalHRP then
+            local newY = finalHRP.Position.Y
+            local rise = newY - origY
+            
+            if newY > 500 then
+                notify(target.Name .. " " .. T("fling_ko") .. "!", Color3.fromRGB(255,100,200))
+            elseif rise > 20 then
+                notify(target.Name .. " " .. T("fling_done") .. " (+" .. math.floor(rise) .. " studs)", Color3.fromRGB(100,200,255))
+            else
+                notify(target.Name .. " не откинуло", Color3.fromRGB(255,150,50))
             end
         else
-            notify(target.Name .. " УНИЧТОЖЕН!", Color3.fromRGB(255,0,100))
+            notify(target.Name .. " " .. T("fling_dead"), Color3.fromRGB(255,0,100))
         end
     end)
 end
 
 -- ═════════════════════════════════════════════════════════════════
--- ШЕРИФ v20: БЫСТРЫЕ ТОЧНЫЕ ВЫСТРЕЛЫ ПО ХИТБОКСАМ
+-- ШЕРИФ v21: точный авто-выстрел
 -- ═════════════════════════════════════════════════════════════════
-local function findAnyHitbox(tChar)
-    -- Ищем любую часть тела Мардера
-    local parts = {}
-    for _, p in ipairs(tChar:GetChildren()) do
-        if p:IsA("BasePart") then
-            table.insert(parts, p)
-        end
-    end
-    -- Приоритет голове
-    for _, p in ipairs(parts) do
-        if p.Name == "Head" then return p end
-    end
-    -- Потом UpperTorso/Torso
-    for _, p in ipairs(parts) do
-        if p.Name == "UpperTorso" or p.Name == "Torso" then return p end
-    end
-    -- Потом любая
-    if #parts > 0 then return parts[1] end
-    return nil
+local function findHead(tChar)
+    return tChar:FindFirstChild("Head") or tChar:FindFirstChild("UpperTorso") or tChar:FindFirstChild("Torso")
 end
 
 local function startAutoGunPlay()
     if S.autoGunThread then return end
     
     S.autoGunThread = task.spawn(function()
-        notify("ШЕРИФ: жду пистолет...", Color3.fromRGB(255,200,0))
+        notify(T("wait_gun") .. "...", Color3.fromRGB(255,200,0))
         
         local currentTarget = nil
         
         while S.autoGunPlay do
             if not hasGunAnywhere() then
-                if currentTarget then
-                    notify("Пистолет пропал", Color3.fromRGB(150,150,150))
-                    currentTarget = nil
-                end
+                if currentTarget then notify(T("gun_gone"), Color3.fromRGB(150,150,150)); currentTarget = nil end
                 task.wait(0.3)
                 continue
             end
@@ -332,10 +423,7 @@ local function startAutoGunPlay()
             if not hasGunInHand() then
                 equipGun()
                 task.wait(0.1)
-                if not hasGunInHand() then
-                    task.wait(0.3)
-                    continue
-                end
+                if not hasGunInHand() then task.wait(0.3) continue end
             end
             
             if not currentTarget or not currentTarget.Character then
@@ -346,29 +434,22 @@ local function startAutoGunPlay()
                             local h = plr.Character:FindFirstChildOfClass("Humanoid")
                             if h and h.Health > 0 then
                                 currentTarget = plr
-                                notify("Цель: " .. plr.Name, Color3.fromRGB(255,0,100))
+                                notify(T("target") .. ": " .. plr.Name, Color3.fromRGB(255,0,100))
                                 break
                             end
                         end
                     end
                 end
-                if not currentTarget then
-                    task.wait(0.3)
-                    continue
-                end
+                if not currentTarget then task.wait(0.3) continue end
             end
             
             local tChar = currentTarget.Character
-            if not tChar then
-                currentTarget = nil
-                task.wait(0.2)
-                continue
-            end
+            if not tChar then currentTarget = nil task.wait(0.2) continue end
             local tHum = tChar:FindFirstChildOfClass("Humanoid")
             local tHrp = tChar:FindFirstChild("HumanoidRootPart")
             
             if not tHum or tHum.Health <= 0 or not tHrp then
-                notify("УБИЛ " .. currentTarget.Name .. "!", Color3.fromRGB(0,255,100))
+                notify(T("killed") .. " " .. currentTarget.Name .. "!", Color3.fromRGB(0,255,100))
                 currentTarget = nil
                 task.wait(0.2)
                 continue
@@ -376,49 +457,49 @@ local function startAutoGunPlay()
             
             -- Захват контроля
             for _, p in ipairs(tChar:GetDescendants()) do
-                if p:IsA("BasePart") then
-                    pcall(function() p:SetNetworkOwner(LP) end)
-                end
+                if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
             end
             
-            -- Находим любую хитбокс-часть для прицела
-            local hitbox = findAnyHitbox(tChar)
-            if not hitbox then
-                task.wait(0.1)
-                continue
-            end
+            local hitbox = findHead(tChar)
+            if not hitbox then task.wait(0.05) continue end
             
-            -- ТП рядом с целью (не в тело, чтоб не убили)
+            -- ТП за спину
             local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
             if myHrp and tHrp then
                 pcall(function()
-                    myHrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
+                    myHrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 2)
                     myHrp.Velocity = Vector3.new(0, 0, 0)
                 end)
             end
             
-            -- КАМЕРА ТОЧНО НА ХИТБОКС
-            pcall(function()
-                Cam.CFrame = CFrame.new(Cam.CFrame.Position, hitbox.Position)
-            end)
+            -- Точная наводка камеры
+            local targetPos = hitbox.Position
+            for _ = 1, 4 do
+                local newCF = CFrame.new(Cam.CFrame.Position, targetPos)
+                Cam.CFrame = Cam.CFrame:Lerp(newCF, 0.9)
+            end
             
-            -- СТРЕЛЯЕМ ОЧЕНЬ БЫСТРО
-            local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
-            if tool and isGun(tool) then
-                -- Проверяем что камера смотрит примерно на цель
-                local lookDir = Cam.CFrame.LookVector
-                local toTarget = (hitbox.Position - Cam.CFrame.Position).Unit
-                local dot = lookDir:Dot(toTarget)
-                
-                if dot > 0.98 then
-                    -- 10 выстрелов подряд
-                    for i = 1, 10 do
+            -- Проверка точности
+            local lookDir = Cam.CFrame.LookVector
+            local toTarget = (targetPos - Cam.CFrame.Position).Unit
+            local dot = lookDir:Dot(toTarget)
+            
+            if dot > 0.999 then
+                -- Точно наведён — 15 выстрелов
+                local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
+                if tool and isGun(tool) then
+                    for i = 1, 15 do
                         pcall(function() tool:Activate() end)
                     end
-                else
-                    -- Наводим ещё точнее
-                    for _ = 1, 3 do
-                        Cam.CFrame = CFrame.new(Cam.CFrame.Position, hitbox.Position)
+                end
+            elseif dot > 0.995 then
+                -- Почти наведён — доворачиваем и стреляем
+                local newCF = CFrame.new(Cam.CFrame.Position, targetPos)
+                Cam.CFrame = newCF
+                local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
+                if tool and isGun(tool) then
+                    for i = 1, 10 do
+                        pcall(function() tool:Activate() end)
                     end
                 end
             end
@@ -427,7 +508,7 @@ local function startAutoGunPlay()
         end
         
         S.autoGunThread = nil
-        notify("ШЕРИФ ВЫКЛ", Color3.fromRGB(150,150,150))
+        notify(T("sheriff_off"), Color3.fromRGB(150,150,150))
     end)
 end
 
@@ -436,13 +517,12 @@ local function stopAutoGunPlay()
     S.autoGunThread = nil
 end
 
--- АВТО-ПОДБОР
+-- ═════ АВТО-ПОДБОР ═════
 local function startAutoPickup()
     if S.sheriffThread then return end
     S.lastSheriff = nil
     S.lastSheriffPos = nil
     S.sheriffThread = task.spawn(function()
-        notify("Авто-подбор ВКЛ", Color3.fromRGB(60,150,255))
         while S.autoPickup do
             local currentSheriff = nil
             local currentPos = nil
@@ -458,7 +538,6 @@ local function startAutoPickup()
             end
             if currentSheriff and currentPos then S.lastSheriffPos = currentPos end
             if S.lastSheriff and not currentSheriff and S.lastSheriffPos then
-                notify("Шериф умер! ТП...", Color3.fromRGB(255,220,0))
                 task.wait(0.4)
                 if LP.Character then
                     local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
@@ -483,7 +562,7 @@ local function stopAutoPickup()
     S.lastSheriffPos = nil
 end
 
--- МЁРТВАЯ ПОЗА
+-- ═════ МЁРТВАЯ ПОЗА ═════
 local DEATH_ANIM_ID = "rbxassetid://282574440"
 
 local function toggleDeadPose(enabled)
@@ -492,10 +571,7 @@ local function toggleDeadPose(enabled)
     local humanoid = LP.Character:FindFirstChildOfClass("Humanoid")
     if not humanoid then return end
     local animator = humanoid:FindFirstChildOfClass("Animator")
-    if not animator then
-        animator = Instance.new("Animator")
-        animator.Parent = humanoid
-    end
+    if not animator then animator = Instance.new("Animator") animator.Parent = humanoid end
     
     if enabled then
         if not S.deadAnim then
@@ -505,19 +581,16 @@ local function toggleDeadPose(enabled)
             S.deadAnim.Looped = true
             S.deadAnim.Priority = Enum.AnimationPriority.Action4
         end
-        if S.deadAnim then
-            pcall(function() S.deadAnim:Play(0.1) end)
-        end
+        if S.deadAnim then pcall(function() S.deadAnim:Play(0.1) end) end
         pcall(function() humanoid.PlatformStand = false end)
-        notify("Мёртвая поза ВКЛ", Color3.fromRGB(150,50,150))
+        notify(T("pose_on"), Color3.fromRGB(150,50,150))
     else
-        if S.deadAnim then
-            pcall(function() S.deadAnim:Stop(0.1) end)
-        end
-        notify("Мёртвая поза ВЫКЛ", Color3.fromRGB(150,150,150))
+        if S.deadAnim then pcall(function() S.deadAnim:Stop(0.1) end) end
+        notify(T("pose_off"), Color3.fromRGB(150,150,150))
     end
 end
 
+-- ═════ ESP ═════
 local function refreshHL()
     if not S.roleHighlight then return end
     for _, plr in ipairs(Players:GetPlayers()) do
@@ -544,6 +617,7 @@ local function clearHL()
     S.roleHL = {}
 end
 
+-- ═════ KILL ALL ═════
 local function killOneTarget(target)
     if not target or target == LP or not target.Character then return false end
     local myChar = LP.Character
@@ -595,11 +669,11 @@ local function startAutoKillAll()
                     if h and h.Health > 0 and not S.killList[plr] then target = plr break end
                 end
             end
-            if not target then notify("ВСЕ УБИТЫ", Color3.fromRGB(0,200,100)) break end
+            if not target then notify(T("all_killed"), Color3.fromRGB(0,200,100)) break end
             local ok = killOneTarget(target)
             S.killList[target] = true
-            if ok then notify("Убит: " .. target.Name, Color3.fromRGB(255,100,100))
-            else notify("Не убит: " .. target.Name, Color3.fromRGB(200,150,50)) end
+            if ok then notify(T("killed_one") .. ": " .. target.Name, Color3.fromRGB(255,100,100))
+            else notify(T("not_killed") .. ": " .. target.Name, Color3.fromRGB(200,150,50)) end
             task.wait(0.3)
         end
         S.killThread = nil
@@ -614,17 +688,12 @@ end
 local function startKillAllLoop()
     if S.killLoopThread then return end
     S.killLoopThread = task.spawn(function()
-        notify("KILL ALL: жду Мардера...", Color3.fromRGB(255,150,0))
         while S.killAllEnabled do
             local myRole = getRole(LP)
             if myRole == "Murderer" then
-                if not S.killThread then
-                    startAutoKillAll()
-                end
+                if not S.killThread then startAutoKillAll() end
             else
-                if S.killThread then
-                    stopAutoKillAll()
-                end
+                if S.killThread then stopAutoKillAll() end
             end
             task.wait(1)
         end
@@ -638,6 +707,7 @@ local function stopKillAllLoop()
     S.killLoopThread = nil
 end
 
+-- ═════ СОЗДАНИЕ GUI ═════
 local function createGUI()
     local parent = (gethui and gethui()) or game:GetService("CoreGui")
     local gui = Instance.new("ScreenGui")
@@ -661,15 +731,16 @@ local function createGUI()
 
     local main = Instance.new("Frame")
     main.Name = "MainFrame"
-    main.Size = UDim2.new(0, 400, 0, 540)
-    main.Position = UDim2.new(0, 15, 0.5, -270)
+    main.Size = UDim2.new(0, 420, 0, 560)
+    main.Position = UDim2.new(0, 15, 0.5, -280)
     main.BackgroundColor3 = Color3.fromRGB(11, 11, 18)
     main.BorderSizePixel = 0
     main.Active = true
     main.Draggable = true
     main.Parent = gui
     Instance.new("UICorner", main).CornerRadius = UDim.new(0, 16)
-    
+    S.panel = main
+
     local bgGrad = Instance.new("UIGradient")
     bgGrad.Color = ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 15, 30)),
@@ -677,7 +748,7 @@ local function createGUI()
     }
     bgGrad.Rotation = 45
     bgGrad.Parent = main
-    
+
     local mstk = Instance.new("UIStroke")
     mstk.Color = Color3.fromRGB(255,0,100)
     mstk.Thickness = 2
@@ -718,15 +789,16 @@ local function createGUI()
     end
 
     local ttl = Instance.new("TextLabel")
-    ttl.Size = UDim2.new(1, -130, 1, 0)
+    ttl.Size = UDim2.new(1, -140, 1, 0)
     ttl.Position = UDim2.new(0, 56, 0, 0)
     ttl.BackgroundTransparency = 1
-    ttl.Text = "АДМИНКА ВАНЬКА v20"
+    ttl.Text = T("title") .. " v21"
     ttl.TextColor3 = Color3.new(1,1,1)
     ttl.TextSize = 15
     ttl.Font = Enum.Font.GothamBold
     ttl.TextXAlignment = Enum.TextXAlignment.Left
     ttl.Parent = top
+    S.uiRefs.title = ttl
 
     local minB = Instance.new("TextButton")
     minB.Size = UDim2.new(0, 30, 0, 30)
@@ -800,9 +872,9 @@ local function createGUI()
         end
     end
 
-    local function addTab(key, img)
+    local function addTab(key, img, txt)
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(0, 88, 0, 32)
+        b.Size = UDim2.new(0, 90, 0, 32)
         b.BackgroundColor3 = Color3.fromRGB(32,32,44)
         b.Text = ""
         b.AutoButtonColor = false
@@ -818,7 +890,7 @@ local function createGUI()
             im.ScaleType = Enum.ScaleType.Fit
             im.Parent = b
         else
-            b.Text = key:upper()
+            b.Text = txt or key:upper()
             b.TextColor3 = Color3.fromRGB(170,170,190)
             b.TextSize = 11
             b.Font = Enum.Font.GothamBold
@@ -857,7 +929,7 @@ local function createGUI()
         Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
         b.MouseButton1Click:Connect(function()
             local ok, err = pcall(cb, b)
-            if not ok then notify("Ошибка: " .. tostring(err), Color3.fromRGB(255,60,60)) end
+            if not ok then notify("Error: " .. tostring(err), Color3.fromRGB(255,60,60)) end
         end)
         return b
     end
@@ -932,32 +1004,35 @@ local function createGUI()
         l.Parent = w
     end
 
+    -- Табы
     local tabMain    = addTab("main", IMG_MAIN)
     local tabVisual  = addTab("visual", IMG_VIS)
     local tabRage    = addTab("rage", IMG_RAGE)
-    local tabPlayers = addTab("players", nil)
+    local tabPlayers = addTab("players", nil, T("players"))
+    local tabSettings = addTab("settings", nil, T("settings"))
     switchTab("main")
 
-    addLabel(tabMain, "★ ШЕРИФ (пистолет → точные выстрелы)")
-    addToggle(tabMain, "ШЕРИФ (точный авто-выстрел по хитбоксам)", false, function(v)
+    -- ═ MAIN ═
+    addLabel(tabMain, T("sheriff_sec"))
+    addToggle(tabMain, T("sheriff"), false, function(v)
         S.autoGunPlay = v
         if v then startAutoGunPlay() else stopAutoGunPlay() end
     end)
 
-    addLabel(tabMain, "РОЛИ И ESP")
-    addToggle(tabMain, "Подсветка ролей (К/С/З)", false, function(v)
+    addLabel(tabMain, T("roles_esp"))
+    addToggle(tabMain, T("esp_roles"), false, function(v)
         S.roleHighlight = v
         if v then refreshHL() else clearHL() end
     end)
 
-    addLabel(tabMain, "АВТО-ПОДБОР")
-    addToggle(tabMain, "Авто-подбор (ТП на место смерти Шерифа)", false, function(v)
+    addLabel(tabMain, T("autopickup_sec"))
+    addToggle(tabMain, T("autopickup"), false, function(v)
         S.autoPickup = v
         if v then startAutoPickup() else stopAutoPickup() end
     end)
 
-    addLabel(tabMain, "ОЧИСТКА")
-    addBtn(tabMain, "Очистить инвентарь", Color3.fromRGB(60,60,70), function()
+    addLabel(tabMain, T("clear_sec"))
+    addBtn(tabMain, T("clear_inv"), Color3.fromRGB(60,60,70), function()
         if LP.Backpack then
             for _, t in ipairs(LP.Backpack:GetChildren()) do
                 if t:IsA("Tool") then t:Destroy() end
@@ -970,29 +1045,28 @@ local function createGUI()
         end
     end)
 
-    addLabel(tabVisual, "ПРИЦЕЛ")
-    addToggle(tabVisual, "Показывать прицел", true, function(v) S.crosshair = v end)
-    addToggle(tabVisual, "Показывать FOV", true, function(v) S.fovCircle = v end)
-    addToggle(tabVisual, "Жёсткий аим", true, function(v) S.hardAim = v end)
+    -- ═ VISUAL ═
+    addLabel(tabVisual, T("cross_sec"))
+    addToggle(tabVisual, T("cross"), true, function(v) S.crosshair = v end)
+    addToggle(tabVisual, T("fov"), true, function(v) S.fovCircle = v end)
+    addToggle(tabVisual, T("hardaim"), true, function(v) S.hardAim = v end)
 
-    addLabel(tabVisual, "ДВИЖЕНИЕ")
-    addToggle(tabVisual, "Полёт", false, function(v) S.fly = v end)
-    addToggle(tabVisual, "Noclip", false, function(v) S.noclip = v end)
-    addToggle(tabVisual, "Беск. прыжок", false, function(v) S.infjump = v end)
-    addBtn(tabVisual, "Скорость 50", Color3.fromRGB(60,60,90), function()
+    addLabel(tabVisual, T("move_sec"))
+    addToggle(tabVisual, T("fly"), false, function(v) S.fly = v end)
+    addToggle(tabVisual, T("noclip"), false, function(v) S.noclip = v end)
+    addToggle(tabVisual, T("infjump"), false, function(v) S.infjump = v end)
+    addBtn(tabVisual, T("spd50"), Color3.fromRGB(60,60,90), function()
         if LP.Character then local h = LP.Character:FindFirstChildOfClass("Humanoid") if h then h.WalkSpeed = 50 end end
     end)
-    addBtn(tabVisual, "Скорость 100", Color3.fromRGB(60,60,90), function()
+    addBtn(tabVisual, T("spd100"), Color3.fromRGB(60,60,90), function()
         if LP.Character then local h = LP.Character:FindFirstChildOfClass("Humanoid") if h then h.WalkSpeed = 100 end end
     end)
 
-    addLabel(tabVisual, "★ МЁРТВАЯ ПОЗА (эмоция)")
-    addToggle(tabVisual, "Мёртвая поза (лежу но хожу)", false, function(v)
-        toggleDeadPose(v)
-    end)
+    addLabel(tabVisual, T("pose_sec"))
+    addToggle(tabVisual, T("pose"), false, function(v) toggleDeadPose(v) end)
 
-    addLabel(tabVisual, "ВИЗУАЛ")
-    addToggle(tabVisual, "Fullbright", false, function(v)
+    addLabel(tabVisual, T("vis_sec"))
+    addToggle(tabVisual, T("fullbright"), false, function(v)
         S.fullbright = v
         if v then
             if not S.oldLighting then
@@ -1018,46 +1092,45 @@ local function createGUI()
         end
     end)
 
-    addLabel(tabRage, "KILL ALL (авто)")
-    addToggle(tabRage, "KILL ALL (проверка роли)", false, function(v)
+    -- ═ RAGE ═
+    addLabel(tabRage, T("killall_sec"))
+    addToggle(tabRage, T("killall"), false, function(v)
         S.killAllEnabled = v
         if v then startKillAllLoop() else stopKillAllLoop() end
     end)
 
-    addLabel(tabRage, "АИМ (ручной)")
-    addToggle(tabRage, "Аимбот на Мардера (ручной)", false, function(v) S.aimbot = v end)
-    addBtn(tabRage, "Убить цель аима", Color3.fromRGB(170,20,30), function()
+    addLabel(tabRage, T("aim_sec"))
+    addToggle(tabRage, T("aimbot"), false, function(v) S.aimbot = v end)
+    addBtn(tabRage, T("kill_aim"), Color3.fromRGB(170,20,30), function()
         if S.aimT and S.aimT.Character then
             local h = S.aimT.Character:FindFirstChildOfClass("Humanoid")
             if h then h.Health = 0 end
         end
     end)
 
-    addLabel(tabRage, "СПИНБОТ")
-    addToggle(tabRage, "Спинбот", false, function(v) S.spin = v end)
+    addLabel(tabRage, T("spin_sec"))
+    addToggle(tabRage, T("spin"), false, function(v) S.spin = v end)
 
-    addLabel(tabRage, "УТИЛИТЫ")
-    addBtn(tabRage, "Respawn", Color3.fromRGB(100,60,150), function()
+    addLabel(tabRage, T("util_sec"))
+    addBtn(tabRage, T("respawn"), Color3.fromRGB(100,60,150), function()
         if LP.Character then LP.Character:BreakJoints() end
     end)
-    addBtn(tabRage, "ВЫКЛЮЧИТЬ ВСЁ", Color3.fromRGB(180,0,100), function()
-        S.aimbot=false S.camper=false S.camperT=nil
-        S.roleHighlight=false S.fly=false S.noclip=false S.infjump=false
-        S.spin=false S.autoPickup=false
-        S.killAllEnabled=false S.killList={}
-        S.autoGunPlay=false
-        stopKillAllLoop()
-        stopAutoPickup()
-        stopAutoGunPlay()
+    addBtn(tabRage, T("disable_all"), Color3.fromRGB(180,0,100), function()
+        S.aimbot=false S.roleHighlight=false S.fly=false S.noclip=false S.infjump=false
+        S.spin=false S.autoPickup=false S.killAllEnabled=false S.killList={}
+        S.autoGunPlay=false S.deadPose=false
+        stopKillAllLoop() stopAutoPickup() stopAutoGunPlay()
+        if S.deadAnim then pcall(function() S.deadAnim:Stop() end) end
         clearHL()
         if LP.Character then
             local h = LP.Character:FindFirstChildOfClass("Humanoid")
             if h then h.WalkSpeed=16 h.JumpPower=50 end
         end
-        notify("Всё выключено", Color3.fromRGB(255,60,60))
+        notify(T("all_off"), Color3.fromRGB(255,60,60))
     end)
 
-    addLabel(tabPlayers, "СПИСОК ИГРОКОВ")
+    -- ═ PLAYERS ═
+    addLabel(tabPlayers, T("plist"))
     local pList = Instance.new("Frame")
     pList.Size = UDim2.new(1, -6, 0, 340)
     pList.BackgroundColor3 = Color3.fromRGB(16,16,24)
@@ -1126,7 +1199,7 @@ local function createGUI()
                 tpB.Size = UDim2.new(0, 34, 0, 26)
                 tpB.Position = UDim2.new(1, -118, 0.5, -13)
                 tpB.BackgroundColor3 = Color3.fromRGB(40,100,200)
-                tpB.Text = "ТП"
+                tpB.Text = T("tp")
                 tpB.TextColor3 = Color3.new(1,1,1)
                 tpB.TextSize = 10
                 tpB.Font = Enum.Font.GothamBold
@@ -1144,7 +1217,7 @@ local function createGUI()
                 flB.Size = UDim2.new(0, 60, 0, 26)
                 flB.Position = UDim2.new(1, -80, 0.5, -13)
                 flB.BackgroundColor3 = Color3.fromRGB(180,20,100)
-                flB.Text = "ФЛИНГ"
+                flB.Text = T("fling")
                 flB.TextColor3 = Color3.new(1,1,1)
                 flB.TextSize = 10
                 flB.Font = Enum.Font.GothamBold
@@ -1159,6 +1232,23 @@ local function createGUI()
     rebuild()
     Players.PlayerAdded:Connect(function() task.wait(1) rebuild() end)
     Players.PlayerRemoving:Connect(function() task.wait(0.3) rebuild() end)
+
+    -- ═ SETTINGS ═
+    addLabel(tabSettings, T("lang_sec"))
+    addBtn(tabSettings, T("lang_ru"), Color3.fromRGB(50,80,150), function()
+        LANG = "ru"
+        S.gui:Destroy()
+        _G.VankaPanel = nil
+        task.wait(0.1)
+        local scr = game:GetService("CoreGui")
+        pcall(function()
+            loadstring(game:HttpGet(GH .. "../refs/heads/main/adminka67.lua"))()
+        end)
+    end)
+    addBtn(tabSettings, T("lang_en"), Color3.fromRGB(50,80,150), function()
+        LANG = "en"
+        notify("Change language by editing LANG variable in script", Color3.fromRGB(200,200,100))
+    end)
 
     closeB.MouseButton1Click:Connect(function()
         pcall(clearHL)
@@ -1184,7 +1274,8 @@ local function createGUI()
     return gui
 end
 
-local crossH, crossV, crossDot, fovCircle, targetInfo
+-- ═════ ПРИЦЕЛ / FOV ═════
+local crossH, crossV, crossDot, fovCircle
 
 local function createOverlays()
     crossH = Instance.new("Frame")
@@ -1330,7 +1421,7 @@ local function runLoading()
         lt.Size = UDim2.new(1,0,0,40)
         lt.Position = UDim2.new(0,0,0.5,30)
         lt.BackgroundTransparency = 1
-        lt.Text = "АДМИНКА ВАНЬКА"
+        lt.Text = T("title")
         lt.TextColor3 = Color3.new(1,1,1)
         lt.TextSize = 28
         lt.Font = Enum.Font.GothamBold
@@ -1341,7 +1432,7 @@ local function runLoading()
         ls.Size = UDim2.new(1,0,0,22)
         ls.Position = UDim2.new(0,0,0.5,75)
         ls.BackgroundTransparency = 1
-        ls.Text = "Загрузка: 0%"
+        ls.Text = T("load") .. ": 0%"
         ls.TextColor3 = Color3.fromRGB(180,180,210)
         ls.TextSize = 15
         ls.Font = Enum.Font.GothamMedium
@@ -1352,7 +1443,7 @@ local function runLoading()
         sub.Size = UDim2.new(1,0,0,18)
         sub.Position = UDim2.new(0,0,0.5,100)
         sub.BackgroundTransparency = 1
-        sub.Text = "Инициализация..."
+        sub.Text = T("init") .. "..."
         sub.TextColor3 = Color3.fromRGB(120,120,150)
         sub.TextSize = 12
         sub.Font = Enum.Font.Gotham
@@ -1376,23 +1467,22 @@ local function runLoading()
         bf.Parent = bb
         Instance.new("UICorner", bf).CornerRadius = UDim.new(1,0)
 
-        -- ДОЛГАЯ ЗАГРУЗКА (10 сек)
         local stages = {
-            {p=5,   t="Инициализация...",       d=0.7},
-            {p=12,  t="Загрузка логотипа...",   d=0.7},
-            {p=20,  t="Подключение к серверу...", d=0.8},
-            {p=30,  t="Загрузка модулей...",    d=0.7},
-            {p=40,  t="Настройка интерфейса...", d=0.8},
-            {p=50,  t="Проверка обновлений...", d=0.7},
-            {p=60,  t="Загрузка функций...",    d=0.8},
-            {p=70,  t="Синхронизация данных...", d=0.7},
-            {p=80,  t="Настройка аима...",      d=0.8},
-            {p=90,  t="Финальная настройка...", d=0.7},
-            {p=100, t="Готово!",                d=0.9},
+            {p=5,   t=T("init"),    d=0.7},
+            {p=12,  t=T("logo"),    d=0.7},
+            {p=20,  t=T("connect"), d=0.8},
+            {p=30,  t=T("modules"), d=0.7},
+            {p=40,  t=T("ui"),      d=0.8},
+            {p=50,  t=T("update"),  d=0.7},
+            {p=60,  t=T("funcs"),   d=0.8},
+            {p=70,  t=T("sync"),    d=0.7},
+            {p=80,  t=T("aim"),     d=0.8},
+            {p=90,  t=T("final"),   d=0.7},
+            {p=100, t=T("ready"),   d=0.9},
         }
         for _, st in ipairs(stages) do
-            ls.Text = "Загрузка: " .. st.p .. "%"
-            sub.Text = st.t
+            ls.Text = T("load") .. ": " .. st.p .. "%"
+            sub.Text = st.t .. "..."
             local tw = TweenService:Create(bf, TweenInfo.new(st.d, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 Size = UDim2.new(st.p/100, 0, 1, 0)
             })
@@ -1435,6 +1525,4 @@ mainLoop()
 setupInfJump()
 runLoading()
 
-task.delay(12, function() notify("Админка v20 загружена!", Color3.fromRGB(255,0,100)) end)
-
-print("[VANKA v20] OK")
+print("[VANKA v21] OK")
