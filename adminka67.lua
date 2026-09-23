@@ -1,111 +1,178 @@
--- VANKA ADMIN v29
+-- VANKA ADMIN v30 FINAL
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
-local Players           = game:GetService("Players")
-local RunService        = game:GetService("RunService")
-local UIS               = game:GetService("UserInputService")
-local TweenService      = game:GetService("TweenService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Lighting          = game:GetService("Lighting")
-local HttpService       = game:GetService("HttpService")
+local Players      = game:GetService("Players")
+local RunService   = game:GetService("RunService")
+local UIS          = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Lighting     = game:GetService("Lighting")
 
 local LP    = Players.LocalPlayer
 local Cam   = workspace.CurrentCamera
 local Mouse = LP:GetMouse()
 
--- ═════ ЯЗЫКИ ═════
+-- ═══════════════════════════════════════════════════════════════
+-- ПОЛНЫЕ ЯЗЫКИ
+-- ═══════════════════════════════════════════════════════════════
 local LANG = "ru"
 local L = {
     ru = {
-        title="АДМИНКА ВАНЬКА", main="ГЛАВНАЯ", visual="ВИЗУАЛ", esp="ESP", rage="РЕЙДЖ", players="ИГРОКИ", settings="НАСТРОЙКИ", configs="КОНФИГИ",
-        sheriff_sec="ШЕРИФ", autoshoot="Auto Shoot (стрельба в Мардера)", autokill="Auto Kill (нож, если ты Мардер)",
-        farm_sec="ФАРМ", farm="Auto Farm Coins", pickup_sec="ПОДБОР", pickup="Подбор пистолета",
-        roles_sec="РОЛИ", roles="Подсветка ролей", clear_inv="Очистить инвентарь", invisible="Невидимость",
-        cross_sec="ПРИЦЕЛ", cross="Прицел", cross_style="Стиль", cross_custom="Свой прицел (PNG)",
-        fov="FOV круг", hardaim="Жёсткий аим", aim_part="Часть тела", aim_smooth="Плавность", wallcheck="Стены",
-        esp_sec="ESP", esp_main="Включить", esp_health="Здоровье", esp_name="Имя", esp_dist="Дистанция",
-        esp_weapon="Оружие", esp_rainbow="Радужный", esp_preview="Превью:",
-        esp_color_killer="Цвет Мардера", esp_color_sheriff="Цвет Шерифа", esp_color_innocent="Цвет Невиновного",
-        move_sec="ДВИЖЕНИЕ", fly="Полёт", noclip="Noclip", infjump="Беск. прыжок", speed="Скорость 50",
-        aim_sec="АИМ", aimbot="Аимбот", kill_aim="Убить цель",
-        spin_sec="СПИНБОТ", spin="Спинбот", util_sec="УТИЛИТЫ", respawn="Респавн", disable_all="ВЫКЛЮЧИТЬ ВСЁ",
-        lang_sec="ЯЗЫК", lang_ru="Русский", lang_en="English", lang_zh="中文",
-        panel_sec="ЦВЕТ ПАНЕЛИ", plist="ИГРОКИ", tp="ТП", fling="ФЛИНГ",
-        saved="Сохранено", loaded="Загружено", wait_gun="Жду пистолет", target="Цель", killed="Убил",
-        fling_run="Флингаю", fling_done="Отфлингован", no_target="Нет цели", sheriff_off="Auto Shoot ВЫКЛ", all_off="Всё выключено",
+        title="АДМИНКА ВАНЬКА",
+        tab_main="ГЛАВНАЯ", tab_visual="ВИЗУАЛ", tab_esp="ESP", tab_rage="РЕЙДЖ",
+        tab_players="ИГРОКИ", tab_settings="НАСТРОЙКИ", tab_configs="КОНФИГИ",
+        role_murderer="Мардер", role_sheriff="Шериф", role_innocent="Невиновный",
+        sec_sheriff="ШЕРИФ", autoshoot="Авто-выстрел в Мардера",
+        sec_autokill="АВТО-КИЛЛ", autokill="Авто-убийство (нож, если Мардер)",
+        sec_farm="ФАРМ", farm="Авто-фарм монет",
+        sec_pickup="ПОДБОР", pickup="Подбор пистолета",
+        sec_roles="РОЛИ", roles="Подсветка ролей",
+        invisible="Невидимость", clear_inv="Очистить инвентарь",
+        sec_cross="ПРИЦЕЛ", cross="Прицел", fov="Круг FOV", hardaim="Жёсткий аим",
+        sec_cross_style="Стиль прицела", cross_1="Классик", cross_2="Точка", cross_3="Круг",
+        sec_cross_custom="Свой прицел (PNG)", cross_load="Загрузить vanka_crosshair.png",
+        cross_reset="Сбросить прицел",
+        sec_move="ДВИЖЕНИЕ", fly="Полёт", noclip="Noclip", infjump="Бесконечный прыжок",
+        speed="Скорость 50",
+        sec_vis="ВИЗУАЛ", fullbright="Яркий свет",
+        sec_esp="ESP", esp_main="Включить", esp_health="Здоровье", esp_name="Имя",
+        esp_dist="Дистанция", esp_weapon="Оружие", esp_rainbow="Радужный режим",
+        esp_preview="Превью:",
+        esp_color_killer="Цвет Мардера", esp_color_sheriff="Цвет Шерифа",
+        esp_color_innocent="Цвет Невиновного",
+        sec_aim="АИМ", aimbot="Аимбот", wallcheck="Проверка стен",
+        sec_aim_part="Часть тела", aim_head="Голова", aim_torso="Торс", aim_random="Случайно",
+        sec_smooth="Плавность", smooth_slow="Плавно", smooth_mid="Средне", smooth_fast="Резко",
+        kill_aim="Убить цель аима",
+        sec_spin="СПИНБОТ", spin="Спинбот",
+        sec_util="УТИЛИТЫ", respawn="Респавн", disable_all="ВЫКЛЮЧИТЬ ВСЁ",
+        plist="СПИСОК ИГРОКОВ", tp="ТП", fling="ФЛИНГ",
+        sec_lang="ЯЗЫК", lang_ru="Русский", lang_en="English", lang_zh="中文",
+        sec_panel="ЦВЕТ ПАНЕЛИ", sec_reload="ПЕРЕЗАПУСК", reload="Перезапустить панель",
+        sec_cfg_save="СОХРАНЕНИЕ", cfg_name="Имя конфига", cfg_save="Сохранить",
+        cfg_load="Загрузить", cfg_presets="Готовые конфиги:",
+        cfg_default="По умолчанию", cfg_aim="Для аима", cfg_farm="Для фарма",
+        loaded="Загружено", saved="Сохранено",
+        wait_gun="Жду пистолет", target="Цель", killed="Убил",
+        fling_run="Флингаю", fling_done="Отфлингован", no_target="Нет цели",
+        sheriff_off="Авто-выстрел ВЫКЛ", all_off="Всё выключено",
         farm_on="Фарм ВКЛ", farm_off="Фарм ВЫКЛ", farm_full="Сумка полная", farm_none="Монет нет",
-        cross_1="Классик", cross_2="Точка", cross_3="Круг",
-        preview_name="Игрок123", preview_dist="15m",
-        cfg_save="Сохранить", cfg_load="Загрузить", cfg_name="Имя конфига", cfg_saved="Конфиг сохранён", cfg_loaded="Конфиг загружен", cfg_notfound="Не найден",
-        inv_on="Невидимость ВКЛ", inv_off="Невидимость ВЫКЛ", cross_loaded="Прицел загружен", cross_notfound="Файл не найден",
-        aim_head="Голова", aim_torso="Торс", aim_random="Случайно",
+        inv_on="Невидимость ВКЛ", inv_off="Невидимость ВЫКЛ",
+        cross_loaded="Прицел загружен", cross_notfound="Файл не найден",
+        cfg_saved="Конфиг сохранён", cfg_loaded="Конфиг загружен", cfg_notfound="Не найден",
+        load_lang="Выберите язык", load_device="Выберите устройство",
+        load_pc="Компьютер", load_mobile="Телефон", load_start="Загрузка...",
+        preview_name="Игрок123", preview_dist="15м",
     },
     en = {
-        title="VANKA ADMIN", main="MAIN", visual="VISUAL", esp="ESP", rage="RAGE", players="PLAYERS", settings="SETTINGS", configs="CONFIGS",
-        sheriff_sec="SHERIFF", autoshoot="Auto Shoot (shoot Murderer)", autokill="Auto Kill (knife, if you're Murderer)",
-        farm_sec="FARM", farm="Auto Farm Coins", pickup_sec="PICKUP", pickup="Gun pickup",
-        roles_sec="ROLES", roles="Role highlight", clear_inv="Clear inventory", invisible="Invisible",
-        cross_sec="CROSSHAIR", cross="Crosshair", cross_style="Style", cross_custom="Custom crosshair (PNG)",
-        fov="FOV circle", hardaim="Hard aim", aim_part="Aim part", aim_smooth="Smoothness", wallcheck="Wall check",
-        esp_sec="ESP", esp_main="Enable", esp_health="Health", esp_name="Name", esp_dist="Distance",
-        esp_weapon="Weapon", esp_rainbow="Rainbow", esp_preview="Preview:",
-        esp_color_killer="Murderer Color", esp_color_sheriff="Sheriff Color", esp_color_innocent="Innocent Color",
-        move_sec="MOVEMENT", fly="Fly", noclip="Noclip", infjump="Infinite jump", speed="Speed 50",
-        aim_sec="AIM", aimbot="Aimbot", kill_aim="Kill target",
-        spin_sec="SPINBOT", spin="Spinbot", util_sec="UTILITIES", respawn="Respawn", disable_all="TURN OFF ALL",
-        lang_sec="LANGUAGE", lang_ru="Русский", lang_en="English", lang_zh="中文",
-        panel_sec="PANEL COLOR", plist="PLAYERS", tp="TP", fling="FLING",
-        saved="Saved", loaded="Loaded", wait_gun="Waiting for gun", target="Target", killed="Killed",
-        fling_run="Flinging", fling_done="Flinged", no_target="No target", sheriff_off="Auto Shoot OFF", all_off="All disabled",
+        title="VANKA ADMIN",
+        tab_main="MAIN", tab_visual="VISUAL", tab_esp="ESP", tab_rage="RAGE",
+        tab_players="PLAYERS", tab_settings="SETTINGS", tab_configs="CONFIGS",
+        role_murderer="Murderer", role_sheriff="Sheriff", role_innocent="Innocent",
+        sec_sheriff="SHERIFF", autoshoot="Auto Shoot (shoot Murderer)",
+        sec_autokill="AUTO-KILL", autokill="Auto Kill (knife, if Murderer)",
+        sec_farm="FARM", farm="Auto Farm Coins",
+        sec_pickup="PICKUP", pickup="Gun pickup",
+        sec_roles="ROLES", roles="Role highlight",
+        invisible="Invisible", clear_inv="Clear inventory",
+        sec_cross="CROSSHAIR", cross="Crosshair", fov="FOV circle", hardaim="Hard aim",
+        sec_cross_style="Crosshair style", cross_1="Classic", cross_2="Dot", cross_3="Circle",
+        sec_cross_custom="Custom crosshair (PNG)", cross_load="Load vanka_crosshair.png",
+        cross_reset="Reset crosshair",
+        sec_move="MOVEMENT", fly="Fly", noclip="Noclip", infjump="Infinite jump",
+        speed="Speed 50",
+        sec_vis="VISUAL", fullbright="Fullbright",
+        sec_esp="ESP", esp_main="Enable", esp_health="Health", esp_name="Name",
+        esp_dist="Distance", esp_weapon="Weapon", esp_rainbow="Rainbow mode",
+        esp_preview="Preview:",
+        esp_color_killer="Murderer Color", esp_color_sheriff="Sheriff Color",
+        esp_color_innocent="Innocent Color",
+        sec_aim="AIM", aimbot="Aimbot", wallcheck="Wall check",
+        sec_aim_part="Aim part", aim_head="Head", aim_torso="Torso", aim_random="Random",
+        sec_smooth="Smoothness", smooth_slow="Slow", smooth_mid="Medium", smooth_fast="Fast",
+        kill_aim="Kill aim target",
+        sec_spin="SPINBOT", spin="Spinbot",
+        sec_util="UTILITIES", respawn="Respawn", disable_all="TURN OFF ALL",
+        plist="PLAYERS LIST", tp="TP", fling="FLING",
+        sec_lang="LANGUAGE", lang_ru="Русский", lang_en="English", lang_zh="中文",
+        sec_panel="PANEL COLOR", sec_reload="RELOAD", reload="Reload panel",
+        sec_cfg_save="SAVE", cfg_name="Config name", cfg_save="Save",
+        cfg_load="Load", cfg_presets="Presets:",
+        cfg_default="Default", cfg_aim="For aim", cfg_farm="For farm",
+        loaded="Loaded", saved="Saved",
+        wait_gun="Waiting for gun", target="Target", killed="Killed",
+        fling_run="Flinging", fling_done="Flinged", no_target="No target",
+        sheriff_off="Auto Shoot OFF", all_off="All disabled",
         farm_on="Farm ON", farm_off="Farm OFF", farm_full="Bag full", farm_none="No coins",
-        cross_1="Classic", cross_2="Dot", cross_3="Circle",
+        inv_on="Invisible ON", inv_off="Invisible OFF",
+        cross_loaded="Crosshair loaded", cross_notfound="File not found",
+        cfg_saved="Config saved", cfg_loaded="Config loaded", cfg_notfound="Not found",
+        load_lang="Select language", load_device="Select device",
+        load_pc="PC", load_mobile="Mobile", load_start="Loading...",
         preview_name="Player123", preview_dist="15m",
-        cfg_save="Save", cfg_load="Load", cfg_name="Config name", cfg_saved="Config saved", cfg_loaded="Config loaded", cfg_notfound="Not found",
-        inv_on="Invisible ON", inv_off="Invisible OFF", cross_loaded="Crosshair loaded", cross_notfound="File not found",
-        aim_head="Head", aim_torso="Torso", aim_random="Random",
     },
     zh = {
-        title="VANKA 管理员", main="主要", visual="视觉", esp="ESP", rage="愤怒", players="玩家", settings="设置", configs="配置",
-        sheriff_sec="警长", autoshoot="自动射击 (射击凶手)", autokill="自动击杀 (刀, 如果你是凶手)",
-        farm_sec="农场", farm="自动农场", pickup_sec="拾取", pickup="拾取枪支",
-        roles_sec="角色", roles="角色高亮", clear_inv="清空背包", invisible="隐身",
-        cross_sec="准星", cross="准星", cross_style="样式", cross_custom="自定义准星",
-        fov="FOV", hardaim="硬瞄准", aim_part="瞄准部位", aim_smooth="平滑", wallcheck="墙检",
-        esp_sec="ESP", esp_main="启用", esp_health="生命", esp_name="名字", esp_dist="距离",
-        esp_weapon="武器", esp_rainbow="彩虹", esp_preview="预览:",
-        esp_color_killer="凶手颜色", esp_color_sheriff="警长颜色", esp_color_innocent="无辜颜色",
-        move_sec="移动", fly="飞行", noclip="穿墙", infjump="无限跳", speed="速度 50",
-        aim_sec="瞄准", aimbot="自瞄", kill_aim="击杀目标",
-        spin_sec="旋转", spin="旋转", util_sec="工具", respawn="重生", disable_all="关闭所有",
-        lang_sec="语言", lang_ru="Русский", lang_en="English", lang_zh="中文",
-        panel_sec="面板颜色", plist="玩家", tp="传送", fling="甩飞",
-        saved="已保存", loaded="已加载", wait_gun="等待枪", target="目标", killed="击杀",
-        fling_run="甩飞", fling_done="已甩飞", no_target="无目标", sheriff_off="自动射击关闭", all_off="全部关闭",
+        title="VANKA 管理员",
+        tab_main="主要", tab_visual="视觉", tab_esp="ESP", tab_rage="愤怒",
+        tab_players="玩家", tab_settings="设置", tab_configs="配置",
+        role_murderer="凶手", role_sheriff="警长", role_innocent="无辜",
+        sec_sheriff="警长", autoshoot="自动射击 (射击凶手)",
+        sec_autokill="自动击杀", autokill="自动击杀 (刀, 如果你是凶手)",
+        sec_farm="农场", farm="自动农场",
+        sec_pickup="拾取", pickup="拾取枪支",
+        sec_roles="角色", roles="角色高亮",
+        invisible="隐身", clear_inv="清空背包",
+        sec_cross="准星", cross="准星", fov="FOV", hardaim="硬瞄准",
+        sec_cross_style="准星样式", cross_1="经典", cross_2="点", cross_3="圆",
+        sec_cross_custom="自定义准星", cross_load="加载 vanka_crosshair.png",
+        cross_reset="重置准星",
+        sec_move="移动", fly="飞行", noclip="穿墙", infjump="无限跳",
+        speed="速度 50",
+        sec_vis="视觉", fullbright="全亮",
+        sec_esp="ESP", esp_main="启用", esp_health="生命", esp_name="名字",
+        esp_dist="距离", esp_weapon="武器", esp_rainbow="彩虹",
+        esp_preview="预览:",
+        esp_color_killer="凶手颜色", esp_color_sheriff="警长颜色",
+        esp_color_innocent="无辜颜色",
+        sec_aim="瞄准", aimbot="自瞄", wallcheck="墙检",
+        sec_aim_part="瞄准部位", aim_head="头", aim_torso="躯干", aim_random="随机",
+        sec_smooth="平滑", smooth_slow="慢", smooth_mid="中", smooth_fast="快",
+        kill_aim="击杀瞄准目标",
+        sec_spin="旋转", spin="旋转机器人",
+        sec_util="工具", respawn="重生", disable_all="关闭所有",
+        plist="玩家列表", tp="传送", fling="甩飞",
+        sec_lang="语言", lang_ru="Русский", lang_en="English", lang_zh="中文",
+        sec_panel="面板颜色", sec_reload="重载", reload="重载面板",
+        sec_cfg_save="保存", cfg_name="配置名", cfg_save="保存",
+        cfg_load="加载", cfg_presets="预设:",
+        cfg_default="默认", cfg_aim="瞄准", cfg_farm="农场",
+        loaded="已加载", saved="已保存",
+        wait_gun="等待枪支", target="目标", killed="击杀",
+        fling_run="甩飞", fling_done="已甩飞", no_target="无目标",
+        sheriff_off="自动射击关闭", all_off="全部关闭",
         farm_on="农场开", farm_off="农场关", farm_full="满包", farm_none="无硬币",
-        cross_1="经典", cross_2="点", cross_3="圆",
-        preview_name="玩家123", preview_dist="15m",
-        cfg_save="保存", cfg_load="加载", cfg_name="配置名", cfg_saved="已保存", cfg_loaded="已加载", cfg_notfound="未找到",
-        inv_on="隐身开", inv_off="隐身关", cross_loaded="准星加载", cross_notfound="文件未找到",
-        aim_head="头", aim_torso="躯干", aim_random="随机",
+        inv_on="隐身开", inv_off="隐身关",
+        cross_loaded="准星加载", cross_notfound="文件未找到",
+        cfg_saved="已保存", cfg_loaded="已加载", cfg_notfound="未找到",
+        load_lang="选择语言", load_device="选择设备",
+        load_pc="电脑", load_mobile="手机", load_start="加载中...",
+        preview_name="玩家123", preview_dist="15米",
     }
 }
 local function T(k) return L[LANG][k] or k end
 
 -- ═════ СОХРАНЕНИЕ ═════
-local SAVE_FILE = "vanka_settings_v29.txt"
-local CFG_FOLDER = "vanka_configs/"
+local SAVE_FILE = "vanka_settings_v30.txt"
 local SaveData = {
-    lang="ru",
+    lang="", device="",
     esp=false, esp_health=true, esp_name=true, esp_dist=true, esp_weapon=true, esp_rainbow=false,
     esp_color_killer={255,60,60}, esp_color_sheriff={60,150,255}, esp_color_innocent={60,220,100},
     cross_style=1, cross_color={255,0,100}, panel_color={255,0,100},
     speed50=false, farm=false, invisible=false,
     aim_part="Head", aim_smooth=0.35, wallcheck=false, custom_cross="",
 }
-
 local function serialize()
     local s = ""
-    local keys = {"lang","esp","esp_health","esp_name","esp_dist","esp_weapon","esp_rainbow","cross_style","speed50","farm","invisible","aim_part","aim_smooth","wallcheck","custom_cross"}
+    local keys = {"lang","device","esp","esp_health","esp_name","esp_dist","esp_weapon","esp_rainbow","cross_style","speed50","farm","invisible","aim_part","aim_smooth","wallcheck","custom_cross"}
     for _, k in ipairs(keys) do
         local v = SaveData[k]
         if type(v) == "boolean" then s = s .. k .. "=" .. tostring(v) .. "\n"
@@ -130,6 +197,7 @@ local function loadSettings()
         local k, v = string.match(line, "(%w+)=(.+)")
         if k and v then
             if k == "lang" then LANG = v
+            elseif k == "device" then SaveData.device = v
             elseif k == "esp" then SaveData.esp = (v == "true")
             elseif k == "esp_health" then SaveData.esp_health = (v == "true")
             elseif k == "esp_name" then SaveData.esp_name = (v == "true")
@@ -191,40 +259,48 @@ local IMG_VIS = downloadImg("visial.png")
 local IMG_RAGE = downloadImg("rage.png")
 local IMG_NOOB = downloadImg("Roblox-Noob-Blocky-Avatar-Transparent-PNG.png")
 
+-- Устройство (меньшие кнопки для мобилы)
+local isMobile = SaveData.device == "mobile"
+local PANEL_W = isMobile and 480 or 520
+local PANEL_H = isMobile and 620 or 660
+local BTN_H = isMobile and 32 or 34
+local TOGGLE_H = isMobile and 34 or 36
+local FONT_SZ = isMobile and 11 or 12
+local HEADER_H = isMobile and 50 or 54
+
 local S = {
     roleHighlight=false, roleHL={},
     aimbot=false, aimbotFOV=200, aimT=nil, hardAim=true,
     autoShootEnabled=false, autoShootThread=nil,
     autoKillEnabled=false, autoKillThread=nil, autoKillList={},
     autoPickup=false, sheriffThread=nil, lastSheriffPos=nil, lastSheriff=nil,
-    farmEnabled=SaveData.farm, farmThread=nil,
+    farmEnabled=false, farmThread=nil,
     spin=false, spinSpeed=30,
     fly=false, noclip=false, infjump=false,
     crosshair=true, fovCircle=true,
-    espEnabled=SaveData.esp, espBillboards={}, espWeaponHighlights={},
-    speed50Enabled=SaveData.speed50, speedThread=nil,
-    invisibleEnabled=SaveData.invisible, invisibleConn=nil,
-    aimPart=SaveData.aim_part or "Head", aimSmooth=SaveData.aim_smooth or 0.35, wallCheck=SaveData.wallcheck or false,
-    conns={}, gui=nil, panel=nil,
+    espEnabled=false, espBillboards={},
+    speed50Enabled=false, speedThread=nil,
+    invisibleEnabled=false, invisibleConn=nil,
+    aimPart="Head", aimSmooth=0.35, wallCheck=false,
+    conns={}, gui=nil,
     fullbright=false, oldLighting=nil,
-    crossStyle=SaveData.cross_style or 1,
-    crossColor=Color3.fromRGB(SaveData.cross_color[1], SaveData.cross_color[2], SaveData.cross_color[3]),
-    panelColor=Color3.fromRGB(SaveData.panel_color[1], SaveData.panel_color[2], SaveData.panel_color[3]),
-    espHealth=SaveData.esp_health, espName=SaveData.esp_name,
-    espDist=SaveData.esp_dist, espWeapon=SaveData.esp_weapon, espRainbow=SaveData.esp_rainbow,
-    espColorKiller=Color3.fromRGB(SaveData.esp_color_killer[1], SaveData.esp_color_killer[2], SaveData.esp_color_killer[3]),
-    espColorSheriff=Color3.fromRGB(SaveData.esp_color_sheriff[1], SaveData.esp_color_sheriff[2], SaveData.esp_color_sheriff[3]),
-    espColorInnocent=Color3.fromRGB(SaveData.esp_color_innocent[1], SaveData.esp_color_innocent[2], SaveData.esp_color_innocent[3]),
+    crossStyle=1,
+    crossColor=Color3.fromRGB(255,0,100),
+    panelColor=Color3.fromRGB(255,0,100),
+    espHealth=true, espName=true, espDist=true, espWeapon=true, espRainbow=false,
+    espColorKiller=Color3.fromRGB(255,60,60),
+    espColorSheriff=Color3.fromRGB(60,150,255),
+    espColorInnocent=Color3.fromRGB(60,220,100),
     previewRefs={}, crossImage=nil,
 }
 
 local function notify(text, color)
-    color = color or Color3.fromRGB(255,0,100)
+    color = color or S.panelColor
     if not S.gui then return end
     local h = S.gui:FindFirstChild("NotifHolder")
     if not h then return end
     local n = Instance.new("Frame")
-    n.Size = UDim2.new(1, 0, 0, 46)
+    n.Size = UDim2.new(1, 0, 0, 44)
     n.BackgroundColor3 = Color3.fromRGB(18,18,26)
     n.BorderSizePixel = 0
     n.Parent = h
@@ -270,10 +346,17 @@ local function getRole(plr)
     return "Innocent"
 end
 
+-- Переведённое имя роли
+local function getRoleDisplay(plr)
+    local r = getRole(plr)
+    if r == "Murderer" then return T("role_murderer") end
+    if r == "Sheriff" then return T("role_sheriff") end
+    return T("role_innocent")
+end
+
 local function roleColor(plr)
     if S.espRainbow then
-        local hue = (tick() * 0.5) % 1
-        return Color3.fromHSV(hue, 1, 1)
+        return Color3.fromHSV((tick() * 0.5) % 1, 1, 1)
     end
     local r = getRole(plr)
     if r == "Murderer" then return S.espColorKiller end
@@ -347,10 +430,88 @@ local function equipMyKnife()
     return k
 end
 
--- ═══════════════════════════════════════════
--- AUTO SHOOT (Шериф стреляет в Мардера)
--- Рабочий метод: точная наводка в голову + 15 выстрелов
--- ═══════════════════════════════════════════
+-- ═════ РАБОЧИЙ ФЛИНГ (FE-техника) ═════
+local FlingState = { busy = false }
+local function feFling(target)
+    if FlingState.busy then return end
+    if not target or target == LP or not target.Character then
+        notify(T("no_target"), Color3.fromRGB(255,60,60))
+        return
+    end
+    local vChar = target.Character
+    local vRoot = vChar:FindFirstChild("HumanoidRootPart")
+    if not vRoot then return end
+    local char = LP.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not (char and hum and root) then return end
+
+    FlingState.busy = true
+    notify(T("fling_run") .. ": " .. target.Name, Color3.fromRGB(255,0,150))
+
+    local savedCFrame = root.CFrame
+    local savedWS, savedJP = hum.WalkSpeed, hum.JumpPower
+
+    pcall(function() hum.Sit = true end)
+    hum.WalkSpeed = 0
+    hum.JumpPower = 0
+
+    local massBackup = {}
+    for _, v in ipairs(char:GetDescendants()) do
+        if v:IsA("BasePart") then
+            massBackup[v] = v.Massless
+            v.Massless = true
+            v.CanCollide = false
+        end
+    end
+
+    task.spawn(function()
+        local BIG = 9e8
+        local t0 = tick()
+        while tick() - t0 < 0.4 do
+            if not vRoot.Parent or not root.Parent then break end
+            for _, v in ipairs(char:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    v.Velocity = Vector3.new(math.random(-BIG, BIG), BIG, math.random(-BIG, BIG))
+                    v.RotVelocity = Vector3.new(math.random(-BIG, BIG), math.random(-BIG, BIG), math.random(-BIG, BIG))
+                end
+            end
+            pcall(function()
+                root.CFrame = vRoot.CFrame + Vector3.new(0, 0.5, 0)
+            end)
+            RunService.Heartbeat:Wait()
+        end
+
+        for part, was in pairs(massBackup) do
+            if part.Parent then
+                part.Massless = was or false
+                part.CanCollide = true
+            end
+        end
+        pcall(function()
+            for _, v in ipairs(char:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    v.Velocity = Vector3.zero
+                    v.RotVelocity = Vector3.zero
+                end
+            end
+            hum.Sit = false
+            hum.WalkSpeed = savedWS
+            hum.JumpPower = savedJP
+            root.CFrame = savedCFrame
+        end)
+
+        FlingState.busy = false
+        task.wait(1.5)
+        if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            local y = target.Character.HumanoidRootPart.Position.Y
+            if y > 500 then notify(target.Name .. " В КОСМОСЕ!", Color3.fromRGB(255,100,200))
+            else notify(target.Name .. " " .. T("fling_done"), Color3.fromRGB(100,200,255)) end
+        end
+    end)
+end
+
+-- ═════ AUTO SHOOT (Шериф в Мардера) ═════
 local function getAimPart(tChar)
     if S.aimPart == "Random" then
         local parts = {"Head", "UpperTorso", "Torso", "HumanoidRootPart"}
@@ -411,11 +572,8 @@ local function startAutoShoot()
             end
             local targetPos = hitbox.Position
             local newCF = CFrame.new(Cam.CFrame.Position, targetPos)
-            if S.hardAim then
-                Cam.CFrame = newCF
-            else
-                Cam.CFrame = Cam.CFrame:Lerp(newCF, 1 - S.aimSmooth)
-            end
+            if S.hardAim then Cam.CFrame = newCF
+            else Cam.CFrame = Cam.CFrame:Lerp(newCF, 1 - S.aimSmooth) end
             local lookDir = Cam.CFrame.LookVector
             local toTarget = (targetPos - Cam.CFrame.Position).Unit
             local dot = lookDir:Dot(toTarget)
@@ -441,9 +599,7 @@ local function startAutoShoot()
 end
 local function stopAutoShoot() S.autoShootEnabled = false S.autoShootThread = nil end
 
--- ═══════════════════════════════════════════
--- AUTO KILL (нож, если ты Мардер)
--- ═══════════════════════════════════════════
+-- AUTO KILL (нож)
 local function killOneTarget(target)
     if not target or target == LP or not target.Character then return false end
     local myChar = LP.Character
@@ -481,7 +637,6 @@ local function killOneTarget(target)
     task.wait(0.2)
     return targetHum and targetHum.Health <= 0
 end
-
 local function startAutoKill()
     if S.autoKillThread then return end
     S.autoKillList = {}
@@ -522,74 +677,6 @@ local function stopAutoKillLoop()
     S.autoKillEnabled = false
     stopAutoKill()
     S.autoKillLoopThread = nil
-end
-
--- ═══════════════════════════════════════════
--- ФЛИНГ (рабочий FE-метод)
--- ═══════════════════════════════════════════
-local flingBusy = false
-local function fling(target)
-    if not target or target == LP or not target.Character then
-        notify(T("no_target"), Color3.fromRGB(255,60,60))
-        return
-    end
-    if flingBusy then return end
-    flingBusy = true
-    local tChar = target.Character
-    local tHrp = tChar:FindFirstChild("HumanoidRootPart")
-    local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-    if not tHrp or not myHrp then flingBusy = false return end
-    notify(T("fling_run") .. ": " .. target.Name, Color3.fromRGB(255,0,150))
-    task.spawn(function()
-        local myPos = myHrp.CFrame
-        local wasAnchored = myHrp.Anchored
-        myHrp.Anchored = true
-        for _, p in ipairs(tChar:GetDescendants()) do
-            if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
-        end
-        local bv = Instance.new("BodyVelocity")
-        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bv.Velocity = Vector3.new(0,0,0); bv.Parent = tHrp
-        local bav = Instance.new("BodyAngularVelocity")
-        bav.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        bav.AngularVelocity = Vector3.new(0,0,0); bav.Parent = tHrp
-        local t0 = tick()
-        while tick() - t0 < 2.5 do
-            if not target.Character then break end
-            local curHrp = target.Character:FindFirstChild("HumanoidRootPart")
-            if not curHrp then break end
-            local a1 = math.random() * math.pi * 2
-            local a2 = math.random() * math.pi - math.pi/2
-            local r = math.random(1, 3)
-            pcall(function()
-                myHrp.CFrame = curHrp.CFrame * CFrame.new(math.cos(a1)*math.cos(a2)*r, math.sin(a2)*r, math.sin(a1)*math.cos(a2)*r)
-                bv.Velocity = Vector3.new(math.random(-40000,40000), math.random(50000,90000), math.random(-40000,40000))
-                bav.AngularVelocity = Vector3.new(math.random(-800,800), math.random(-800,800), math.random(-800,800))
-                curHrp.AssemblyLinearVelocity = Vector3.new(math.random(-30000,30000), math.random(40000,80000), math.random(-30000,30000))
-            end)
-            pcall(function() myHrp.CFrame = myPos end)
-            task.wait()
-        end
-        if bv then pcall(function() bv:Destroy() end) end
-        if bav then pcall(function() bav:Destroy() end) end
-        task.wait(1)
-        myHrp.Anchored = wasAnchored
-        task.wait(0.2)
-        pcall(function()
-            if myHrp and myHrp.Parent then
-                myHrp.CFrame = myPos
-                myHrp.Velocity = Vector3.new(0,0,0)
-            end
-        end)
-        flingBusy = false
-        task.wait(1)
-        if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-            local y = target.Character.HumanoidRootPart.Position.Y
-            if y > 500 then notify(target.Name .. " В КОСМОСЕ!", Color3.fromRGB(255,100,200))
-            elseif y > myPos.Position.Y + 50 then notify(target.Name .. " УЛЕТЕЛ!", Color3.fromRGB(255,150,50))
-            else notify(target.Name .. " чуть откинуло", Color3.fromRGB(150,150,150)) end
-        end
-    end)
 end
 
 -- ФАРМ
@@ -718,7 +805,7 @@ local function updateESP()
                 local hpBg = bb:FindFirstChild("HpBg")
                 if nameLbl then
                     nameLbl.Visible = S.espName
-                    nameLbl.Text = plr.Name .. " [" .. getRole(plr) .. "]"
+                    nameLbl.Text = plr.Name .. " [" .. getRoleDisplay(plr) .. "]"
                     nameLbl.TextColor3 = roleColor(plr)
                 end
                 if weaponLbl then
@@ -909,34 +996,6 @@ local function clearHL()
     S.roleHL = {}
 end
 
--- КОНФИГИ
-local function ensureCfgFolder()
-    if not makefolder then return end
-    pcall(makefolder, "vanka_configs")
-end
-local function saveConfig(name)
-    if not writefile or not name or name == "" then return false end
-    ensureCfgFolder()
-    local path = "vanka_configs/" .. name .. ".txt"
-    local ok = pcall(writefile, path, serialize())
-    if ok then notify(T("cfg_saved"), Color3.fromRGB(0,200,100)) end
-    return ok
-end
-local function loadConfig(name)
-    if not readfile or not name or name == "" then return false end
-    local path = "vanka_configs/" .. name .. ".txt"
-    local ok, exists = pcall(isfile, path)
-    if not ok or not exists then
-        notify(T("cfg_notfound"), Color3.fromRGB(255,60,60))
-        return false
-    end
-    local ok2, data = pcall(readfile, path)
-    if not ok2 or not data then return false end
-    pcall(writefile, SAVE_FILE, data)
-    notify(T("cfg_loaded") .. " (" .. name .. ")", Color3.fromRGB(0,200,100))
-    return true
-end
-
 local function updatePreview()
     local refs = S.previewRefs
     if refs.nameLbl then refs.nameLbl.Visible = S.espName end
@@ -966,13 +1025,12 @@ local function createGUI()
 
     local main = Instance.new("Frame")
     main.Name = "MainFrame"
-    main.Size = UDim2.new(0, 580, 0, 680)
-    main.Position = UDim2.new(0, 20, 0.5, -340)
+    main.Size = UDim2.new(0, PANEL_W, 0, PANEL_H)
+    main.Position = UDim2.new(0, 20, 0.5, -PANEL_H/2)
     main.BackgroundColor3 = Color3.fromRGB(11, 11, 18)
     main.BorderSizePixel = 0; main.Active = true; main.Draggable = true
     main.Parent = gui
     Instance.new("UICorner", main).CornerRadius = UDim.new(0, 16)
-    S.panel = main
 
     local bgGrad = Instance.new("UIGradient")
     bgGrad.Color = ColorSequence.new{
@@ -986,47 +1044,47 @@ local function createGUI()
     mstk.Thickness = 2; mstk.Parent = main
 
     local top = Instance.new("Frame")
-    top.Size = UDim2.new(1, 0, 0, 56)
+    top.Size = UDim2.new(1, 0, 0, HEADER_H)
     top.BackgroundColor3 = Color3.fromRGB(22,22,32)
     top.BorderSizePixel = 0; top.Parent = main
     Instance.new("UICorner", top).CornerRadius = UDim.new(0, 16)
     local tf = Instance.new("Frame")
-    tf.Size = UDim2.new(1,0,0,28); tf.Position = UDim2.new(0,0,1,-28)
+    tf.Size = UDim2.new(1,0,0,HEADER_H-28); tf.Position = UDim2.new(0,0,1,-(HEADER_H-28))
     tf.BackgroundColor3 = Color3.fromRGB(22,22,32); tf.BorderSizePixel = 0; tf.Parent = top
 
     if LOGO then
         local li = Instance.new("ImageLabel")
-        li.Size = UDim2.new(0,40,0,40); li.Position = UDim2.new(0,14,0.5,-20)
+        li.Size = UDim2.new(0,36,0,36); li.Position = UDim2.new(0,12,0.5,-18)
         li.BackgroundTransparency = 1; li.Image = LOGO
         li.ScaleType = Enum.ScaleType.Fit; li.Parent = top
         Instance.new("UICorner", li).CornerRadius = UDim.new(0, 8)
     else
         local he = Instance.new("TextLabel")
-        he.Size = UDim2.new(0,40,1,0); he.Position = UDim2.new(0,14,0,0)
+        he.Size = UDim2.new(0,36,1,0); he.Position = UDim2.new(0,12,0,0)
         he.BackgroundTransparency = 1; he.Text = "V"
-        he.TextColor3 = S.panelColor; he.TextSize = 26
+        he.TextColor3 = S.panelColor; he.TextSize = 24
         he.Font = Enum.Font.GothamBold; he.Parent = top
     end
 
     local ttl = Instance.new("TextLabel")
     ttl.Name = "Title"
-    ttl.Size = UDim2.new(1,-180,1,0); ttl.Position = UDim2.new(0,64,0,0)
-    ttl.BackgroundTransparency = 1; ttl.Text = T("title") .. " v29"
-    ttl.TextColor3 = Color3.new(1,1,1); ttl.TextSize = 16
+    ttl.Size = UDim2.new(1,-160,1,0); ttl.Position = UDim2.new(0,58,0,0)
+    ttl.BackgroundTransparency = 1; ttl.Text = T("title")
+    ttl.TextColor3 = Color3.new(1,1,1); ttl.TextSize = 15
     ttl.Font = Enum.Font.GothamBold
     ttl.TextXAlignment = Enum.TextXAlignment.Left; ttl.Parent = top
 
     local minB = Instance.new("TextButton")
-    minB.Size = UDim2.new(0,34,0,34); minB.Position = UDim2.new(1,-80,0,11)
+    minB.Size = UDim2.new(0,30,0,30); minB.Position = UDim2.new(1,-72,0.5,-15)
     minB.BackgroundColor3 = Color3.fromRGB(55,55,70); minB.Text = "−"
-    minB.TextColor3 = Color3.new(1,1,1); minB.TextSize = 20
+    minB.TextColor3 = Color3.new(1,1,1); minB.TextSize = 18
     minB.Font = Enum.Font.GothamBold; minB.Parent = top
     Instance.new("UICorner", minB).CornerRadius = UDim.new(0, 8)
 
     local closeB = Instance.new("TextButton")
-    closeB.Size = UDim2.new(0,34,0,34); closeB.Position = UDim2.new(1,-42,0,11)
+    closeB.Size = UDim2.new(0,30,0,30); closeB.Position = UDim2.new(1,-38,0.5,-15)
     closeB.BackgroundColor3 = Color3.fromRGB(255,55,75); closeB.Text = "×"
-    closeB.TextColor3 = Color3.new(1,1,1); closeB.TextSize = 20
+    closeB.TextColor3 = Color3.new(1,1,1); closeB.TextSize = 18
     closeB.Font = Enum.Font.GothamBold; closeB.Parent = top
     Instance.new("UICorner", closeB).CornerRadius = UDim.new(0, 8)
 
@@ -1045,16 +1103,16 @@ local function createGUI()
     end
 
     local tabBar = Instance.new("Frame")
-    tabBar.Size = UDim2.new(1,-24,0,46); tabBar.Position = UDim2.new(0,12,0,62)
+    tabBar.Size = UDim2.new(1,-20,0,42); tabBar.Position = UDim2.new(0,10,0,HEADER_H+6)
     tabBar.BackgroundColor3 = Color3.fromRGB(20,20,28); tabBar.BorderSizePixel = 0; tabBar.Parent = main
     Instance.new("UICorner", tabBar).CornerRadius = UDim.new(0, 10)
     local tl = Instance.new("UIListLayout")
-    tl.FillDirection = Enum.FillDirection.Horizontal; tl.Padding = UDim.new(0, 4)
+    tl.FillDirection = Enum.FillDirection.Horizontal; tl.Padding = UDim.new(0, 3)
     tl.VerticalAlignment = Enum.VerticalAlignment.Center
     tl.HorizontalAlignment = Enum.HorizontalAlignment.Center; tl.Parent = tabBar
 
     local content = Instance.new("Frame")
-    content.Size = UDim2.new(1,-24,1,-180); content.Position = UDim2.new(0,12,0,118)
+    content.Size = UDim2.new(1,-20,1,-(HEADER_H+68)); content.Position = UDim2.new(0,10,0,HEADER_H+54)
     content.BackgroundTransparency = 1; content.Parent = main
 
     local tabs, pages = {}, {}
@@ -1067,34 +1125,34 @@ local function createGUI()
 
     local function addTab(key, img, txt)
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(0,86,0,36)
+        b.Size = UDim2.new(0, isMobile and 68 or 78, 0, 34)
         b.BackgroundColor3 = Color3.fromRGB(32,32,44); b.Text = ""; b.AutoButtonColor = false
         b.Parent = tabBar
         Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
         tabs[key] = b
         if img then
             local im = Instance.new("ImageLabel")
-            im.Size = UDim2.new(0,24,0,24); im.Position = UDim2.new(0.5,-12,0.5,-12)
+            im.Size = UDim2.new(0,22,0,22); im.Position = UDim2.new(0.5,-11,0.5,-11)
             im.BackgroundTransparency = 1; im.Image = img
             im.ScaleType = Enum.ScaleType.Fit; im.Parent = b
         else
             b.Text = txt or key:upper()
-            b.TextColor3 = Color3.fromRGB(170,170,190); b.TextSize = 11
+            b.TextColor3 = Color3.fromRGB(170,170,190); b.TextSize = 10
             b.Font = Enum.Font.GothamBold
         end
         local p = Instance.new("ScrollingFrame")
         p.Size = UDim2.new(1,0,1,0); p.BackgroundTransparency = 1
-        p.BorderSizePixel = 0; p.ScrollBarThickness = 6
+        p.BorderSizePixel = 0; p.ScrollBarThickness = 5
         p.ScrollBarImageColor3 = S.panelColor; p.CanvasSize = UDim2.new(0,0,0,0)
         p.Visible = false; p.Parent = content; pages[key] = p
         local padding = Instance.new("UIPadding")
-        padding.PaddingTop = UDim.new(0,12); padding.PaddingBottom = UDim.new(0,30)
-        padding.PaddingLeft = UDim.new(0,4); padding.PaddingRight = UDim.new(0,4)
+        padding.PaddingTop = UDim.new(0,10); padding.PaddingBottom = UDim.new(0,20)
+        padding.PaddingLeft = UDim.new(0,3); padding.PaddingRight = UDim.new(0,3)
         padding.Parent = p
         local lay = Instance.new("UIListLayout")
-        lay.Padding = UDim.new(0,8); lay.SortOrder = Enum.SortOrder.LayoutOrder; lay.Parent = p
+        lay.Padding = UDim.new(0,6); lay.SortOrder = Enum.SortOrder.LayoutOrder; lay.Parent = p
         lay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            p.CanvasSize = UDim2.new(0,0,0, lay.AbsoluteContentSize.Y + 60)
+            p.CanvasSize = UDim2.new(0,0,0, lay.AbsoluteContentSize.Y + 40)
         end)
         b.MouseButton1Click:Connect(function() switchTab(key) end)
         return p
@@ -1102,10 +1160,10 @@ local function createGUI()
 
     local function addBtn(parent, text, color, cb)
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(1,0,0,38); b.BackgroundColor3 = color or Color3.fromRGB(40,40,60)
-        b.Text = text; b.TextColor3 = Color3.new(1,1,1); b.TextSize = 13
+        b.Size = UDim2.new(1,0,0,BTN_H); b.BackgroundColor3 = color or Color3.fromRGB(40,40,60)
+        b.Text = text; b.TextColor3 = Color3.new(1,1,1); b.TextSize = FONT_SZ
         b.Font = Enum.Font.GothamMedium; b.TextWrapped = true; b.Parent = parent
-        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 7)
         b.MouseButton1Click:Connect(function()
             local ok, err = pcall(cb, b)
             if not ok then notify("Error: " .. tostring(err), Color3.fromRGB(255,60,60)) end
@@ -1115,23 +1173,23 @@ local function createGUI()
 
     local function addToggle(parent, text, initial, cb)
         local row = Instance.new("TextButton")
-        row.Size = UDim2.new(1,0,0,42); row.BackgroundColor3 = Color3.fromRGB(22,22,32)
+        row.Size = UDim2.new(1,0,0,TOGGLE_H); row.BackgroundColor3 = Color3.fromRGB(22,22,32)
         row.Text = ""; row.AutoButtonColor = false; row.Parent = parent
-        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
+        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 7)
         local lbl = Instance.new("TextLabel")
-        lbl.Size = UDim2.new(1,-80,1,0); lbl.Position = UDim2.new(0,16,0,0)
+        lbl.Size = UDim2.new(1,-70,1,0); lbl.Position = UDim2.new(0,12,0,0)
         lbl.BackgroundTransparency = 1; lbl.Text = text
-        lbl.TextColor3 = Color3.fromRGB(230,230,240); lbl.TextSize = 13
+        lbl.TextColor3 = Color3.fromRGB(230,230,240); lbl.TextSize = FONT_SZ
         lbl.Font = Enum.Font.GothamMedium
         lbl.TextXAlignment = Enum.TextXAlignment.Left; lbl.Parent = row
         local sw = Instance.new("Frame")
-        sw.Size = UDim2.new(0,48,0,24); sw.Position = UDim2.new(1,-60,0.5,-12)
+        sw.Size = UDim2.new(0,42,0,20); sw.Position = UDim2.new(1,-54,0.5,-10)
         sw.BackgroundColor3 = initial and Color3.fromRGB(0,200,100) or Color3.fromRGB(55,55,70)
         sw.BorderSizePixel = 0; sw.Parent = row
         Instance.new("UICorner", sw).CornerRadius = UDim.new(1, 0)
         local kn = Instance.new("Frame")
-        kn.Size = UDim2.new(0,18,0,18)
-        kn.Position = initial and UDim2.new(1,-20,0.5,-9) or UDim2.new(0,2,0.5,-9)
+        kn.Size = UDim2.new(0,16,0,16)
+        kn.Position = initial and UDim2.new(1,-18,0.5,-8) or UDim2.new(0,2,0.5,-8)
         kn.BackgroundColor3 = Color3.new(1,1,1); kn.BorderSizePixel = 0; kn.Parent = sw
         Instance.new("UICorner", kn).CornerRadius = UDim.new(1, 0)
         local st = initial
@@ -1141,7 +1199,7 @@ local function createGUI()
                 BackgroundColor3 = st and Color3.fromRGB(0,200,100) or Color3.fromRGB(55,55,70)
             }):Play()
             TweenService:Create(kn, TweenInfo.new(0.15), {
-                Position = st and UDim2.new(1,-20,0.5,-9) or UDim2.new(0,2,0.5,-9)
+                Position = st and UDim2.new(1,-18,0.5,-8) or UDim2.new(0,2,0.5,-8)
             }):Play()
             cb(st)
         end)
@@ -1150,54 +1208,55 @@ local function createGUI()
 
     local function addLabel(parent, text)
         local w = Instance.new("Frame")
-        w.Size = UDim2.new(1,0,0,30); w.BackgroundTransparency = 1; w.Parent = parent
+        w.Size = UDim2.new(1,0,0,26); w.BackgroundTransparency = 1; w.Parent = parent
         local a = Instance.new("Frame")
-        a.Size = UDim2.new(0,3,0,18); a.Position = UDim2.new(0,0,0.5,-9)
+        a.Size = UDim2.new(0,3,0,16); a.Position = UDim2.new(0,0,0.5,-8)
         a.BackgroundColor3 = S.panelColor; a.BorderSizePixel = 0; a.Parent = w
         Instance.new("UICorner", a).CornerRadius = UDim.new(1, 0)
         local l = Instance.new("TextLabel")
-        l.Size = UDim2.new(1,-14,1,0); l.Position = UDim2.new(0,12,0,0)
+        l.Size = UDim2.new(1,-12,1,0); l.Position = UDim2.new(0,10,0,0)
         l.BackgroundTransparency = 1; l.Text = text
-        l.TextColor3 = S.panelColor; l.TextSize = 12
+        l.TextColor3 = S.panelColor; l.TextSize = FONT_SZ - 1
         l.Font = Enum.Font.GothamBold
         l.TextXAlignment = Enum.TextXAlignment.Left; l.Parent = w
     end
 
     local tabMain     = addTab("main", IMG_MAIN)
     local tabVisual   = addTab("visual", IMG_VIS)
-    local tabESP      = addTab("esp", nil, "ESP")
+    local tabESP      = addTab("esp", nil, T("tab_esp"))
     local tabRage     = addTab("rage", IMG_RAGE)
-    local tabPlayers  = addTab("players", nil, T("players"))
-    local tabSettings = addTab("settings", nil, T("settings"))
-    local tabConfigs  = addTab("configs", nil, T("configs"))
+    local tabPlayers  = addTab("players", nil, T("tab_players"))
+    local tabSettings = addTab("settings", nil, T("tab_settings"))
+    local tabConfigs  = addTab("configs", nil, T("tab_configs"))
     switchTab("main")
 
     -- MAIN
-    addLabel(tabMain, T("sheriff_sec"))
+    addLabel(tabMain, T("sec_sheriff"))
     addToggle(tabMain, T("autoshoot"), false, function(v)
         S.autoShootEnabled = v
         if v then startAutoShoot() else stopAutoShoot() end
     end)
+    addLabel(tabMain, T("sec_autokill"))
     addToggle(tabMain, T("autokill"), false, function(v)
         S.autoKillEnabled = v
         if v then startAutoKillLoop() else stopAutoKillLoop() end
     end)
-    addLabel(tabMain, T("farm_sec"))
-    addToggle(tabMain, T("farm"), S.farmEnabled, function(v)
-        S.farmEnabled = v; SaveData.farm = v; saveSettings()
+    addLabel(tabMain, T("sec_farm"))
+    addToggle(tabMain, T("farm"), false, function(v)
+        S.farmEnabled = v
         if v then startFarm() else stopFarm() end
     end)
-    addLabel(tabMain, T("pickup_sec"))
+    addLabel(tabMain, T("sec_pickup"))
     addToggle(tabMain, T("pickup"), false, function(v)
         S.autoPickup = v
         if v then startAutoPickup() else stopAutoPickup() end
     end)
-    addLabel(tabMain, T("roles_sec"))
+    addLabel(tabMain, T("sec_roles"))
     addToggle(tabMain, T("roles"), false, function(v)
         S.roleHighlight = v
         if v then refreshHL() else clearHL() end
     end)
-    addToggle(tabMain, T("invisible"), S.invisibleEnabled, function(v) setInvisible(v) end)
+    addToggle(tabMain, T("invisible"), false, function(v) setInvisible(v) end)
     addBtn(tabMain, T("clear_inv"), Color3.fromRGB(60,60,70), function()
         if LP.Backpack then
             for _, t in ipairs(LP.Backpack:GetChildren()) do
@@ -1212,25 +1271,22 @@ local function createGUI()
     end)
 
     -- VISUAL
-    addLabel(tabVisual, T("cross_sec"))
+    addLabel(tabVisual, T("sec_cross"))
     addToggle(tabVisual, T("cross"), true, function(v) S.crosshair = v end)
     addToggle(tabVisual, T("fov"), true, function(v) S.fovCircle = v end)
     addToggle(tabVisual, T("hardaim"), true, function(v) S.hardAim = v end)
-    addLabel(tabVisual, T("cross_style"))
+    addLabel(tabVisual, T("sec_cross_style"))
     addBtn(tabVisual, T("cross_1"), Color3.fromRGB(60,60,90), function()
-        S.crossStyle=1 SaveData.cross_style=1 saveSettings()
-        if _G.VankaUpdateCross then _G.VankaUpdateCross() end
+        S.crossStyle=1 saveSettings() if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
     addBtn(tabVisual, T("cross_2"), Color3.fromRGB(60,60,90), function()
-        S.crossStyle=2 SaveData.cross_style=2 saveSettings()
-        if _G.VankaUpdateCross then _G.VankaUpdateCross() end
+        S.crossStyle=2 saveSettings() if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
     addBtn(tabVisual, T("cross_3"), Color3.fromRGB(60,60,90), function()
-        S.crossStyle=3 SaveData.cross_style=3 saveSettings()
-        if _G.VankaUpdateCross then _G.VankaUpdateCross() end
+        S.crossStyle=3 saveSettings() if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
-    addLabel(tabVisual, T("cross_custom"))
-    addBtn(tabVisual, "Загрузить custom.png", Color3.fromRGB(80,60,120), function()
+    addLabel(tabVisual, T("sec_cross_custom"))
+    addBtn(tabVisual, T("cross_load"), Color3.fromRGB(80,60,120), function()
         if isfile and getcustomasset then
             local ok, exists = pcall(isfile, "vanka_crosshair.png")
             if ok and exists then
@@ -1242,23 +1298,21 @@ local function createGUI()
                     if _G.VankaUpdateCross then _G.VankaUpdateCross() end
                     notify(T("cross_loaded"), Color3.fromRGB(0,200,100))
                 end
-            else
-                notify(T("cross_notfound"), Color3.fromRGB(255,60,60))
-            end
+            else notify(T("cross_notfound"), Color3.fromRGB(255,60,60)) end
         end
     end)
-    addBtn(tabVisual, "Сбросить прицел", Color3.fromRGB(120,50,50), function()
+    addBtn(tabVisual, T("cross_reset"), Color3.fromRGB(120,50,50), function()
         S.crossImage = nil
         SaveData.custom_cross = ""
         saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
-    addLabel(tabVisual, T("move_sec"))
+    addLabel(tabVisual, T("sec_move"))
     addToggle(tabVisual, T("fly"), false, function(v) S.fly = v end)
     addToggle(tabVisual, T("noclip"), false, function(v) S.noclip = v end)
     addToggle(tabVisual, T("infjump"), false, function(v) S.infjump = v end)
-    addToggle(tabVisual, T("speed"), S.speed50Enabled, function(v)
-        S.speed50Enabled = v SaveData.speed50 = v saveSettings()
+    addToggle(tabVisual, T("speed"), false, function(v)
+        S.speed50Enabled = v
         if v then
             startSpeed50Loop()
             if LP.Character then
@@ -1272,57 +1326,65 @@ local function createGUI()
             end
         end
     end)
+    addLabel(tabVisual, T("sec_vis"))
+    addToggle(tabVisual, T("fullbright"), false, function(v)
+        if v then
+            if not S.oldLighting then
+                S.oldLighting = {Brightness=Lighting.Brightness,ClockTime=Lighting.ClockTime,Ambient=Lighting.Ambient,OutdoorAmbient=Lighting.OutdoorAmbient}
+            end
+            Lighting.Brightness = 2
+            Lighting.ClockTime = 14
+            Lighting.Ambient = Color3.fromRGB(180,180,180)
+            Lighting.OutdoorAmbient = Color3.fromRGB(180,180,180)
+        else
+            if S.oldLighting then
+                Lighting.Brightness = S.oldLighting.Brightness
+                Lighting.ClockTime = S.oldLighting.ClockTime
+                Lighting.Ambient = S.oldLighting.Ambient
+                Lighting.OutdoorAmbient = S.oldLighting.OutdoorAmbient
+                S.oldLighting = nil
+            end
+        end
+    end)
 
     -- ESP
-    addLabel(tabESP, T("esp_sec"))
-    addToggle(tabESP, T("esp_main"), S.espEnabled, function(v)
-        S.espEnabled = v SaveData.esp = v saveSettings()
-    end)
-    addToggle(tabESP, T("esp_health"), S.espHealth, function(v)
-        S.espHealth = v SaveData.esp_health = v saveSettings() updatePreview()
-    end)
-    addToggle(tabESP, T("esp_name"), S.espName, function(v)
-        S.espName = v SaveData.esp_name = v saveSettings() updatePreview()
-    end)
-    addToggle(tabESP, T("esp_dist"), S.espDist, function(v)
-        S.espDist = v SaveData.esp_dist = v saveSettings() updatePreview()
-    end)
-    addToggle(tabESP, T("esp_weapon"), S.espWeapon, function(v)
-        S.espWeapon = v SaveData.esp_weapon = v saveSettings() updatePreview()
-    end)
-    addToggle(tabESP, T("esp_rainbow"), S.espRainbow, function(v)
-        S.espRainbow = v SaveData.esp_rainbow = v saveSettings()
-    end)
+    addLabel(tabESP, T("sec_esp"))
+    addToggle(tabESP, T("esp_main"), false, function(v) S.espEnabled = v end)
+    addToggle(tabESP, T("esp_health"), true, function(v) S.espHealth = v updatePreview() end)
+    addToggle(tabESP, T("esp_name"), true, function(v) S.espName = v updatePreview() end)
+    addToggle(tabESP, T("esp_dist"), true, function(v) S.espDist = v updatePreview() end)
+    addToggle(tabESP, T("esp_weapon"), true, function(v) S.espWeapon = v updatePreview() end)
+    addToggle(tabESP, T("esp_rainbow"), false, function(v) S.espRainbow = v end)
 
     addLabel(tabESP, T("esp_preview"))
     local previewFrame = Instance.new("Frame")
-    previewFrame.Size = UDim2.new(1,0,0,260)
+    previewFrame.Size = UDim2.new(1,0,0,240)
     previewFrame.BackgroundColor3 = Color3.fromRGB(30,30,45)
     previewFrame.BorderSizePixel = 0; previewFrame.Parent = tabESP
     Instance.new("UICorner", previewFrame).CornerRadius = UDim.new(0, 10)
     if IMG_NOOB then
         local noobImg = Instance.new("ImageLabel")
-        noobImg.Size = UDim2.new(0,140,0,140); noobImg.Position = UDim2.new(0.5,-70,0.5,-25)
+        noobImg.Size = UDim2.new(0,130,0,130); noobImg.Position = UDim2.new(0.5,-65,0.5,-20)
         noobImg.BackgroundTransparency = 1; noobImg.Image = IMG_NOOB
         noobImg.ScaleType = Enum.ScaleType.Fit; noobImg.Parent = previewFrame
         local nameLbl = Instance.new("TextLabel")
         nameLbl.Name = "PrevName"; nameLbl.Size = UDim2.new(0,180,0,18)
-        nameLbl.Position = UDim2.new(0.5,-90,0,30); nameLbl.BackgroundTransparency = 1
-        nameLbl.Text = T("preview_name") .. " [Innocent]"
+        nameLbl.Position = UDim2.new(0.5,-90,0,26); nameLbl.BackgroundTransparency = 1
+        nameLbl.Text = T("preview_name") .. " [" .. T("role_innocent") .. "]"
         nameLbl.TextColor3 = S.espColorInnocent
         nameLbl.TextStrokeTransparency = 0; nameLbl.TextSize = 13
         nameLbl.Font = Enum.Font.GothamBold; nameLbl.Parent = previewFrame
         S.previewRefs.nameLbl = nameLbl
         local weaponLbl = Instance.new("TextLabel")
         weaponLbl.Name = "PrevWeapon"; weaponLbl.Size = UDim2.new(0,180,0,18)
-        weaponLbl.Position = UDim2.new(0.5,-90,0,48); weaponLbl.BackgroundTransparency = 1
+        weaponLbl.Position = UDim2.new(0.5,-90,0,44); weaponLbl.BackgroundTransparency = 1
         weaponLbl.Text = "🔫 Gun"; weaponLbl.TextColor3 = Color3.fromRGB(80,180,255)
         weaponLbl.TextStrokeTransparency = 0; weaponLbl.TextSize = 13
         weaponLbl.Font = Enum.Font.GothamBold; weaponLbl.Parent = previewFrame
         S.previewRefs.weaponLbl = weaponLbl
         local hpBg = Instance.new("Frame")
         hpBg.Name = "PrevHpBg"; hpBg.Size = UDim2.new(0,120,0,8)
-        hpBg.Position = UDim2.new(0.5,-60,0,68); hpBg.BackgroundColor3 = Color3.fromRGB(20,20,20)
+        hpBg.Position = UDim2.new(0.5,-60,0,64); hpBg.BackgroundColor3 = Color3.fromRGB(20,20,20)
         hpBg.BorderSizePixel = 0; hpBg.Parent = previewFrame
         Instance.new("UICorner", hpBg).CornerRadius = UDim.new(0, 4)
         local hpFill = Instance.new("Frame")
@@ -1332,7 +1394,7 @@ local function createGUI()
         S.previewRefs.hpBg = hpBg
         local distLbl = Instance.new("TextLabel")
         distLbl.Name = "PrevDist"; distLbl.Size = UDim2.new(0,180,0,16)
-        distLbl.Position = UDim2.new(0.5,-90,0,82); distLbl.BackgroundTransparency = 1
+        distLbl.Position = UDim2.new(0.5,-90,0,78); distLbl.BackgroundTransparency = 1
         distLbl.Text = "[" .. T("preview_dist") .. "]"; distLbl.TextColor3 = Color3.new(1,1,1)
         distLbl.TextStrokeTransparency = 0; distLbl.TextSize = 12
         distLbl.Font = Enum.Font.Gotham; distLbl.Parent = previewFrame
@@ -1341,30 +1403,28 @@ local function createGUI()
     end
 
     -- RAGE
-    addLabel(tabRage, T("aim_sec"))
+    addLabel(tabRage, T("sec_aim"))
     addToggle(tabRage, T("aimbot"), false, function(v) S.aimbot = v end)
-    addToggle(tabRage, T("wallcheck"), S.wallCheck, function(v)
-        S.wallCheck = v SaveData.wallcheck = v saveSettings()
-    end)
-    addLabel(tabRage, T("aim_part"))
+    addToggle(tabRage, T("wallcheck"), false, function(v) S.wallCheck = v end)
+    addLabel(tabRage, T("sec_aim_part"))
     addBtn(tabRage, T("aim_head"), Color3.fromRGB(60,60,90), function()
-        S.aimPart = "Head" SaveData.aim_part = "Head" saveSettings()
+        S.aimPart = "Head"
     end)
     addBtn(tabRage, T("aim_torso"), Color3.fromRGB(60,60,90), function()
-        S.aimPart = "Torso" SaveData.aim_part = "Torso" saveSettings()
+        S.aimPart = "Torso"
     end)
     addBtn(tabRage, T("aim_random"), Color3.fromRGB(60,60,90), function()
-        S.aimPart = "Random" SaveData.aim_part = "Random" saveSettings()
+        S.aimPart = "Random"
     end)
-    addLabel(tabRage, T("aim_smooth"))
-    addBtn(tabRage, "Плавно (0.5)", Color3.fromRGB(60,60,90), function()
-        S.aimSmooth = 0.5 SaveData.aim_smooth = 0.5 saveSettings()
+    addLabel(tabRage, T("sec_smooth"))
+    addBtn(tabRage, T("smooth_slow"), Color3.fromRGB(60,60,90), function()
+        S.aimSmooth = 0.5
     end)
-    addBtn(tabRage, "Средне (0.35)", Color3.fromRGB(60,60,90), function()
-        S.aimSmooth = 0.35 SaveData.aim_smooth = 0.35 saveSettings()
+    addBtn(tabRage, T("smooth_mid"), Color3.fromRGB(60,60,90), function()
+        S.aimSmooth = 0.35
     end)
-    addBtn(tabRage, "Резко (0.15)", Color3.fromRGB(60,60,90), function()
-        S.aimSmooth = 0.15 SaveData.aim_smooth = 0.15 saveSettings()
+    addBtn(tabRage, T("smooth_fast"), Color3.fromRGB(60,60,90), function()
+        S.aimSmooth = 0.15
     end)
     addBtn(tabRage, T("kill_aim"), Color3.fromRGB(170,20,30), function()
         if S.aimT and S.aimT.Character then
@@ -1372,9 +1432,9 @@ local function createGUI()
             if h then h.Health = 0 end
         end
     end)
-    addLabel(tabRage, T("spin_sec"))
+    addLabel(tabRage, T("sec_spin"))
     addToggle(tabRage, T("spin"), false, function(v) S.spin = v end)
-    addLabel(tabRage, T("util_sec"))
+    addLabel(tabRage, T("sec_util"))
     addBtn(tabRage, T("respawn"), Color3.fromRGB(100,60,150), function()
         if LP.Character then LP.Character:BreakJoints() end
     end)
@@ -1393,7 +1453,7 @@ local function createGUI()
     -- PLAYERS
     addLabel(tabPlayers, T("plist"))
     local pList = Instance.new("Frame")
-    pList.Size = UDim2.new(1,0,0,400)
+    pList.Size = UDim2.new(1,0,0,360)
     pList.BackgroundColor3 = Color3.fromRGB(16,16,24)
     pList.BorderSizePixel = 0; pList.Parent = tabPlayers
     Instance.new("UICorner", pList).CornerRadius = UDim.new(0, 10)
@@ -1403,7 +1463,7 @@ local function createGUI()
     pScroll.ScrollBarThickness = 5; pScroll.ScrollBarImageColor3 = S.panelColor
     pScroll.CanvasSize = UDim2.new(0,0,0,0); pScroll.Parent = pList
     local pLay = Instance.new("UIListLayout")
-    pLay.Padding = UDim.new(0, 6); pLay.Parent = pScroll
+    pLay.Padding = UDim.new(0, 5); pLay.Parent = pScroll
     pLay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         pScroll.CanvasSize = UDim2.new(0,0,0, pLay.AbsoluteContentSize.Y + 8)
     end)
@@ -1414,31 +1474,31 @@ local function createGUI()
         for _, plr in ipairs(Players:GetPlayers()) do
             if plr ~= LP then
                 local row = Instance.new("Frame")
-                row.Size = UDim2.new(1,-4,0,48)
+                row.Size = UDim2.new(1,-4,0,42)
                 row.BackgroundColor3 = Color3.fromRGB(26,26,36); row.BorderSizePixel = 0
                 row.Parent = pScroll
                 Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
                 local av = Instance.new("ImageLabel")
-                av.Size = UDim2.new(0,38,0,38); av.Position = UDim2.new(0,5,0.5,-19)
+                av.Size = UDim2.new(0,34,0,34); av.Position = UDim2.new(0,4,0.5,-17)
                 av.BackgroundColor3 = Color3.fromRGB(40,40,55); av.BorderSizePixel = 0
                 av.Image = "rbxthumb://type=AvatarHeadShot&id=" .. plr.UserId .. "&w=150&h=150"
                 av.Parent = row
-                Instance.new("UICorner", av).CornerRadius = UDim.new(0, 19)
+                Instance.new("UICorner", av).CornerRadius = UDim.new(0, 17)
                 local tag = Instance.new("Frame")
-                tag.Size = UDim2.new(0,6,0,30); tag.Position = UDim2.new(0,48,0.5,-15)
+                tag.Size = UDim2.new(0,5,0,26); tag.Position = UDim2.new(0,42,0.5,-13)
                 tag.BackgroundColor3 = roleColor(plr); tag.BorderSizePixel = 0; tag.Parent = row
                 Instance.new("UICorner", tag).CornerRadius = UDim.new(1, 0)
                 local nm = Instance.new("TextLabel")
-                nm.Size = UDim2.new(1,-200,1,0); nm.Position = UDim2.new(0,62,0,0)
+                nm.Size = UDim2.new(1,-170,1,0); nm.Position = UDim2.new(0,52,0,0)
                 nm.BackgroundTransparency = 1; nm.Text = plr.Name
-                nm.TextColor3 = Color3.fromRGB(230,230,240); nm.TextSize = 12
+                nm.TextColor3 = Color3.fromRGB(230,230,240); nm.TextSize = 11
                 nm.Font = Enum.Font.GothamMedium
                 nm.TextXAlignment = Enum.TextXAlignment.Left
                 nm.TextTruncate = Enum.TextTruncate.AtEnd; nm.Parent = row
                 local tpB = Instance.new("TextButton")
-                tpB.Size = UDim2.new(0,42,0,30); tpB.Position = UDim2.new(1,-140,0.5,-15)
+                tpB.Size = UDim2.new(0,36,0,26); tpB.Position = UDim2.new(1,-120,0.5,-13)
                 tpB.BackgroundColor3 = Color3.fromRGB(40,100,200); tpB.Text = T("tp")
-                tpB.TextColor3 = Color3.new(1,1,1); tpB.TextSize = 11
+                tpB.TextColor3 = Color3.new(1,1,1); tpB.TextSize = 10
                 tpB.Font = Enum.Font.GothamBold; tpB.Parent = row
                 Instance.new("UICorner", tpB).CornerRadius = UDim.new(0, 6)
                 tpB.MouseButton1Click:Connect(function()
@@ -1449,12 +1509,12 @@ local function createGUI()
                     end
                 end)
                 local flB = Instance.new("TextButton")
-                flB.Size = UDim2.new(0,76,0,30); flB.Position = UDim2.new(1,-94,0.5,-15)
+                flB.Size = UDim2.new(0,76,0,26); flB.Position = UDim2.new(1,-80,0.5,-13)
                 flB.BackgroundColor3 = Color3.fromRGB(180,20,100); flB.Text = T("fling")
-                flB.TextColor3 = Color3.new(1,1,1); flB.TextSize = 11
+                flB.TextColor3 = Color3.new(1,1,1); flB.TextSize = 10
                 flB.Font = Enum.Font.GothamBold; flB.Parent = row
                 Instance.new("UICorner", flB).CornerRadius = UDim.new(0, 6)
-                flB.MouseButton1Click:Connect(function() fling(plr) end)
+                flB.MouseButton1Click:Connect(function() feFling(plr) end)
                 rows[plr] = row
             end
         end
@@ -1464,30 +1524,61 @@ local function createGUI()
     Players.PlayerRemoving:Connect(function() task.wait(0.3) rebuild() end)
 
     -- SETTINGS
-    addLabel(tabSettings, T("lang_sec"))
+    addLabel(tabSettings, T("sec_lang"))
     addBtn(tabSettings, T("lang_ru"), Color3.fromRGB(50,80,150), function()
-        LANG = "ru" SaveData.lang = "ru" saveSettings()
-        ttl.Text = T("title") .. " v29"
-        notify(T("saved") .. ": Русский", Color3.fromRGB(0,200,100))
+        if writefile then
+            local data = serialize()
+            data = string.gsub(data, "lang=[^\n]*", "lang=ru")
+            pcall(writefile, SAVE_FILE, data)
+        end
+        if _G.VankaPanel and _G.VankaPanel.Destroy then
+            _G.VankaPanel.Destroy()
+            task.wait(0.2)
+            loadstring(game:HttpGet(GH .. "../refs/heads/main/adminka67.lua"))()
+        end
     end)
     addBtn(tabSettings, T("lang_en"), Color3.fromRGB(50,80,150), function()
-        LANG = "en" SaveData.lang = "en" saveSettings()
-        ttl.Text = T("title") .. " v29"
-        notify(T("saved") .. ": English", Color3.fromRGB(0,200,100))
+        if writefile then
+            local data = serialize()
+            data = string.gsub(data, "lang=[^\n]*", "lang=en")
+            pcall(writefile, SAVE_FILE, data)
+        end
+        if _G.VankaPanel and _G.VankaPanel.Destroy then
+            _G.VankaPanel.Destroy()
+            task.wait(0.2)
+            loadstring(game:HttpGet(GH .. "../refs/heads/main/adminka67.lua"))()
+        end
     end)
     addBtn(tabSettings, T("lang_zh"), Color3.fromRGB(50,80,150), function()
-        LANG = "zh" SaveData.lang = "zh" saveSettings()
-        ttl.Text = T("title") .. " v29"
-        notify(T("saved") .. ": 中文", Color3.fromRGB(0,200,100))
+        if writefile then
+            local data = serialize()
+            data = string.gsub(data, "lang=[^\n]*", "lang=zh")
+            pcall(writefile, SAVE_FILE, data)
+        end
+        if _G.VankaPanel and _G.VankaPanel.Destroy then
+            _G.VankaPanel.Destroy()
+            task.wait(0.2)
+            loadstring(game:HttpGet(GH .. "../refs/heads/main/adminka67.lua"))()
+        end
     end)
-    addLabel(tabSettings, T("panel_sec"))
+
+    addLabel(tabSettings, T("sec_reload"))
+    addBtn(tabSettings, T("reload"), Color3.fromRGB(80,50,120), function()
+        if _G.VankaPanel and _G.VankaPanel.Destroy then
+            _G.VankaPanel.Destroy()
+            task.wait(0.2)
+            loadstring(game:HttpGet(GH .. "../refs/heads/main/adminka67.lua"))()
+        end
+    end)
+
+    addLabel(tabSettings, T("sec_panel"))
     local colorHolder = Instance.new("Frame")
     colorHolder.Size = UDim2.new(1,0,0,120)
     colorHolder.BackgroundColor3 = Color3.fromRGB(22,22,32)
     colorHolder.BorderSizePixel = 0; colorHolder.Parent = tabSettings
     Instance.new("UICorner", colorHolder).CornerRadius = UDim.new(0, 10)
     local colorGrid = Instance.new("UIGridLayout")
-    colorGrid.CellSize = UDim2.new(0,50,0,50)
+    colorGrid.CellSize = UDim2.new(0,48,0,48)
     colorGrid.CellPadding = UDim2.new(0,8,0,8); colorGrid.Parent = colorHolder
     local palette = {
         {255,0,100},{255,50,50},{255,150,0},{255,220,0},
@@ -1502,8 +1593,6 @@ local function createGUI()
         Instance.new("UICorner", cBtn).CornerRadius = UDim.new(1, 0)
         cBtn.MouseButton1Click:Connect(function()
             S.panelColor = Color3.fromRGB(c[1],c[2],c[3])
-            SaveData.panel_color = {c[1],c[2],c[3]}
-            saveSettings()
             mstk.Color = S.panelColor
             openB.BackgroundColor3 = S.panelColor
             pScroll.ScrollBarImageColor3 = S.panelColor
@@ -1512,48 +1601,50 @@ local function createGUI()
                     tab.BackgroundColor3 = S.panelColor
                 end
             end
-            notify(T("saved"), Color3.fromRGB(0,200,100))
         end)
     end
 
     -- CONFIGS
-    addLabel(tabConfigs, "Сохранение")
+    addLabel(tabConfigs, T("sec_cfg_save"))
     local nameBox = Instance.new("TextBox")
-    nameBox.Size = UDim2.new(1,0,0,38)
+    nameBox.Size = UDim2.new(1,0,0,BTN_H)
     nameBox.BackgroundColor3 = Color3.fromRGB(22,22,32)
     nameBox.BorderSizePixel = 0
     nameBox.PlaceholderText = T("cfg_name")
     nameBox.Text = ""
     nameBox.TextColor3 = Color3.new(1,1,1)
-    nameBox.TextSize = 13
+    nameBox.TextSize = FONT_SZ
     nameBox.Font = Enum.Font.GothamMedium
     nameBox.Parent = tabConfigs
-    Instance.new("UICorner", nameBox).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", nameBox).CornerRadius = UDim.new(0, 7)
     local pad = Instance.new("UIPadding", nameBox)
     pad.PaddingLeft = UDim.new(0, 12)
     addBtn(tabConfigs, T("cfg_save"), Color3.fromRGB(50,120,80), function()
-        saveConfig(nameBox.Text)
+        if not writefile or nameBox.Text == "" then return end
+        if makefolder then pcall(makefolder, "vanka_configs") end
+        local path = "vanka_configs/" .. nameBox.Text .. ".txt"
+        pcall(writefile, path, serialize())
+        notify(T("cfg_saved"), Color3.fromRGB(0,200,100))
     end)
     addBtn(tabConfigs, T("cfg_load"), Color3.fromRGB(80,80,150), function()
-        if loadConfig(nameBox.Text) then
-            task.wait(0.3)
+        if not readfile or nameBox.Text == "" then return end
+        local path = "vanka_configs/" .. nameBox.Text .. ".txt"
+        local ok, exists = pcall(isfile, path)
+        if not ok or not exists then
+            notify(T("cfg_notfound"), Color3.fromRGB(255,60,60))
+            return
+        end
+        local ok2, data = pcall(readfile, path)
+        if ok2 and data then
+            pcall(writefile, SAVE_FILE, data)
+            notify(T("cfg_loaded"), Color3.fromRGB(0,200,100))
+            task.wait(0.5)
             if _G.VankaPanel and _G.VankaPanel.Destroy then
                 _G.VankaPanel.Destroy()
+                task.wait(0.2)
                 loadstring(game:HttpGet(GH .. "../refs/heads/main/adminka67.lua"))()
             end
         end
-    end)
-    addLabel(tabConfigs, "Готовые конфиги:")
-    addBtn(tabConfigs, "По умолчанию", Color3.fromRGB(60,60,90), function()
-        saveConfig("default")
-    end)
-    addBtn(tabConfigs, "Для аима", Color3.fromRGB(60,90,60), function()
-        nameBox.Text = "aim"
-        saveConfig("aim")
-    end)
-    addBtn(tabConfigs, "Для фарма", Color3.fromRGB(90,90,60), function()
-        nameBox.Text = "farm"
-        saveConfig("farm")
     end)
 
     closeB.MouseButton1Click:Connect(function()
@@ -1579,8 +1670,7 @@ end
 local crossH, crossV, crossDot, crossCircle, crossImage, fovCircle
 local function updateCrosshair()
     if not crossH then return end
-    crossH.Visible = false; crossV.Visible = false
-    crossDot.Visible = false
+    crossH.Visible = false; crossV.Visible = false; crossDot.Visible = false
     if crossCircle then crossCircle.Visible = false end
     if crossImage then crossImage.Visible = false end
     if S.crossImage and S.crosshair then
@@ -1713,29 +1803,84 @@ local function setupInfJump()
     table.insert(S.conns, c)
 end
 
-local function runLoading()
-    task.spawn(function()
-        local lf = Instance.new("Frame")
-        lf.Size = UDim2.new(1,0,1,0); lf.BackgroundColor3 = Color3.fromRGB(6,6,12)
-        lf.BorderSizePixel = 0; lf.ZIndex = 500; lf.Parent = S.gui
-        if LOGO then
-            local li = Instance.new("ImageLabel")
-            li.Size = UDim2.new(0,180,0,180); li.Position = UDim2.new(0.5,-90,0.5,-170)
-            li.BackgroundTransparency = 1; li.Image = LOGO
-            li.ScaleType = Enum.ScaleType.Fit; li.ZIndex = 501; li.Parent = lf
+-- ═════ ЗАГРУЗОЧНЫЙ ЭКРАН С ВЫБОРОМ ЯЗЫКА И УСТРОЙСТВА ═════
+local function showLoadScreen()
+    local lf = Instance.new("Frame")
+    lf.Size = UDim2.new(1,0,1,0); lf.BackgroundColor3 = Color3.fromRGB(6,6,12)
+    lf.BorderSizePixel = 0; lf.ZIndex = 500; lf.Parent = S.gui
+
+    if LOGO then
+        local li = Instance.new("ImageLabel")
+        li.Size = UDim2.new(0,140,0,140); li.Position = UDim2.new(0.5,-70,0.3,-70)
+        li.BackgroundTransparency = 1; li.Image = LOGO
+        li.ScaleType = Enum.ScaleType.Fit; li.ZIndex = 501; li.Parent = lf
+    end
+
+    local lt = Instance.new("TextLabel")
+    lt.Size = UDim2.new(1,0,0,40); lt.Position = UDim2.new(0,0,0.3,90)
+    lt.BackgroundTransparency = 1; lt.Text = T("title")
+    lt.TextColor3 = Color3.new(1,1,1); lt.TextSize = 28
+    lt.Font = Enum.Font.GothamBold; lt.ZIndex = 501; lt.Parent = lf
+
+    -- Если языка нет в сохранении — показать выбор
+    if SaveData.lang == "" or SaveData.device == "" then
+        local langTitle = Instance.new("TextLabel")
+        langTitle.Size = UDim2.new(1,0,0,24); langTitle.Position = UDim2.new(0,0,0.5,-60)
+        langTitle.BackgroundTransparency = 1; langTitle.Text = "Select language / Выберите язык / 选择语言"
+        langTitle.TextColor3 = Color3.fromRGB(200,200,220); langTitle.TextSize = 14
+        langTitle.Font = Enum.Font.GothamMedium; langTitle.ZIndex = 501; langTitle.Parent = lf
+
+        local btnY = -20
+        local btnRu = Instance.new("TextButton")
+        btnRu.Size = UDim2.new(0,160,0,40); btnRu.Position = UDim2.new(0.5,-165,0.5,btnY)
+        btnRu.BackgroundColor3 = Color3.fromRGB(50,80,150); btnRu.Text = "Русский"
+        btnRu.TextColor3 = Color3.new(1,1,1); btnRu.TextSize = 14
+        btnRu.Font = Enum.Font.GothamBold; btnRu.ZIndex = 501; btnRu.Parent = lf
+        Instance.new("UICorner", btnRu).CornerRadius = UDim.new(0, 8)
+
+        local btnEn = Instance.new("TextButton")
+        btnEn.Size = UDim2.new(0,160,0,40); btnEn.Position = UDim2.new(0.5,5,0.5,btnY)
+        btnEn.BackgroundColor3 = Color3.fromRGB(50,80,150); btnEn.Text = "English"
+        btnEn.TextColor3 = Color3.new(1,1,1); btnEn.TextSize = 14
+        btnEn.Font = Enum.Font.GothamBold; btnEn.ZIndex = 501; btnEn.Parent = lf
+        Instance.new("UICorner", btnEn).CornerRadius = UDim.new(0, 8)
+
+        local btnZh = Instance.new("TextButton")
+        btnZh.Size = UDim2.new(0,160,0,40); btnZh.Position = UDim2.new(0.5,-80,0.5,btnY+50)
+        btnZh.BackgroundColor3 = Color3.fromRGB(50,80,150); btnZh.Text = "中文"
+        btnZh.TextColor3 = Color3.new(1,1,1); btnZh.TextSize = 14
+        btnZh.Font = Enum.Font.GothamBold; btnZh.ZIndex = 501; btnZh.Parent = lf
+        Instance.new("UICorner", btnZh).CornerRadius = UDim.new(0, 8)
+
+        local function pickLang(l)
+            SaveData.lang = l
+            if writefile then
+                local data = serialize()
+                data = string.gsub(data, "lang=[^\n]*", "lang=" .. l)
+                pcall(writefile, SAVE_FILE, data)
+            end
+            lf:Destroy()
+            task.wait(0.2)
+            if _G.VankaPanel and _G.VankaPanel.Destroy then
+                _G.VankaPanel.Destroy()
+                task.wait(0.2)
+                loadstring(game:HttpGet(GH .. "../refs/heads/main/adminka67.lua"))()
+            end
         end
-        local lt = Instance.new("TextLabel")
-        lt.Size = UDim2.new(1,0,0,40); lt.Position = UDim2.new(0,0,0.5,30)
-        lt.BackgroundTransparency = 1; lt.Text = T("title")
-        lt.TextColor3 = Color3.new(1,1,1); lt.TextSize = 28
-        lt.Font = Enum.Font.GothamBold; lt.ZIndex = 501; lt.Parent = lf
+
+        btnRu.MouseButton1Click:Connect(function() pickLang("ru") end)
+        btnEn.MouseButton1Click:Connect(function() pickLang("en") end)
+        btnZh.MouseButton1Click:Connect(function() pickLang("zh") end)
+    else
+        -- Язык и устройство выбраны — показать прогресс загрузки
         local ls = Instance.new("TextLabel")
-        ls.Size = UDim2.new(1,0,0,22); ls.Position = UDim2.new(0,0,0.5,75)
-        ls.BackgroundTransparency = 1; ls.Text = "0%"
+        ls.Size = UDim2.new(1,0,0,22); ls.Position = UDim2.new(0,0,0.5,30)
+        ls.BackgroundTransparency = 1; ls.Text = T("load_start")
         ls.TextColor3 = Color3.fromRGB(180,180,210); ls.TextSize = 15
         ls.Font = Enum.Font.GothamMedium; ls.ZIndex = 501; ls.Parent = lf
+
         local bb = Instance.new("Frame")
-        bb.Size = UDim2.new(0,360,0,12); bb.Position = UDim2.new(0.5,-180,0.5,140)
+        bb.Size = UDim2.new(0,320,0,10); bb.Position = UDim2.new(0.5,-160,0.5,60)
         bb.BackgroundColor3 = Color3.fromRGB(28,28,40); bb.BorderSizePixel = 0
         bb.ZIndex = 501; bb.Parent = lf
         Instance.new("UICorner", bb).CornerRadius = UDim.new(1, 0)
@@ -1743,22 +1888,24 @@ local function runLoading()
         bf.Size = UDim2.new(0,0,1,0); bf.BackgroundColor3 = S.panelColor
         bf.BorderSizePixel = 0; bf.ZIndex = 502; bf.Parent = bb
         Instance.new("UICorner", bf).CornerRadius = UDim.new(1, 0)
-        for i = 1, 100, 5 do
-            ls.Text = i .. "%"
-            local tw = TweenService:Create(bf, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Size = UDim2.new(i/100, 0, 1, 0)
-            })
-            tw:Play(); task.wait(0.08)
-        end
-        task.wait(0.4)
-        TweenService:Create(lf, TweenInfo.new(0.6), {BackgroundTransparency = 1}):Play()
-        for _, c in ipairs(lf:GetDescendants()) do
-            if c:IsA("TextLabel") then pcall(function() TweenService:Create(c, TweenInfo.new(0.6), {TextTransparency = 1}):Play() end)
-            elseif c:IsA("ImageLabel") then pcall(function() TweenService:Create(c, TweenInfo.new(0.6), {ImageTransparency = 1}):Play() end)
-            elseif c:IsA("Frame") then pcall(function() TweenService:Create(c, TweenInfo.new(0.6), {BackgroundTransparency = 1}):Play() end) end
-        end
-        task.wait(0.7); lf:Destroy()
-    end)
+
+        task.spawn(function()
+            for i = 1, 100, 5 do
+                local tw = TweenService:Create(bf, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    Size = UDim2.new(i/100, 0, 1, 0)
+                })
+                tw:Play(); task.wait(0.08)
+            end
+            task.wait(0.4)
+            TweenService:Create(lf, TweenInfo.new(0.6), {BackgroundTransparency = 1}):Play()
+            for _, c in ipairs(lf:GetDescendants()) do
+                if c:IsA("TextLabel") then pcall(function() TweenService:Create(c, TweenInfo.new(0.6), {TextTransparency = 1}):Play() end)
+                elseif c:IsA("ImageLabel") then pcall(function() TweenService:Create(c, TweenInfo.new(0.6), {ImageTransparency = 1}):Play() end)
+                elseif c:IsA("Frame") then pcall(function() TweenService:Create(c, TweenInfo.new(0.6), {BackgroundTransparency = 1}):Play() end) end
+            end
+            task.wait(0.7); lf:Destroy()
+        end)
+    end
 end
 
 _G.VankaPanel = {
@@ -1774,15 +1921,24 @@ _G.VankaPanel = {
     end
 }
 
-if S.speed50Enabled then startSpeed50Loop() end
-if S.farmEnabled then startFarm() end
+-- Запуск
+if SaveData.lang == "" or SaveData.device == "" then
+    -- Сначала GUI для показа выбора языка
+    local parent = (gethui and gethui()) or game:GetService("CoreGui")
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "VankaSelect_" .. tostring(math.random(1000,9999))
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = true
+    gui.Parent = parent
+    S.gui = gui
+    showLoadScreen()
+else
+    createGUI()
+    createOverlays()
+    mainLoop()
+    setupInfJump()
+    if S.speed50Enabled then startSpeed50Loop() end
+    task.delay(0.5, function() notify(T("loaded"), Color3.fromRGB(0,200,100)) end)
+end
 
-createGUI()
-createOverlays()
-mainLoop()
-setupInfJump()
-runLoading()
-
-task.delay(5, function() notify(T("loaded"), Color3.fromRGB(0,200,100)) end)
-
-print("[VANKA v29] OK")
+print("[VANKA v30] OK | Lang: " .. LANG .. " | Device: " .. (SaveData.device or "?"))
