@@ -1,4 +1,4 @@
--- АДМИНКА ВАНЬКА v22
+-- АДМИНКА ВАНЬКА v23
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players           = game:GetService("Players")
@@ -23,25 +23,25 @@ local L = {
         pickup_sec="ПОДБОР", pickup="Подбор пистолета",
         roles_sec="РОЛИ", roles="Подсветка ролей",
         clear_inv="Очистить инвентарь",
-        cross_sec="ПРИЦЕЛ", cross="Прицел", cross_style="Стиль прицела", cross_color="Цвет прицела",
+        cross_sec="ПРИЦЕЛ", cross="Прицел", cross_style="Стиль",
         fov="FOV круг", hardaim="Жёсткий аим",
-        esp_sec="ESP НАСТРОЙКИ", esp_main="Включить ESP", esp_health="Здоровье",
-        esp_name="Имя", esp_dist="Дистанция", esp_box="Бокс", esp_preview="Пример",
+        esp_sec="ESP", esp_main="Включить", esp_health="Здоровье",
+        esp_name="Имя", esp_dist="Дистанция",
+        esp_preview="Превью:",
         move_sec="ДВИЖЕНИЕ", fly="Полёт", noclip="Noclip", infjump="Беск. прыжок",
-        speed="Скорость 50", speed_on="Скорость вкл", speed_off="Скорость выкл",
+        speed="Скорость 50",
         aim_sec="АИМ", aimbot="Аимбот", kill_aim="Убить цель",
         spin_sec="СПИНБОТ", spin="Спинбот",
         util_sec="УТИЛИТЫ", respawn="Респавн", disable_all="ВЫКЛЮЧИТЬ ВСЁ",
         lang_sec="ЯЗЫК", lang_ru="Русский", lang_en="English",
-        panel_sec="ПАНЕЛЬ", panel_color="Цвет панели", panel_reset="Сбросить",
-        save_sec="СОХРАНЕНИЕ", save_info="Настройки сохраняются автоматически",
+        panel_sec="ЦВЕТ ПАНЕЛИ",
         plist="ИГРОКИ", tp="ТП", fling="ФЛИНГ",
         saved="Сохранено", loaded="Загружено",
         wait_gun="Жду пистолет", target="Цель", killed="Убил",
         fling_run="Флингаю", fling_done="Отфлингован", no_target="Нет цели",
         sheriff_off="Шериф ВЫКЛ", all_off="Всё выключено",
-        cross_1="Классический", cross_2="Точка", cross_3="Круг",
-        health="HP", dist="Дист",
+        cross_1="Классик", cross_2="Точка", cross_3="Круг",
+        preview_name="Игрок123", preview_dist="15m",
     },
     en = {
         title="VANKA ADMIN",
@@ -51,25 +51,25 @@ local L = {
         pickup_sec="PICKUP", pickup="Gun pickup",
         roles_sec="ROLES", roles="Role highlight",
         clear_inv="Clear inventory",
-        cross_sec="CROSSHAIR", cross="Crosshair", cross_style="Crosshair style", cross_color="Crosshair color",
+        cross_sec="CROSSHAIR", cross="Crosshair", cross_style="Style",
         fov="FOV circle", hardaim="Hard aim",
-        esp_sec="ESP SETTINGS", esp_main="Enable ESP", esp_health="Health",
-        esp_name="Name", esp_dist="Distance", esp_box="Box", esp_preview="Preview",
+        esp_sec="ESP", esp_main="Enable", esp_health="Health",
+        esp_name="Name", esp_dist="Distance",
+        esp_preview="Preview:",
         move_sec="MOVEMENT", fly="Fly", noclip="Noclip", infjump="Infinite jump",
-        speed="Speed 50", speed_on="Speed ON", speed_off="Speed OFF",
+        speed="Speed 50",
         aim_sec="AIM", aimbot="Aimbot", kill_aim="Kill target",
         spin_sec="SPINBOT", spin="Spinbot",
         util_sec="UTILITIES", respawn="Respawn", disable_all="TURN OFF ALL",
         lang_sec="LANGUAGE", lang_ru="Русский", lang_en="English",
-        panel_sec="PANEL", panel_color="Panel color", panel_reset="Reset",
-        save_sec="SAVING", save_info="Settings save automatically",
+        panel_sec="PANEL COLOR",
         plist="PLAYERS", tp="TP", fling="FLING",
         saved="Saved", loaded="Loaded",
         wait_gun="Waiting for gun", target="Target", killed="Killed",
         fling_run="Flinging", fling_done="Flinged", no_target="No target",
         sheriff_off="Sheriff OFF", all_off="All disabled",
         cross_1="Classic", cross_2="Dot", cross_3="Circle",
-        health="HP", dist="Dist",
+        preview_name="Player123", preview_dist="15m",
     }
 }
 local function T(k) return L[LANG][k] or k end
@@ -180,6 +180,7 @@ local S = {
     espHealth=SaveData.esp_health,
     espName=SaveData.esp_name,
     espDist=SaveData.esp_dist,
+    previewRefs={},
 }
 
 -- ═════ УВЕДОМЛЕНИЯ ═════
@@ -350,7 +351,6 @@ local function fling(target)
                         math.random(-40000, 100000),
                         math.random(-80000, 80000)
                     )
-                    myHrp.RotVelocity = Vector3.new(1e5, 1e5, 1e5)
                 end)
                 task.wait()
             end
@@ -497,7 +497,7 @@ local function startAutoKillAll()
                 end
             end
             if not target then break end
-            local ok = killOneTarget(target)
+            killOneTarget(target)
             S.killList[target] = true
             task.wait(0.3)
         end
@@ -629,7 +629,7 @@ local function updateESP()
     end
 end
 
--- ═════ АВТО-СКОРОСТЬ 50 (не сбрасывается при респавне) ═════
+-- ═════ АВТО-СКОРОСТЬ 50 ═════
 local function startSpeed50Loop()
     if S.speedThread then return end
     S.speedThread = task.spawn(function()
@@ -717,6 +717,14 @@ local function clearHL()
     S.roleHL = {}
 end
 
+-- ═════ ОБНОВЛЕНИЕ ПРЕВЬЮ ESP ═════
+local function updatePreview()
+    local refs = S.previewRefs
+    if refs.nameLbl then refs.nameLbl.Visible = S.espName end
+    if refs.distLbl then refs.distLbl.Visible = S.espDist end
+    if refs.hpBg then refs.hpBg.Visible = S.espHealth end
+end
+
 -- ═════ СОЗДАНИЕ GUI ═════
 local function createGUI()
     local parent = (gethui and gethui()) or game:GetService("CoreGui")
@@ -730,8 +738,8 @@ local function createGUI()
 
     local nh = Instance.new("Frame")
     nh.Name = "NotifHolder"
-    nh.Size = UDim2.new(0, 300, 1, -40)
-    nh.Position = UDim2.new(1, -320, 0, 20)
+    nh.Size = UDim2.new(0, 320, 1, -40)
+    nh.Position = UDim2.new(1, -340, 0, 20)
     nh.BackgroundTransparency = 1
     nh.Parent = gui
     local nl = Instance.new("UIListLayout")
@@ -739,11 +747,11 @@ local function createGUI()
     nl.SortOrder = Enum.SortOrder.LayoutOrder
     nl.Parent = nh
 
-    -- УВЕЛИЧЕННАЯ ПАНЕЛЬ
+    -- ПАНЕЛЬ (увеличена)
     local main = Instance.new("Frame")
     main.Name = "MainFrame"
-    main.Size = UDim2.new(0, 500, 0, 620)
-    main.Position = UDim2.new(0, 20, 0.5, -310)
+    main.Size = UDim2.new(0, 560, 0, 660)
+    main.Position = UDim2.new(0, 20, 0.5, -330)
     main.BackgroundColor3 = Color3.fromRGB(11, 11, 18)
     main.BorderSizePixel = 0
     main.Active = true
@@ -767,22 +775,22 @@ local function createGUI()
     mstk.Parent = main
 
     local top = Instance.new("Frame")
-    top.Size = UDim2.new(1, 0, 0, 54)
+    top.Size = UDim2.new(1, 0, 0, 56)
     top.BackgroundColor3 = Color3.fromRGB(22,22,32)
     top.BorderSizePixel = 0
     top.Parent = main
     Instance.new("UICorner", top).CornerRadius = UDim.new(0, 16)
     local tf = Instance.new("Frame")
-    tf.Size = UDim2.new(1, 0, 0, 26)
-    tf.Position = UDim2.new(0, 0, 1, -26)
+    tf.Size = UDim2.new(1, 0, 0, 28)
+    tf.Position = UDim2.new(0, 0, 1, -28)
     tf.BackgroundColor3 = Color3.fromRGB(22,22,32)
     tf.BorderSizePixel = 0
     tf.Parent = top
 
     if LOGO then
         local li = Instance.new("ImageLabel")
-        li.Size = UDim2.new(0, 38, 0, 38)
-        li.Position = UDim2.new(0, 14, 0.5, -19)
+        li.Size = UDim2.new(0, 40, 0, 40)
+        li.Position = UDim2.new(0, 14, 0.5, -20)
         li.BackgroundTransparency = 1
         li.Image = LOGO
         li.ScaleType = Enum.ScaleType.Fit
@@ -790,7 +798,7 @@ local function createGUI()
         Instance.new("UICorner", li).CornerRadius = UDim.new(0, 8)
     else
         local he = Instance.new("TextLabel")
-        he.Size = UDim2.new(0, 38, 1, 0)
+        he.Size = UDim2.new(0, 40, 1, 0)
         he.Position = UDim2.new(0, 14, 0, 0)
         he.BackgroundTransparency = 1
         he.Text = "V"
@@ -802,10 +810,10 @@ local function createGUI()
 
     local ttl = Instance.new("TextLabel")
     ttl.Name = "Title"
-    ttl.Size = UDim2.new(1, -160, 1, 0)
-    ttl.Position = UDim2.new(0, 62, 0, 0)
+    ttl.Size = UDim2.new(1, -180, 1, 0)
+    ttl.Position = UDim2.new(0, 64, 0, 0)
     ttl.BackgroundTransparency = 1
-    ttl.Text = T("title") .. " v22"
+    ttl.Text = T("title") .. " v23"
     ttl.TextColor3 = Color3.new(1,1,1)
     ttl.TextSize = 16
     ttl.Font = Enum.Font.GothamBold
@@ -813,26 +821,26 @@ local function createGUI()
     ttl.Parent = top
 
     local minB = Instance.new("TextButton")
-    minB.Size = UDim2.new(0, 32, 0, 32)
-    minB.Position = UDim2.new(1, -76, 0, 11)
+    minB.Size = UDim2.new(0, 34, 0, 34)
+    minB.Position = UDim2.new(1, -80, 0, 11)
     minB.BackgroundColor3 = Color3.fromRGB(55,55,70)
     minB.Text = "−"
     minB.TextColor3 = Color3.new(1,1,1)
     minB.TextSize = 20
     minB.Font = Enum.Font.GothamBold
     minB.Parent = top
-    Instance.new("UICorner", minB).CornerRadius = UDim.new(0, 7)
+    Instance.new("UICorner", minB).CornerRadius = UDim.new(0, 8)
 
     local closeB = Instance.new("TextButton")
-    closeB.Size = UDim2.new(0, 32, 0, 32)
-    closeB.Position = UDim2.new(1, -40, 0, 11)
+    closeB.Size = UDim2.new(0, 34, 0, 34)
+    closeB.Position = UDim2.new(1, -42, 0, 11)
     closeB.BackgroundColor3 = Color3.fromRGB(255,55,75)
     closeB.Text = "×"
     closeB.TextColor3 = Color3.new(1,1,1)
     closeB.TextSize = 20
     closeB.Font = Enum.Font.GothamBold
     closeB.Parent = top
-    Instance.new("UICorner", closeB).CornerRadius = UDim.new(0, 7)
+    Instance.new("UICorner", closeB).CornerRadius = UDim.new(0, 8)
 
     local openB = Instance.new("TextButton")
     openB.Size = UDim2.new(0, 55, 0, 55)
@@ -858,8 +866,8 @@ local function createGUI()
 
     -- ТАБЫ
     local tabBar = Instance.new("Frame")
-    tabBar.Size = UDim2.new(1, -20, 0, 44)
-    tabBar.Position = UDim2.new(0, 10, 0, 60)
+    tabBar.Size = UDim2.new(1, -24, 0, 46)
+    tabBar.Position = UDim2.new(0, 12, 0, 62)
     tabBar.BackgroundColor3 = Color3.fromRGB(20,20,28)
     tabBar.BorderSizePixel = 0
     tabBar.Parent = main
@@ -872,8 +880,8 @@ local function createGUI()
     tl.Parent = tabBar
 
     local content = Instance.new("Frame")
-    content.Size = UDim2.new(1, -20, 1, -175)
-    content.Position = UDim2.new(0, 10, 0, 114)
+    content.Size = UDim2.new(1, -24, 1, -180)
+    content.Position = UDim2.new(0, 12, 0, 118)
     content.BackgroundTransparency = 1
     content.Parent = main
 
@@ -881,13 +889,17 @@ local function createGUI()
     local function switchTab(name)
         for k, p in pairs(pages) do p.Visible = (k == name) end
         for k, b in pairs(tabs) do
-            b.BackgroundColor3 = (k == name) and S.panelColor or Color3.fromRGB(32,32,44)
+            if b:FindFirstChildOfClass("ImageLabel") then
+                b.BackgroundColor3 = (k == name) and S.panelColor or Color3.fromRGB(32,32,44)
+            else
+                b.BackgroundColor3 = (k == name) and S.panelColor or Color3.fromRGB(32,32,44)
+            end
         end
     end
 
     local function addTab(key, img, txt)
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(0, 88, 0, 34)
+        b.Size = UDim2.new(0, 100, 0, 36)
         b.BackgroundColor3 = Color3.fromRGB(32,32,44)
         b.Text = ""
         b.AutoButtonColor = false
@@ -912,26 +924,27 @@ local function createGUI()
         p.Size = UDim2.new(1, 0, 1, 0)
         p.BackgroundTransparency = 1
         p.BorderSizePixel = 0
-        p.ScrollBarThickness = 5
+        p.ScrollBarThickness = 6
         p.ScrollBarImageColor3 = S.panelColor
         p.CanvasSize = UDim2.new(0, 0, 0, 0)
         p.Visible = false
         p.Parent = content
         pages[key] = p
         local lay = Instance.new("UIListLayout")
-        lay.Padding = UDim.new(0, 6)
+        lay.Padding = UDim.new(0, 8)
         lay.SortOrder = Enum.SortOrder.LayoutOrder
         lay.Parent = p
         lay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            p.CanvasSize = UDim2.new(0, 0, 0, lay.AbsoluteContentSize.Y + 10)
+            p.CanvasSize = UDim2.new(0, 0, 0, lay.AbsoluteContentSize.Y + 20)
         end)
         b.MouseButton1Click:Connect(function() switchTab(key) end)
         return p
     end
 
+    -- ХЕЛПЕРЫ
     local function addBtn(parent, text, color, cb)
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(1, -6, 0, 36)
+        b.Size = UDim2.new(1, -12, 0, 38)
         b.BackgroundColor3 = color or Color3.fromRGB(40,40,60)
         b.Text = text
         b.TextColor3 = Color3.new(1,1,1)
@@ -949,15 +962,15 @@ local function createGUI()
 
     local function addToggle(parent, text, initial, cb)
         local row = Instance.new("TextButton")
-        row.Size = UDim2.new(1, -6, 0, 40)
+        row.Size = UDim2.new(1, -12, 0, 42)
         row.BackgroundColor3 = Color3.fromRGB(22,22,32)
         row.Text = ""
         row.AutoButtonColor = false
         row.Parent = parent
         Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
         local lbl = Instance.new("TextLabel")
-        lbl.Size = UDim2.new(1, -70, 1, 0)
-        lbl.Position = UDim2.new(0, 14, 0, 0)
+        lbl.Size = UDim2.new(1, -80, 1, 0)
+        lbl.Position = UDim2.new(0, 16, 0, 0)
         lbl.BackgroundTransparency = 1
         lbl.Text = text
         lbl.TextColor3 = Color3.fromRGB(230,230,240)
@@ -966,8 +979,8 @@ local function createGUI()
         lbl.TextXAlignment = Enum.TextXAlignment.Left
         lbl.Parent = row
         local sw = Instance.new("Frame")
-        sw.Size = UDim2.new(0, 46, 0, 22)
-        sw.Position = UDim2.new(1, -56, 0.5, -11)
+        sw.Size = UDim2.new(0, 48, 0, 24)
+        sw.Position = UDim2.new(1, -60, 0.5, -12)
         sw.BackgroundColor3 = initial and Color3.fromRGB(0,200,100) or Color3.fromRGB(55,55,70)
         sw.BorderSizePixel = 0
         sw.Parent = row
@@ -995,12 +1008,12 @@ local function createGUI()
 
     local function addLabel(parent, text)
         local w = Instance.new("Frame")
-        w.Size = UDim2.new(1, -6, 0, 28)
+        w.Size = UDim2.new(1, -12, 0, 30)
         w.BackgroundTransparency = 1
         w.Parent = parent
         local a = Instance.new("Frame")
-        a.Size = UDim2.new(0, 3, 0, 16)
-        a.Position = UDim2.new(0, 0, 0.5, -8)
+        a.Size = UDim2.new(0, 3, 0, 18)
+        a.Position = UDim2.new(0, 0, 0.5, -9)
         a.BackgroundColor3 = S.panelColor
         a.BorderSizePixel = 0
         a.Parent = w
@@ -1076,21 +1089,18 @@ local function createGUI()
         SaveData.cross_style = 1
         saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
-        notify(T("saved"), Color3.fromRGB(0,200,100))
     end)
     addBtn(tabVisual, T("cross_2"), Color3.fromRGB(60,60,90), function()
         S.crossStyle = 2
         SaveData.cross_style = 2
         saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
-        notify(T("saved"), Color3.fromRGB(0,200,100))
     end)
     addBtn(tabVisual, T("cross_3"), Color3.fromRGB(60,60,90), function()
         S.crossStyle = 3
         SaveData.cross_style = 3
         saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
-        notify(T("saved"), Color3.fromRGB(0,200,100))
     end)
 
     addLabel(tabVisual, T("move_sec"))
@@ -1154,36 +1164,96 @@ local function createGUI()
         S.espHealth = v
         SaveData.esp_health = v
         saveSettings()
+        updatePreview()
     end)
     addToggle(tabESP, T("esp_name"), S.espName, function(v)
         S.espName = v
         SaveData.esp_name = v
         saveSettings()
+        updatePreview()
     end)
     addToggle(tabESP, T("esp_dist"), S.espDist, function(v)
         S.espDist = v
         SaveData.esp_dist = v
         saveSettings()
+        updatePreview()
     end)
     
+    -- ПРЕВЬЮ С НУБОМ
     addLabel(tabESP, T("esp_preview"))
+    local previewFrame = Instance.new("Frame")
+    previewFrame.Size = UDim2.new(1, -12, 0, 240)
+    previewFrame.BackgroundColor3 = Color3.fromRGB(30,30,45)
+    previewFrame.BorderSizePixel = 0
+    previewFrame.Parent = tabESP
+    Instance.new("UICorner", previewFrame).CornerRadius = UDim.new(0, 10)
+    
     if IMG_NOOB then
-        local pFrame = Instance.new("Frame")
-        pFrame.Size = UDim2.new(1, -6, 0, 220)
-        pFrame.BackgroundColor3 = Color3.fromRGB(22,22,32)
-        pFrame.BorderSizePixel = 0
-        pFrame.Parent = tabESP
-        Instance.new("UICorner", pFrame).CornerRadius = UDim.new(0, 10)
+        -- Картинка нуба
+        local noobImg = Instance.new("ImageLabel")
+        noobImg.Size = UDim2.new(0, 140, 0, 140)
+        noobImg.Position = UDim2.new(0.5, -70, 0.5, -20)
+        noobImg.BackgroundTransparency = 1
+        noobImg.Image = IMG_NOOB
+        noobImg.ScaleType = Enum.ScaleType.Fit
+        noobImg.Parent = previewFrame
         
-        local pImg = Instance.new("ImageLabel")
-        pImg.Size = UDim2.new(0, 180, 0, 180)
-        pImg.Position = UDim2.new(0.5, -90, 0, 20)
-        pImg.BackgroundTransparency = 1
-        pImg.Image = IMG_NOOB
-        pImg.ScaleType = Enum.ScaleType.Fit
-        pImg.Parent = pFrame
+        -- Имя над нубом
+        local nameLbl = Instance.new("TextLabel")
+        nameLbl.Name = "PrevName"
+        nameLbl.Size = UDim2.new(0, 180, 0, 18)
+        nameLbl.Position = UDim2.new(0.5, -90, 0, 30)
+        nameLbl.BackgroundTransparency = 1
+        nameLbl.Text = T("preview_name") .. " [Innocent]"
+        nameLbl.TextColor3 = Color3.fromRGB(60,220,100)
+        nameLbl.TextStrokeTransparency = 0
+        nameLbl.TextSize = 13
+        nameLbl.Font = Enum.Font.GothamBold
+        nameLbl.Parent = previewFrame
+        S.previewRefs.nameLbl = nameLbl
+        
+        -- HP полоска
+        local hpBg = Instance.new("Frame")
+        hpBg.Name = "PrevHpBg"
+        hpBg.Size = UDim2.new(0, 120, 0, 8)
+        hpBg.Position = UDim2.new(0.5, -60, 0, 52)
+        hpBg.BackgroundColor3 = Color3.fromRGB(20,20,20)
+        hpBg.BorderSizePixel = 0
+        hpBg.Parent = previewFrame
+        Instance.new("UICorner", hpBg).CornerRadius = UDim.new(0, 4)
+        
+        local hpFill = Instance.new("Frame")
+        hpFill.Size = UDim2.new(1, 0, 1, 0)
+        hpFill.BackgroundColor3 = Color3.fromRGB(0,255,0)
+        hpFill.BorderSizePixel = 0
+        hpFill.Parent = hpBg
+        Instance.new("UICorner", hpFill).CornerRadius = UDim.new(0, 4)
+        S.previewRefs.hpBg = hpBg
+        
+        -- Дистанция
+        local distLbl = Instance.new("TextLabel")
+        distLbl.Name = "PrevDist"
+        distLbl.Size = UDim2.new(0, 180, 0, 16)
+        distLbl.Position = UDim2.new(0.5, -90, 0, 66)
+        distLbl.BackgroundTransparency = 1
+        distLbl.Text = "[" .. T("preview_dist") .. "]"
+        distLbl.TextColor3 = Color3.fromRGB(255,255,255)
+        distLbl.TextStrokeTransparency = 0
+        distLbl.TextSize = 12
+        distLbl.Font = Enum.Font.Gotham
+        distLbl.Parent = previewFrame
+        S.previewRefs.distLbl = distLbl
+        
+        updatePreview()
     else
-        addBtn(tabESP, "Ошибка: картинка не загружена", Color3.fromRGB(80,40,40), function() end)
+        local errLbl = Instance.new("TextLabel")
+        errLbl.Size = UDim2.new(1, 0, 1, 0)
+        errLbl.BackgroundTransparency = 1
+        errLbl.Text = "Roblox-Noob-...png не загружен"
+        errLbl.TextColor3 = Color3.fromRGB(255,100,100)
+        errLbl.TextSize = 12
+        errLbl.Font = Enum.Font.Gotham
+        errLbl.Parent = previewFrame
     end
 
     -- ═ RAGE ═
@@ -1221,7 +1291,7 @@ local function createGUI()
     -- ═ PLAYERS ═
     addLabel(tabPlayers, T("plist"))
     local pList = Instance.new("Frame")
-    pList.Size = UDim2.new(1, -6, 0, 380)
+    pList.Size = UDim2.new(1, -12, 0, 400)
     pList.BackgroundColor3 = Color3.fromRGB(16,16,24)
     pList.BorderSizePixel = 0
     pList.Parent = tabPlayers
@@ -1236,7 +1306,7 @@ local function createGUI()
     pScroll.CanvasSize = UDim2.new(0,0,0,0)
     pScroll.Parent = pList
     local pLay = Instance.new("UIListLayout")
-    pLay.Padding = UDim.new(0, 5)
+    pLay.Padding = UDim.new(0, 6)
     pLay.Parent = pScroll
     pLay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         pScroll.CanvasSize = UDim2.new(0, 0, 0, pLay.AbsoluteContentSize.Y + 8)
@@ -1249,32 +1319,32 @@ local function createGUI()
         for _, plr in ipairs(Players:GetPlayers()) do
             if plr ~= LP then
                 local row = Instance.new("Frame")
-                row.Size = UDim2.new(1, -4, 0, 46)
+                row.Size = UDim2.new(1, -4, 0, 48)
                 row.BackgroundColor3 = Color3.fromRGB(26,26,36)
                 row.BorderSizePixel = 0
                 row.Parent = pScroll
                 Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
 
                 local av = Instance.new("ImageLabel")
-                av.Size = UDim2.new(0, 36, 0, 36)
-                av.Position = UDim2.new(0, 5, 0.5, -18)
+                av.Size = UDim2.new(0, 38, 0, 38)
+                av.Position = UDim2.new(0, 5, 0.5, -19)
                 av.BackgroundColor3 = Color3.fromRGB(40,40,55)
                 av.BorderSizePixel = 0
                 av.Image = "rbxthumb://type=AvatarHeadShot&id=" .. plr.UserId .. "&w=150&h=150"
                 av.Parent = row
-                Instance.new("UICorner", av).CornerRadius = UDim.new(0, 18)
+                Instance.new("UICorner", av).CornerRadius = UDim.new(0, 19)
 
                 local tag = Instance.new("Frame")
-                tag.Size = UDim2.new(0, 6, 0, 28)
-                tag.Position = UDim2.new(0, 46, 0.5, -14)
+                tag.Size = UDim2.new(0, 6, 0, 30)
+                tag.Position = UDim2.new(0, 48, 0.5, -15)
                 tag.BackgroundColor3 = roleColor(plr)
                 tag.BorderSizePixel = 0
                 tag.Parent = row
                 Instance.new("UICorner", tag).CornerRadius = UDim.new(1, 0)
 
                 local nm = Instance.new("TextLabel")
-                nm.Size = UDim2.new(1, -180, 1, 0)
-                nm.Position = UDim2.new(0, 60, 0, 0)
+                nm.Size = UDim2.new(1, -200, 1, 0)
+                nm.Position = UDim2.new(0, 62, 0, 0)
                 nm.BackgroundTransparency = 1
                 nm.Text = plr.Name
                 nm.TextColor3 = Color3.fromRGB(230,230,240)
@@ -1285,8 +1355,8 @@ local function createGUI()
                 nm.Parent = row
 
                 local tpB = Instance.new("TextButton")
-                tpB.Size = UDim2.new(0, 38, 0, 28)
-                tpB.Position = UDim2.new(1, -128, 0.5, -14)
+                tpB.Size = UDim2.new(0, 42, 0, 30)
+                tpB.Position = UDim2.new(1, -140, 0.5, -15)
                 tpB.BackgroundColor3 = Color3.fromRGB(40,100,200)
                 tpB.Text = T("tp")
                 tpB.TextColor3 = Color3.new(1,1,1)
@@ -1303,8 +1373,8 @@ local function createGUI()
                 end)
 
                 local flB = Instance.new("TextButton")
-                flB.Size = UDim2.new(0, 68, 0, 28)
-                flB.Position = UDim2.new(1, -86, 0.5, -14)
+                flB.Size = UDim2.new(0, 76, 0, 30)
+                flB.Position = UDim2.new(1, -94, 0.5, -15)
                 flB.BackgroundColor3 = Color3.fromRGB(180,20,100)
                 flB.Text = T("fling")
                 flB.TextColor3 = Color3.new(1,1,1)
@@ -1328,55 +1398,59 @@ local function createGUI()
         LANG = "ru"
         SaveData.lang = "ru"
         saveSettings()
+        ttl.Text = T("title") .. " v23"
         notify(T("saved") .. ": Русский", Color3.fromRGB(0,200,100))
-        -- Обновляем тексты
-        ttl.Text = T("title") .. " v22"
-        for k, b in pairs(tabs) do
-            if k == "players" then b.Text = T("players") end
-            if k == "settings" then b.Text = T("settings") end
-        end
     end)
     addBtn(tabSettings, T("lang_en"), Color3.fromRGB(50,80,150), function()
         LANG = "en"
         SaveData.lang = "en"
         saveSettings()
+        ttl.Text = T("title") .. " v23"
         notify(T("saved") .. ": English", Color3.fromRGB(0,200,100))
-        ttl.Text = T("title") .. " v22"
-        for k, b in pairs(tabs) do
-            if k == "players" then b.Text = T("players") end
-            if k == "settings" then b.Text = T("settings") end
-        end
     end)
     
+    -- ПАЛИТРА ЦВЕТОВ
     addLabel(tabSettings, T("panel_sec"))
-    addLabel(tabSettings, T("panel_color"))
     
-    -- Пресеты цвета
-    local colors = {
-        {255,0,100, "Розовый"},
-        {0,150,255, "Синий"},
-        {0,255,130, "Зелёный"},
-        {255,200,0, "Жёлтый"},
-        {180,0,255, "Фиолетовый"},
-        {255,100,0, "Оранжевый"},
-        {255,255,255, "Белый"},
-        {100,100,100, "Серый"},
+    local colorHolder = Instance.new("Frame")
+    colorHolder.Size = UDim2.new(1, -12, 0, 120)
+    colorHolder.BackgroundColor3 = Color3.fromRGB(22,22,32)
+    colorHolder.BorderSizePixel = 0
+    colorHolder.Parent = tabSettings
+    Instance.new("UICorner", colorHolder).CornerRadius = UDim.new(0, 10)
+    
+    local colorGrid = Instance.new("UIGridLayout")
+    colorGrid.CellSize = UDim2.new(0, 50, 0, 50)
+    colorGrid.CellPadding = UDim2.new(0, 8, 0, 8)
+    colorGrid.SortOrder = Enum.SortOrder.LayoutOrder
+    colorGrid.Parent = colorHolder
+    
+    local palette = {
+        {255,0,100},  -- розовый
+        {255,50,50},  -- красный
+        {255,150,0},  -- оранжевый
+        {255,220,0},  -- жёлтый
+        {100,255,0},  -- лайм
+        {0,200,100},  -- зелёный
+        {0,220,220},  -- голубой
+        {0,150,255},  -- синий
+        {100,100,255},-- индиго
+        {180,0,255},  -- фиолетовый
+        {255,0,200},  -- маджента
+        {255,255,255},-- белый
     }
-    for _, c in ipairs(colors) do
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, -6, 0, 32)
-        btn.BackgroundColor3 = Color3.fromRGB(c[1], c[2], c[3])
-        btn.Text = c[4]
-        btn.TextColor3 = Color3.new(1,1,1)
-        btn.TextSize = 12
-        btn.Font = Enum.Font.GothamBold
-        btn.Parent = tabSettings
-        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
-        btn.MouseButton1Click:Connect(function()
+    
+    for _, c in ipairs(palette) do
+        local cBtn = Instance.new("TextButton")
+        cBtn.BackgroundColor3 = Color3.fromRGB(c[1], c[2], c[3])
+        cBtn.Text = ""
+        cBtn.Parent = colorHolder
+        Instance.new("UICorner", cBtn).CornerRadius = UDim.new(1, 0)
+        cBtn.MouseButton1Click:Connect(function()
             S.panelColor = Color3.fromRGB(c[1], c[2], c[3])
             SaveData.panel_color = {c[1], c[2], c[3]}
             saveSettings()
-            -- Применяем
+            -- Применяем ко всем элементам
             mstk.Color = S.panelColor
             openB.BackgroundColor3 = S.panelColor
             pScroll.ScrollBarImageColor3 = S.panelColor
@@ -1388,19 +1462,6 @@ local function createGUI()
             notify(T("saved"), Color3.fromRGB(0,200,100))
         end)
     end
-    
-    addBtn(tabSettings, T("panel_reset"), Color3.fromRGB(120,50,50), function()
-        S.panelColor = Color3.fromRGB(255,0,100)
-        SaveData.panel_color = {255,0,100}
-        saveSettings()
-        mstk.Color = S.panelColor
-        openB.BackgroundColor3 = S.panelColor
-        pScroll.ScrollBarImageColor3 = S.panelColor
-        notify(T("saved"), Color3.fromRGB(0,200,100))
-    end)
-    
-    addLabel(tabSettings, T("save_sec"))
-    addBtn(tabSettings, T("save_info"), Color3.fromRGB(40,40,60), function() end)
 
     -- Обработчики закрытия
     closeB.MouseButton1Click:Connect(function()
@@ -1698,7 +1759,6 @@ _G.VankaPanel = {
     end
 }
 
--- Автозапуск авто-скорости если была включена
 if S.speed50Enabled then
     startSpeed50Loop()
 end
@@ -1711,4 +1771,4 @@ runLoading()
 
 task.delay(5, function() notify(T("loaded"), Color3.fromRGB(0,200,100)) end)
 
-print("[VANKA v22] OK")
+print("[VANKA v23] OK")
