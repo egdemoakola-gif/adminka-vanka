@@ -1,4 +1,4 @@
--- АДМИНКА ВАНЬКА v23
+-- АДМИНКА ВАНЬКА v25
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players           = game:GetService("Players")
@@ -12,7 +12,7 @@ local LP    = Players.LocalPlayer
 local Cam   = workspace.CurrentCamera
 local Mouse = LP:GetMouse()
 
--- ═════ ЯЗЫКИ ═════
+-- ЯЗЫКИ
 local LANG = "ru"
 local L = {
     ru = {
@@ -26,7 +26,7 @@ local L = {
         cross_sec="ПРИЦЕЛ", cross="Прицел", cross_style="Стиль",
         fov="FOV круг", hardaim="Жёсткий аим",
         esp_sec="ESP", esp_main="Включить", esp_health="Здоровье",
-        esp_name="Имя", esp_dist="Дистанция",
+        esp_name="Имя", esp_dist="Дистанция", esp_weapon="Оружие в руках",
         esp_preview="Превью:",
         move_sec="ДВИЖЕНИЕ", fly="Полёт", noclip="Noclip", infjump="Беск. прыжок",
         speed="Скорость 50",
@@ -54,7 +54,7 @@ local L = {
         cross_sec="CROSSHAIR", cross="Crosshair", cross_style="Style",
         fov="FOV circle", hardaim="Hard aim",
         esp_sec="ESP", esp_main="Enable", esp_health="Health",
-        esp_name="Name", esp_dist="Distance",
+        esp_name="Name", esp_dist="Distance", esp_weapon="Weapon in hand",
         esp_preview="Preview:",
         move_sec="MOVEMENT", fly="Fly", noclip="Noclip", infjump="Infinite jump",
         speed="Speed 50",
@@ -74,15 +74,15 @@ local L = {
 }
 local function T(k) return L[LANG][k] or k end
 
--- ═════ СОХРАНЕНИЕ ═════
+-- СОХРАНЕНИЕ
 local SAVE_FILE = "vanka_settings.txt"
 local SaveData = {
-    lang = "ru",
-    esp = false, esp_health = true, esp_name = true, esp_dist = true,
-    cross_style = 1,
-    cross_color = {255, 0, 100},
-    panel_color = {255, 0, 100},
-    speed50 = false,
+    lang="ru",
+    esp=false, esp_health=true, esp_name=true, esp_dist=true, esp_weapon=true,
+    cross_style=1,
+    cross_color={255,0,100},
+    panel_color={255,0,100},
+    speed50=false,
 }
 
 local function serialize()
@@ -92,18 +92,17 @@ local function serialize()
     s = s .. "esp_health=" .. tostring(SaveData.esp_health) .. "\n"
     s = s .. "esp_name=" .. tostring(SaveData.esp_name) .. "\n"
     s = s .. "esp_dist=" .. tostring(SaveData.esp_dist) .. "\n"
+    s = s .. "esp_weapon=" .. tostring(SaveData.esp_weapon) .. "\n"
     s = s .. "cross_style=" .. tostring(SaveData.cross_style) .. "\n"
     s = s .. "cross_color=" .. SaveData.cross_color[1] .. "," .. SaveData.cross_color[2] .. "," .. SaveData.cross_color[3] .. "\n"
     s = s .. "panel_color=" .. SaveData.panel_color[1] .. "," .. SaveData.panel_color[2] .. "," .. SaveData.panel_color[3] .. "\n"
     s = s .. "speed50=" .. tostring(SaveData.speed50) .. "\n"
     return s
 end
-
 local function saveSettings()
     if not writefile then return end
     pcall(writefile, SAVE_FILE, serialize())
 end
-
 local function loadSettings()
     if not readfile or not isfile then return end
     local ok = pcall(isfile, SAVE_FILE)
@@ -113,27 +112,27 @@ local function loadSettings()
     for line in string.gmatch(data, "[^\n]+") do
         local key, val = string.match(line, "(%w+)=(.+)")
         if key and val then
-            if key == "lang" then LANG = val
-            elseif key == "esp" then SaveData.esp = (val == "true")
-            elseif key == "esp_health" then SaveData.esp_health = (val == "true")
-            elseif key == "esp_name" then SaveData.esp_name = (val == "true")
-            elseif key == "esp_dist" then SaveData.esp_dist = (val == "true")
-            elseif key == "speed50" then SaveData.speed50 = (val == "true")
-            elseif key == "cross_style" then SaveData.cross_style = tonumber(val) or 1
-            elseif key == "cross_color" then
-                local r,g,b = string.match(val, "(%d+),(%d+),(%d+)")
-                if r then SaveData.cross_color = {tonumber(r),tonumber(g),tonumber(b)} end
-            elseif key == "panel_color" then
-                local r,g,b = string.match(val, "(%d+),(%d+),(%d+)")
-                if r then SaveData.panel_color = {tonumber(r),tonumber(g),tonumber(b)} end
+            if key=="lang" then LANG=val
+            elseif key=="esp" then SaveData.esp=(val=="true")
+            elseif key=="esp_health" then SaveData.esp_health=(val=="true")
+            elseif key=="esp_name" then SaveData.esp_name=(val=="true")
+            elseif key=="esp_dist" then SaveData.esp_dist=(val=="true")
+            elseif key=="esp_weapon" then SaveData.esp_weapon=(val=="true")
+            elseif key=="speed50" then SaveData.speed50=(val=="true")
+            elseif key=="cross_style" then SaveData.cross_style=tonumber(val) or 1
+            elseif key=="cross_color" then
+                local r,g,b=string.match(val,"(%d+),(%d+),(%d+)")
+                if r then SaveData.cross_color={tonumber(r),tonumber(g),tonumber(b)} end
+            elseif key=="panel_color" then
+                local r,g,b=string.match(val,"(%d+),(%d+),(%d+)")
+                if r then SaveData.panel_color={tonumber(r),tonumber(g),tonumber(b)} end
             end
         end
     end
 end
-
 loadSettings()
 
--- ═════ СКАЧИВАНИЕ КАРТИНОК ═════
+-- КАРТИНКИ
 local GH = "https://raw.githubusercontent.com/egdemoakola-gif/adminka-vanka/main/"
 local function downloadImg(name)
     local file = "vanka_" .. name
@@ -160,7 +159,7 @@ local IMG_VIS   = downloadImg("visial.png")
 local IMG_RAGE  = downloadImg("rage.png")
 local IMG_NOOB  = downloadImg("Roblox-Noob-Blocky-Avatar-Transparent-PNG.png")
 
--- ═════ СОСТОЯНИЕ ═════
+-- СОСТОЯНИЕ
 local S = {
     roleHighlight=false, roleHL={},
     aimbot=false, aimbotFOV=200, aimT=nil, hardAim=true,
@@ -180,10 +179,10 @@ local S = {
     espHealth=SaveData.esp_health,
     espName=SaveData.esp_name,
     espDist=SaveData.esp_dist,
+    espWeapon=SaveData.esp_weapon,
     previewRefs={},
 }
 
--- ═════ УВЕДОМЛЕНИЯ ═════
 local function notify(text, color)
     color = color or Color3.fromRGB(255,0,100)
     if not S.gui then return end
@@ -219,7 +218,7 @@ local function notify(text, color)
     end)
 end
 
--- ═════ РОЛИ ═════
+-- РОЛИ
 local function getRole(plr)
     if not plr or not plr.Character then return "Innocent" end
     local function has(nm)
@@ -251,12 +250,32 @@ local function isGun(t)
     return string.find(n,"gun") or string.find(n,"pistol") or string.find(n,"revolver")
 end
 
+local function isKnife(t)
+    if not t or not t.Name then return false end
+    local n = string.lower(t.Name)
+    return string.find(n,"knife") or string.find(n,"dagger") or string.find(n,"sword")
+end
+
+-- Найти Tool в руках игрока
+local function getToolInHand(plr)
+    if not plr or not plr.Character then return nil end
+    return plr.Character:FindFirstChildOfClass("Tool")
+end
+
+-- Найти руку игрока
+local function getHandPart(plr)
+    if not plr or not plr.Character then return nil end
+    return plr.Character:FindFirstChild("RightHand") 
+        or plr.Character:FindFirstChild("Right Arm") 
+        or plr.Character:FindFirstChild("LeftHand")
+        or plr.Character:FindFirstChild("Left Arm")
+end
+
 local function hasGunInHand()
     if not LP.Character then return false end
     local t = LP.Character:FindFirstChildOfClass("Tool")
     return t and isGun(t)
 end
-
 local function hasGunAnywhere()
     if hasGunInHand() then return true end
     if not LP.Backpack then return false end
@@ -265,7 +284,6 @@ local function hasGunAnywhere()
     end
     return false
 end
-
 local function equipGun()
     if not LP.Backpack or not LP.Character then return false end
     local hm = LP.Character:FindFirstChildOfClass("Humanoid")
@@ -278,27 +296,19 @@ local function equipGun()
     end
     return false
 end
-
 local function findMyKnife()
     if LP.Character then
         for _, t in ipairs(LP.Character:GetChildren()) do
-            if t:IsA("Tool") then
-                local n = string.lower(t.Name)
-                if string.find(n,"knife") or string.find(n,"dagger") or string.find(n,"sword") then return t end
-            end
+            if t:IsA("Tool") and isKnife(t) then return t end
         end
     end
     if LP.Backpack then
         for _, t in ipairs(LP.Backpack:GetChildren()) do
-            if t:IsA("Tool") then
-                local n = string.lower(t.Name)
-                if string.find(n,"knife") or string.find(n,"dagger") or string.find(n,"sword") then return t end
-            end
+            if t:IsA("Tool") and isKnife(t) then return t end
         end
     end
     return nil
 end
-
 local function equipMyKnife()
     local k = findMyKnife()
     if not k then return nil end
@@ -309,70 +319,119 @@ local function equipMyKnife()
     return k
 end
 
--- ═════ ФЛИНГ ═════
+-- ═════════════════════════════════════════════════════
+-- ФЛИНГ v25: ЯКОРЮ СЕБЯ, СИЛУ НА ЖЕРТВУ
+-- ═════════════════════════════════════════════════════
+local flingBusy = false
 local function fling(target)
     if not target or target == LP or not target.Character then
         notify(T("no_target"), Color3.fromRGB(255,60,60))
         return
     end
-    local tHrp = target.Character:FindFirstChild("HumanoidRootPart")
-    local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-    if not tHrp or not myHrp then return end
+    if flingBusy then return end
+    flingBusy = true
+
+    local tChar = target.Character
+    local tHrp = tChar:FindFirstChild("HumanoidRootPart")
+    local myChar = LP.Character
+    local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
+    if not tHrp or not myHrp then flingBusy = false return end
+
     notify(T("fling_run") .. ": " .. target.Name, Color3.fromRGB(255,0,150))
-    
+
     task.spawn(function()
-        for _, p in ipairs(target.Character:GetDescendants()) do
-            if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
+        local myPos = myHrp.CFrame
+        local wasAnchored = myHrp.Anchored
+
+        -- 1) ЯКОРЮ СЕБЯ — не улечу
+        myHrp.Anchored = true
+
+        -- 2) Сетевой контроль над жертвой
+        for _, p in ipairs(tChar:GetDescendants()) do
+            if p:IsA("BasePart") then
+                pcall(function() p:SetNetworkOwner(LP) end)
+            end
         end
-        
+
+        -- 3) BodyVelocity НА ЖЕРТВЕ
         local bv = Instance.new("BodyVelocity")
         bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bv.Parent = myHrp
-        
+        bv.Velocity = Vector3.new(0,0,0)
+        bv.Parent = tHrp
+
         local bav = Instance.new("BodyAngularVelocity")
         bav.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        bav.AngularVelocity = Vector3.new(1e6, 1e6, 1e6)
-        bav.Parent = myHrp
-        
-        local startTime = tick()
-        while tick() - startTime < 2 do
+        bav.AngularVelocity = Vector3.new(0,0,0)
+        bav.Parent = tHrp
+
+        local t0 = tick()
+        while tick() - t0 < 2.5 do
             if not target.Character then break end
             local curHrp = target.Character:FindFirstChild("HumanoidRootPart")
             if not curHrp then break end
-            for i = 1, 6 do
-                local a = math.random() * math.pi * 2
-                local ox = math.cos(a) * 2
-                local oz = math.sin(a) * 2
-                local oy = math.random(-2, 3)
-                pcall(function()
-                    myHrp.CFrame = curHrp.CFrame * CFrame.new(ox, oy, oz)
-                    bv.Velocity = Vector3.new(
-                        math.random(-80000, 80000),
-                        math.random(-40000, 100000),
-                        math.random(-80000, 80000)
-                    )
-                end)
-                task.wait()
-            end
+
+            -- Сила вверх + в стороны
+            pcall(function()
+                bv.Velocity = Vector3.new(
+                    math.random(-40000, 40000),
+                    math.random(50000, 90000),
+                    math.random(-40000, 40000)
+                )
+                bav.AngularVelocity = Vector3.new(
+                    math.random(-800, 800),
+                    math.random(-800, 800),
+                    math.random(-800, 800)
+                )
+                curHrp.AssemblyLinearVelocity = Vector3.new(
+                    math.random(-30000, 30000),
+                    math.random(40000, 80000),
+                    math.random(-30000, 30000)
+                )
+            end)
+
+            -- Следим чтобы я оставался на месте
+            pcall(function() myHrp.CFrame = myPos end)
+            task.wait()
         end
-        
+
+        -- 4) Убираем силу
         if bv then pcall(function() bv:Destroy() end) end
         if bav then pcall(function() bav:Destroy() end) end
-        
-        task.wait(1.5)
+
+        -- 5) Отпускаем якорь через 1 сек (жертва должна уже лететь)
+        task.wait(1)
+        myHrp.Anchored = wasAnchored
+
+        -- 6) Возврат на место на всякий случай
+        task.wait(0.2)
+        pcall(function()
+            if myHrp and myHrp.Parent then
+                myHrp.CFrame = myPos
+                myHrp.Velocity = Vector3.new(0,0,0)
+            end
+        end)
+
+        flingBusy = false
+
+        -- 7) Проверка результата
+        task.wait(1)
         if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
             local y = target.Character.HumanoidRootPart.Position.Y
-            if y > 500 then notify(target.Name .. " " .. T("fling_done") .. "!", Color3.fromRGB(255,100,200))
-            else notify(target.Name .. " " .. T("fling_done"), Color3.fromRGB(100,200,255)) end
+            if y > 500 then
+                notify(target.Name .. " В КОСМОСЕ!", Color3.fromRGB(255,100,200))
+            elseif y > myPos.Position.Y + 50 then
+                notify(target.Name .. " УЛЕТЕЛ!", Color3.fromRGB(255,150,50))
+            else
+                notify(target.Name .. " чуть откинуло", Color3.fromRGB(150,150,150))
+            end
         end
     end)
 end
 
--- ═════ AUTO SHERIFF ═════
+-- AUTO SHERIFF
 local function findHead(tChar)
     return tChar:FindFirstChild("Head") or tChar:FindFirstChild("UpperTorso") or tChar:FindFirstChild("Torso")
 end
-
 local function startAutoGunPlay()
     if S.autoGunThread then return end
     S.autoGunThread = task.spawn(function()
@@ -445,7 +504,7 @@ local function startAutoGunPlay()
 end
 local function stopAutoGunPlay() S.autoGunPlay = false S.autoGunThread = nil end
 
--- ═════ AUTO KILL ALL ═════
+-- AUTO KILL ALL
 local function killOneTarget(target)
     if not target or target == LP or not target.Character then return false end
     local myChar = LP.Character
@@ -525,7 +584,9 @@ local function stopKillAllLoop()
     S.killLoopThread = nil
 end
 
--- ═════ ESP ═════
+-- ═════════════════════════════════════════════════════
+-- ESP с оружием
+-- ═════════════════════════════════════════════════════
 local function updateESP()
     if not S.espEnabled then
         for _, bb in pairs(S.espBillboards) do
@@ -543,11 +604,11 @@ local function updateESP()
                     if bb then bb:Destroy() end
                     bb = Instance.new("BillboardGui")
                     bb.Name = "VankaESP"
-                    bb.Size = UDim2.new(0, 220, 0, 70)
-                    bb.StudsOffset = Vector3.new(0, 3, 0)
+                    bb.Size = UDim2.new(0, 240, 0, 90)
+                    bb.StudsOffset = Vector3.new(0, 3.5, 0)
                     bb.AlwaysOnTop = true
                     bb.Parent = head
-                    
+
                     local nameLbl = Instance.new("TextLabel")
                     nameLbl.Name = "NameLbl"
                     nameLbl.Size = UDim2.new(1, 0, 0, 16)
@@ -558,26 +619,36 @@ local function updateESP()
                     nameLbl.TextSize = 12
                     nameLbl.Font = Enum.Font.GothamBold
                     nameLbl.Parent = bb
-                    
+
+                    local weaponLbl = Instance.new("TextLabel")
+                    weaponLbl.Name = "WeaponLbl"
+                    weaponLbl.Size = UDim2.new(1, 0, 0, 16)
+                    weaponLbl.Position = UDim2.new(0, 0, 0, 16)
+                    weaponLbl.BackgroundTransparency = 1
+                    weaponLbl.TextStrokeTransparency = 0
+                    weaponLbl.TextSize = 13
+                    weaponLbl.Font = Enum.Font.GothamBold
+                    weaponLbl.Parent = bb
+
                     local distLbl = Instance.new("TextLabel")
                     distLbl.Name = "DistLbl"
                     distLbl.Size = UDim2.new(1, 0, 0, 14)
-                    distLbl.Position = UDim2.new(0, 0, 0, 16)
+                    distLbl.Position = UDim2.new(0, 0, 0, 32)
                     distLbl.BackgroundTransparency = 1
                     distLbl.TextStrokeTransparency = 0
                     distLbl.TextSize = 11
                     distLbl.Font = Enum.Font.Gotham
                     distLbl.Parent = bb
-                    
+
                     local hpBg = Instance.new("Frame")
                     hpBg.Name = "HpBg"
                     hpBg.Size = UDim2.new(0, 120, 0, 6)
-                    hpBg.Position = UDim2.new(0.5, -60, 0, 34)
+                    hpBg.Position = UDim2.new(0.5, -60, 0, 50)
                     hpBg.BackgroundColor3 = Color3.fromRGB(20,20,20)
                     hpBg.BorderSizePixel = 0
                     hpBg.Parent = bb
                     Instance.new("UICorner", hpBg).CornerRadius = UDim.new(0, 3)
-                    
+
                     local hpFill = Instance.new("Frame")
                     hpFill.Name = "HpFill"
                     hpFill.Size = UDim2.new(1, 0, 1, 0)
@@ -585,20 +656,78 @@ local function updateESP()
                     hpFill.BorderSizePixel = 0
                     hpFill.Parent = hpBg
                     Instance.new("UICorner", hpFill).CornerRadius = UDim.new(0, 3)
-                    
+
                     S.espBillboards[plr] = bb
                 end
-                
+
                 local nameLbl = bb:FindFirstChild("NameLbl")
+                local weaponLbl = bb:FindFirstChild("WeaponLbl")
                 local distLbl = bb:FindFirstChild("DistLbl")
                 local hpBg = bb:FindFirstChild("HpBg")
-                
+
                 if nameLbl then
                     nameLbl.Visible = S.espName
                     nameLbl.Text = plr.Name .. " [" .. getRole(plr) .. "]"
                     nameLbl.TextColor3 = roleColor(plr)
                 end
-                
+
+                -- ОРУЖИЕ В РУКАХ
+                if weaponLbl then
+                    weaponLbl.Visible = S.espWeapon
+                    if S.espWeapon then
+                        local tool = getToolInHand(plr)
+                        if tool then
+                            if isKnife(tool) then
+                                weaponLbl.Text = "🔪 " .. tool.Name
+                                weaponLbl.TextColor3 = Color3.fromRGB(255,80,80)
+                                -- Подсветка руки красным
+                                local hand = getHandPart(plr)
+                                if hand then
+                                    if not hand:FindFirstChild("VankaHandHL") then
+                                        local hl = Instance.new("Highlight")
+                                        hl.Name = "VankaHandHL"
+                                        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                                        hl.FillColor = Color3.fromRGB(255,50,50)
+                                        hl.OutlineColor = Color3.fromRGB(255,255,255)
+                                        hl.FillTransparency = 0.3
+                                        hl.Parent = hand
+                                    end
+                                end
+                            elseif isGun(tool) then
+                                weaponLbl.Text = "🔫 " .. tool.Name
+                                weaponLbl.TextColor3 = Color3.fromRGB(80,180,255)
+                                -- Подсветка руки синим
+                                local hand = getHandPart(plr)
+                                if hand then
+                                    if not hand:FindFirstChild("VankaHandHL") then
+                                        local hl = Instance.new("Highlight")
+                                        hl.Name = "VankaHandHL"
+                                        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                                        hl.FillColor = Color3.fromRGB(50,150,255)
+                                        hl.OutlineColor = Color3.fromRGB(255,255,255)
+                                        hl.FillTransparency = 0.3
+                                        hl.Parent = hand
+                                    end
+                                end
+                            else
+                                weaponLbl.Text = "⚔ " .. tool.Name
+                                weaponLbl.TextColor3 = Color3.fromRGB(255,200,80)
+                            end
+                        else
+                            weaponLbl.Text = ""
+                        end
+                    end
+                end
+
+                -- Убираем подсветку руки если оружия нет или выключено
+                if not S.espWeapon or not getToolInHand(plr) then
+                    local hand = getHandPart(plr)
+                    if hand then
+                        local old = hand:FindFirstChild("VankaHandHL")
+                        if old then old:Destroy() end
+                    end
+                end
+
                 if distLbl and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
                     distLbl.Visible = S.espDist
                     local myHrp = LP.Character.HumanoidRootPart
@@ -609,7 +738,7 @@ local function updateESP()
                         distLbl.TextColor3 = Color3.fromRGB(255,255,255)
                     end
                 end
-                
+
                 if hpBg then
                     hpBg.Visible = S.espHealth
                     local tHum = plr.Character:FindFirstChildOfClass("Humanoid")
@@ -629,7 +758,7 @@ local function updateESP()
     end
 end
 
--- ═════ АВТО-СКОРОСТЬ 50 ═════
+-- АВТО-СКОРОСТЬ
 local function startSpeed50Loop()
     if S.speedThread then return end
     S.speedThread = task.spawn(function()
@@ -646,7 +775,7 @@ local function startSpeed50Loop()
     end)
 end
 
--- ═════ ПОДБОР ═════
+-- ПОДБОР
 local function startAutoPickup()
     if S.sheriffThread then return end
     S.lastSheriff = nil
@@ -690,7 +819,7 @@ local function stopAutoPickup()
     S.lastSheriffPos = nil
 end
 
--- ═════ ESP HL ═════
+-- ESP HL
 local function refreshHL()
     if not S.roleHighlight then return end
     for _, plr in ipairs(Players:GetPlayers()) do
@@ -711,21 +840,21 @@ local function refreshHL()
         end
     end
 end
-
 local function clearHL()
     for _, hl in pairs(S.roleHL) do pcall(function() hl:Destroy() end) end
     S.roleHL = {}
 end
 
--- ═════ ОБНОВЛЕНИЕ ПРЕВЬЮ ESP ═════
+-- ПРЕВЬЮ ESP
 local function updatePreview()
     local refs = S.previewRefs
     if refs.nameLbl then refs.nameLbl.Visible = S.espName end
     if refs.distLbl then refs.distLbl.Visible = S.espDist end
     if refs.hpBg then refs.hpBg.Visible = S.espHealth end
+    if refs.weaponLbl then refs.weaponLbl.Visible = S.espWeapon end
 end
 
--- ═════ СОЗДАНИЕ GUI ═════
+-- СОЗДАНИЕ GUI
 local function createGUI()
     local parent = (gethui and gethui()) or game:GetService("CoreGui")
     local gui = Instance.new("ScreenGui")
@@ -747,7 +876,6 @@ local function createGUI()
     nl.SortOrder = Enum.SortOrder.LayoutOrder
     nl.Parent = nh
 
-    -- ПАНЕЛЬ (увеличена)
     local main = Instance.new("Frame")
     main.Name = "MainFrame"
     main.Size = UDim2.new(0, 560, 0, 660)
@@ -813,7 +941,7 @@ local function createGUI()
     ttl.Size = UDim2.new(1, -180, 1, 0)
     ttl.Position = UDim2.new(0, 64, 0, 0)
     ttl.BackgroundTransparency = 1
-    ttl.Text = T("title") .. " v23"
+    ttl.Text = T("title") .. " v25"
     ttl.TextColor3 = Color3.new(1,1,1)
     ttl.TextSize = 16
     ttl.Font = Enum.Font.GothamBold
@@ -864,7 +992,6 @@ local function createGUI()
         oi.Parent = openB
     end
 
-    -- ТАБЫ
     local tabBar = Instance.new("Frame")
     tabBar.Size = UDim2.new(1, -24, 0, 46)
     tabBar.Position = UDim2.new(0, 12, 0, 62)
@@ -889,11 +1016,7 @@ local function createGUI()
     local function switchTab(name)
         for k, p in pairs(pages) do p.Visible = (k == name) end
         for k, b in pairs(tabs) do
-            if b:FindFirstChildOfClass("ImageLabel") then
-                b.BackgroundColor3 = (k == name) and S.panelColor or Color3.fromRGB(32,32,44)
-            else
-                b.BackgroundColor3 = (k == name) and S.panelColor or Color3.fromRGB(32,32,44)
-            end
+            b.BackgroundColor3 = (k == name) and S.panelColor or Color3.fromRGB(32,32,44)
         end
     end
 
@@ -928,23 +1051,30 @@ local function createGUI()
         p.ScrollBarImageColor3 = S.panelColor
         p.CanvasSize = UDim2.new(0, 0, 0, 0)
         p.Visible = false
+        -- ФИКС: отступы чтобы кнопки не вылезали
         p.Parent = content
         pages[key] = p
+        local padding = Instance.new("UIPadding")
+        padding.PaddingTop = UDim.new(0, 8)
+        padding.PaddingBottom = UDim.new(0, 20)
+        padding.PaddingLeft = UDim.new(0, 6)
+        padding.PaddingRight = UDim.new(0, 6)
+        padding.Parent = p
+
         local lay = Instance.new("UIListLayout")
         lay.Padding = UDim.new(0, 8)
         lay.SortOrder = Enum.SortOrder.LayoutOrder
         lay.Parent = p
         lay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            p.CanvasSize = UDim2.new(0, 0, 0, lay.AbsoluteContentSize.Y + 20)
+            p.CanvasSize = UDim2.new(0, 0, 0, lay.AbsoluteContentSize.Y + 40)
         end)
         b.MouseButton1Click:Connect(function() switchTab(key) end)
         return p
     end
 
-    -- ХЕЛПЕРЫ
     local function addBtn(parent, text, color, cb)
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(1, -12, 0, 38)
+        b.Size = UDim2.new(1, 0, 0, 38)
         b.BackgroundColor3 = color or Color3.fromRGB(40,40,60)
         b.Text = text
         b.TextColor3 = Color3.new(1,1,1)
@@ -962,7 +1092,7 @@ local function createGUI()
 
     local function addToggle(parent, text, initial, cb)
         local row = Instance.new("TextButton")
-        row.Size = UDim2.new(1, -12, 0, 42)
+        row.Size = UDim2.new(1, 0, 0, 42)
         row.BackgroundColor3 = Color3.fromRGB(22,22,32)
         row.Text = ""
         row.AutoButtonColor = false
@@ -1008,7 +1138,7 @@ local function createGUI()
 
     local function addLabel(parent, text)
         local w = Instance.new("Frame")
-        w.Size = UDim2.new(1, -12, 0, 30)
+        w.Size = UDim2.new(1, 0, 0, 30)
         w.BackgroundTransparency = 1
         w.Parent = parent
         local a = Instance.new("Frame")
@@ -1030,7 +1160,6 @@ local function createGUI()
         l.Parent = w
     end
 
-    -- Табы
     local tabMain     = addTab("main", IMG_MAIN)
     local tabVisual   = addTab("visual", IMG_VIS)
     local tabESP      = addTab("esp", nil, "ESP")
@@ -1039,31 +1168,27 @@ local function createGUI()
     local tabSettings = addTab("settings", nil, T("settings"))
     switchTab("main")
 
-    -- ═ MAIN ═
+    -- MAIN
     addLabel(tabMain, T("sheriff_sec"))
     addToggle(tabMain, T("sheriff"), false, function(v)
         S.autoGunPlay = v
         if v then startAutoGunPlay() else stopAutoGunPlay() end
     end)
-
     addLabel(tabMain, T("killall_sec"))
     addToggle(tabMain, T("killall"), false, function(v)
         S.killAllEnabled = v
         if v then startKillAllLoop() else stopKillAllLoop() end
     end)
-
     addLabel(tabMain, T("pickup_sec"))
     addToggle(tabMain, T("pickup"), false, function(v)
         S.autoPickup = v
         if v then startAutoPickup() else stopAutoPickup() end
     end)
-
     addLabel(tabMain, T("roles_sec"))
     addToggle(tabMain, T("roles"), false, function(v)
         S.roleHighlight = v
         if v then refreshHL() else clearHL() end
     end)
-
     addBtn(tabMain, T("clear_inv"), Color3.fromRGB(60,60,70), function()
         if LP.Backpack then
             for _, t in ipairs(LP.Backpack:GetChildren()) do
@@ -1077,41 +1202,30 @@ local function createGUI()
         end
     end)
 
-    -- ═ VISUAL ═
+    -- VISUAL
     addLabel(tabVisual, T("cross_sec"))
     addToggle(tabVisual, T("cross"), true, function(v) S.crosshair = v end)
     addToggle(tabVisual, T("fov"), true, function(v) S.fovCircle = v end)
     addToggle(tabVisual, T("hardaim"), true, function(v) S.hardAim = v end)
-    
     addLabel(tabVisual, T("cross_style"))
     addBtn(tabVisual, T("cross_1"), Color3.fromRGB(60,60,90), function()
-        S.crossStyle = 1
-        SaveData.cross_style = 1
-        saveSettings()
+        S.crossStyle=1 SaveData.cross_style=1 saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
     addBtn(tabVisual, T("cross_2"), Color3.fromRGB(60,60,90), function()
-        S.crossStyle = 2
-        SaveData.cross_style = 2
-        saveSettings()
+        S.crossStyle=2 SaveData.cross_style=2 saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
     addBtn(tabVisual, T("cross_3"), Color3.fromRGB(60,60,90), function()
-        S.crossStyle = 3
-        SaveData.cross_style = 3
-        saveSettings()
+        S.crossStyle=3 SaveData.cross_style=3 saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
-
     addLabel(tabVisual, T("move_sec"))
     addToggle(tabVisual, T("fly"), false, function(v) S.fly = v end)
     addToggle(tabVisual, T("noclip"), false, function(v) S.noclip = v end)
     addToggle(tabVisual, T("infjump"), false, function(v) S.infjump = v end)
-    
     addToggle(tabVisual, T("speed"), S.speed50Enabled, function(v)
-        S.speed50Enabled = v
-        SaveData.speed50 = v
-        saveSettings()
+        S.speed50Enabled = v SaveData.speed50 = v saveSettings()
         if v then
             startSpeed50Loop()
             if LP.Character then
@@ -1125,18 +1239,12 @@ local function createGUI()
             end
         end
     end)
-
     addLabel(tabVisual, T("vis_sec"))
     addToggle(tabVisual, T("fullbright"), false, function(v)
         S.fullbright = v
         if v then
             if not S.oldLighting then
-                S.oldLighting = {
-                    Brightness = Lighting.Brightness,
-                    ClockTime = Lighting.ClockTime,
-                    Ambient = Lighting.Ambient,
-                    OutdoorAmbient = Lighting.OutdoorAmbient,
-                }
+                S.oldLighting = {Brightness=Lighting.Brightness,ClockTime=Lighting.ClockTime,Ambient=Lighting.Ambient,OutdoorAmbient=Lighting.OutdoorAmbient}
             end
             Lighting.Brightness = 2
             Lighting.ClockTime = 14
@@ -1153,52 +1261,41 @@ local function createGUI()
         end
     end)
 
-    -- ═ ESP ═
+    -- ESP
     addLabel(tabESP, T("esp_sec"))
     addToggle(tabESP, T("esp_main"), S.espEnabled, function(v)
-        S.espEnabled = v
-        SaveData.esp = v
-        saveSettings()
+        S.espEnabled = v SaveData.esp = v saveSettings()
     end)
     addToggle(tabESP, T("esp_health"), S.espHealth, function(v)
-        S.espHealth = v
-        SaveData.esp_health = v
-        saveSettings()
-        updatePreview()
+        S.espHealth = v SaveData.esp_health = v saveSettings() updatePreview()
     end)
     addToggle(tabESP, T("esp_name"), S.espName, function(v)
-        S.espName = v
-        SaveData.esp_name = v
-        saveSettings()
-        updatePreview()
+        S.espName = v SaveData.esp_name = v saveSettings() updatePreview()
     end)
     addToggle(tabESP, T("esp_dist"), S.espDist, function(v)
-        S.espDist = v
-        SaveData.esp_dist = v
-        saveSettings()
-        updatePreview()
+        S.espDist = v SaveData.esp_dist = v saveSettings() updatePreview()
     end)
-    
-    -- ПРЕВЬЮ С НУБОМ
+    addToggle(tabESP, T("esp_weapon"), S.espWeapon, function(v)
+        S.espWeapon = v SaveData.esp_weapon = v saveSettings() updatePreview()
+    end)
+
     addLabel(tabESP, T("esp_preview"))
     local previewFrame = Instance.new("Frame")
-    previewFrame.Size = UDim2.new(1, -12, 0, 240)
+    previewFrame.Size = UDim2.new(1, 0, 0, 260)
     previewFrame.BackgroundColor3 = Color3.fromRGB(30,30,45)
     previewFrame.BorderSizePixel = 0
     previewFrame.Parent = tabESP
     Instance.new("UICorner", previewFrame).CornerRadius = UDim.new(0, 10)
-    
+
     if IMG_NOOB then
-        -- Картинка нуба
         local noobImg = Instance.new("ImageLabel")
         noobImg.Size = UDim2.new(0, 140, 0, 140)
-        noobImg.Position = UDim2.new(0.5, -70, 0.5, -20)
+        noobImg.Position = UDim2.new(0.5, -70, 0.5, -25)
         noobImg.BackgroundTransparency = 1
         noobImg.Image = IMG_NOOB
         noobImg.ScaleType = Enum.ScaleType.Fit
         noobImg.Parent = previewFrame
-        
-        -- Имя над нубом
+
         local nameLbl = Instance.new("TextLabel")
         nameLbl.Name = "PrevName"
         nameLbl.Size = UDim2.new(0, 180, 0, 18)
@@ -1211,17 +1308,28 @@ local function createGUI()
         nameLbl.Font = Enum.Font.GothamBold
         nameLbl.Parent = previewFrame
         S.previewRefs.nameLbl = nameLbl
-        
-        -- HP полоска
+
+        local weaponLbl = Instance.new("TextLabel")
+        weaponLbl.Name = "PrevWeapon"
+        weaponLbl.Size = UDim2.new(0, 180, 0, 18)
+        weaponLbl.Position = UDim2.new(0.5, -90, 0, 48)
+        weaponLbl.BackgroundTransparency = 1
+        weaponLbl.Text = "🔫 Gun"
+        weaponLbl.TextColor3 = Color3.fromRGB(80,180,255)
+        weaponLbl.TextStrokeTransparency = 0
+        weaponLbl.TextSize = 13
+        weaponLbl.Font = Enum.Font.GothamBold
+        weaponLbl.Parent = previewFrame
+        S.previewRefs.weaponLbl = weaponLbl
+
         local hpBg = Instance.new("Frame")
         hpBg.Name = "PrevHpBg"
         hpBg.Size = UDim2.new(0, 120, 0, 8)
-        hpBg.Position = UDim2.new(0.5, -60, 0, 52)
+        hpBg.Position = UDim2.new(0.5, -60, 0, 68)
         hpBg.BackgroundColor3 = Color3.fromRGB(20,20,20)
         hpBg.BorderSizePixel = 0
         hpBg.Parent = previewFrame
         Instance.new("UICorner", hpBg).CornerRadius = UDim.new(0, 4)
-        
         local hpFill = Instance.new("Frame")
         hpFill.Size = UDim2.new(1, 0, 1, 0)
         hpFill.BackgroundColor3 = Color3.fromRGB(0,255,0)
@@ -1229,12 +1337,11 @@ local function createGUI()
         hpFill.Parent = hpBg
         Instance.new("UICorner", hpFill).CornerRadius = UDim.new(0, 4)
         S.previewRefs.hpBg = hpBg
-        
-        -- Дистанция
+
         local distLbl = Instance.new("TextLabel")
         distLbl.Name = "PrevDist"
         distLbl.Size = UDim2.new(0, 180, 0, 16)
-        distLbl.Position = UDim2.new(0.5, -90, 0, 66)
+        distLbl.Position = UDim2.new(0.5, -90, 0, 82)
         distLbl.BackgroundTransparency = 1
         distLbl.Text = "[" .. T("preview_dist") .. "]"
         distLbl.TextColor3 = Color3.fromRGB(255,255,255)
@@ -1243,7 +1350,7 @@ local function createGUI()
         distLbl.Font = Enum.Font.Gotham
         distLbl.Parent = previewFrame
         S.previewRefs.distLbl = distLbl
-        
+
         updatePreview()
     else
         local errLbl = Instance.new("TextLabel")
@@ -1256,7 +1363,7 @@ local function createGUI()
         errLbl.Parent = previewFrame
     end
 
-    -- ═ RAGE ═
+    -- RAGE
     addLabel(tabRage, T("aim_sec"))
     addToggle(tabRage, T("aimbot"), false, function(v) S.aimbot = v end)
     addBtn(tabRage, T("kill_aim"), Color3.fromRGB(170,20,30), function()
@@ -1265,10 +1372,8 @@ local function createGUI()
             if h then h.Health = 0 end
         end
     end)
-
     addLabel(tabRage, T("spin_sec"))
     addToggle(tabRage, T("spin"), false, function(v) S.spin = v end)
-
     addLabel(tabRage, T("util_sec"))
     addBtn(tabRage, T("respawn"), Color3.fromRGB(100,60,150), function()
         if LP.Character then LP.Character:BreakJoints() end
@@ -1277,10 +1382,7 @@ local function createGUI()
         S.aimbot=false S.roleHighlight=false S.fly=false S.noclip=false S.infjump=false
         S.spin=false S.autoPickup=false S.killAllEnabled=false S.killList={}
         S.autoGunPlay=false S.espEnabled=false S.speed50Enabled=false
-        stopKillAllLoop()
-        stopAutoPickup()
-        stopAutoGunPlay()
-        clearHL()
+        stopKillAllLoop() stopAutoPickup() stopAutoGunPlay() clearHL()
         if LP.Character then
             local h = LP.Character:FindFirstChildOfClass("Humanoid")
             if h then h.WalkSpeed=16 h.JumpPower=50 end
@@ -1288,10 +1390,10 @@ local function createGUI()
         notify(T("all_off"), Color3.fromRGB(255,60,60))
     end)
 
-    -- ═ PLAYERS ═
+    -- PLAYERS
     addLabel(tabPlayers, T("plist"))
     local pList = Instance.new("Frame")
-    pList.Size = UDim2.new(1, -12, 0, 400)
+    pList.Size = UDim2.new(1, 0, 0, 400)
     pList.BackgroundColor3 = Color3.fromRGB(16,16,24)
     pList.BorderSizePixel = 0
     pList.Parent = tabPlayers
@@ -1392,54 +1494,35 @@ local function createGUI()
     Players.PlayerAdded:Connect(function() task.wait(1) rebuild() end)
     Players.PlayerRemoving:Connect(function() task.wait(0.3) rebuild() end)
 
-    -- ═ SETTINGS ═
+    -- SETTINGS
     addLabel(tabSettings, T("lang_sec"))
     addBtn(tabSettings, T("lang_ru"), Color3.fromRGB(50,80,150), function()
-        LANG = "ru"
-        SaveData.lang = "ru"
-        saveSettings()
-        ttl.Text = T("title") .. " v23"
+        LANG = "ru" SaveData.lang = "ru" saveSettings()
+        ttl.Text = T("title") .. " v25"
         notify(T("saved") .. ": Русский", Color3.fromRGB(0,200,100))
     end)
     addBtn(tabSettings, T("lang_en"), Color3.fromRGB(50,80,150), function()
-        LANG = "en"
-        SaveData.lang = "en"
-        saveSettings()
-        ttl.Text = T("title") .. " v23"
+        LANG = "en" SaveData.lang = "en" saveSettings()
+        ttl.Text = T("title") .. " v25"
         notify(T("saved") .. ": English", Color3.fromRGB(0,200,100))
     end)
-    
-    -- ПАЛИТРА ЦВЕТОВ
+
     addLabel(tabSettings, T("panel_sec"))
-    
     local colorHolder = Instance.new("Frame")
-    colorHolder.Size = UDim2.new(1, -12, 0, 120)
+    colorHolder.Size = UDim2.new(1, 0, 0, 120)
     colorHolder.BackgroundColor3 = Color3.fromRGB(22,22,32)
     colorHolder.BorderSizePixel = 0
     colorHolder.Parent = tabSettings
     Instance.new("UICorner", colorHolder).CornerRadius = UDim.new(0, 10)
-    
     local colorGrid = Instance.new("UIGridLayout")
     colorGrid.CellSize = UDim2.new(0, 50, 0, 50)
     colorGrid.CellPadding = UDim2.new(0, 8, 0, 8)
-    colorGrid.SortOrder = Enum.SortOrder.LayoutOrder
     colorGrid.Parent = colorHolder
-    
     local palette = {
-        {255,0,100},  -- розовый
-        {255,50,50},  -- красный
-        {255,150,0},  -- оранжевый
-        {255,220,0},  -- жёлтый
-        {100,255,0},  -- лайм
-        {0,200,100},  -- зелёный
-        {0,220,220},  -- голубой
-        {0,150,255},  -- синий
-        {100,100,255},-- индиго
-        {180,0,255},  -- фиолетовый
-        {255,0,200},  -- маджента
-        {255,255,255},-- белый
+        {255,0,100}, {255,50,50}, {255,150,0}, {255,220,0},
+        {100,255,0}, {0,200,100}, {0,220,220}, {0,150,255},
+        {100,100,255}, {180,0,255}, {255,0,200}, {255,255,255},
     }
-    
     for _, c in ipairs(palette) do
         local cBtn = Instance.new("TextButton")
         cBtn.BackgroundColor3 = Color3.fromRGB(c[1], c[2], c[3])
@@ -1450,7 +1533,6 @@ local function createGUI()
             S.panelColor = Color3.fromRGB(c[1], c[2], c[3])
             SaveData.panel_color = {c[1], c[2], c[3]}
             saveSettings()
-            -- Применяем ко всем элементам
             mstk.Color = S.panelColor
             openB.BackgroundColor3 = S.panelColor
             pScroll.ScrollBarImageColor3 = S.panelColor
@@ -1463,12 +1545,8 @@ local function createGUI()
         end)
     end
 
-    -- Обработчики закрытия
     closeB.MouseButton1Click:Connect(function()
-        pcall(clearHL)
-        stopKillAllLoop()
-        stopAutoPickup()
-        stopAutoGunPlay()
+        pcall(clearHL) stopKillAllLoop() stopAutoPickup() stopAutoGunPlay()
         for _, bb in pairs(S.espBillboards) do
             pcall(function() bb:Destroy() end)
         end
@@ -1478,7 +1556,6 @@ local function createGUI()
         pcall(function() gui:Destroy() end)
         _G.VankaPanel = nil
     end)
-
     minB.MouseButton1Click:Connect(function()
         main.Visible = false
         openB.Visible = true
@@ -1491,28 +1568,23 @@ local function createGUI()
     return gui
 end
 
--- ═════ ПРИЦЕЛ / FOV ═════
+-- ОВЕРЛЕИ
 local crossH, crossV, crossDot, crossCircle, fovCircle
-
 local function updateCrosshair()
     if crossH then
         if S.crossStyle == 1 then
-            crossH.Visible = S.crosshair
-            crossV.Visible = S.crosshair
+            crossH.Visible = S.crosshair crossV.Visible = S.crosshair
             crossDot.Visible = false
             if crossCircle then crossCircle.Visible = false end
             crossH.BackgroundColor3 = S.crossColor
             crossV.BackgroundColor3 = S.crossColor
         elseif S.crossStyle == 2 then
-            crossH.Visible = false
-            crossV.Visible = false
+            crossH.Visible = false crossV.Visible = false
             crossDot.Visible = S.crosshair
             if crossCircle then crossCircle.Visible = false end
             crossDot.BackgroundColor3 = S.crossColor
         elseif S.crossStyle == 3 then
-            crossH.Visible = false
-            crossV.Visible = false
-            crossDot.Visible = false
+            crossH.Visible = false crossV.Visible = false crossDot.Visible = false
             if crossCircle then
                 crossCircle.Visible = S.crosshair
                 crossCircle.UIStroke.Color = S.crossColor
@@ -1529,14 +1601,12 @@ local function createOverlays()
     crossH.BackgroundColor3 = S.crossColor
     crossH.BorderSizePixel = 0
     crossH.Parent = S.gui
-
     crossV = Instance.new("Frame")
     crossV.Size = UDim2.new(0, 2, 0, 20)
     crossV.Position = UDim2.new(0.5, -1, 0.5, -10)
     crossV.BackgroundColor3 = S.crossColor
     crossV.BorderSizePixel = 0
     crossV.Parent = S.gui
-
     crossDot = Instance.new("Frame")
     crossDot.Size = UDim2.new(0, 5, 0, 5)
     crossDot.Position = UDim2.new(0.5, -2.5, 0.5, -2.5)
@@ -1545,7 +1615,6 @@ local function createOverlays()
     crossDot.Visible = false
     crossDot.Parent = S.gui
     Instance.new("UICorner", crossDot).CornerRadius = UDim.new(1, 0)
-
     crossCircle = Instance.new("Frame")
     crossCircle.Size = UDim2.new(0, 30, 0, 30)
     crossCircle.Position = UDim2.new(0.5, -15, 0.5, -15)
@@ -1557,7 +1626,6 @@ local function createOverlays()
     ccStroke.Color = S.crossColor
     ccStroke.Thickness = 2
     ccStroke.Parent = crossCircle
-
     fovCircle = Instance.new("Frame")
     fovCircle.AnchorPoint = Vector2.new(0.5, 0.5)
     fovCircle.Size = UDim2.new(0, 400, 0, 400)
@@ -1571,7 +1639,6 @@ local function createOverlays()
     fs.Thickness = 1.5
     fs.Transparency = 0.35
     fs.Parent = fovCircle
-
     updateCrosshair()
 end
 
@@ -1579,7 +1646,6 @@ local function mainLoop()
     local conn = RunService.RenderStepped:Connect(function(dt)
         if not S.gui then return end
         updateCrosshair()
-        
         if fovCircle then
             if S.aimbot and S.fovCircle then
                 fovCircle.Visible = true
@@ -1588,7 +1654,6 @@ local function mainLoop()
                 fovCircle.Visible = false
             end
         end
-        
         if S.aimbot then
             local cl, dist = nil, S.aimbotFOV * 3
             for _, plr in ipairs(Players:GetPlayers()) do
@@ -1614,17 +1679,14 @@ local function mainLoop()
                 S.aimT = nil
             end
         end
-        
         if S.spin and LP.Character then
             local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
                 hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(S.spinSpeed * dt * 60), 0)
             end
         end
-        
         if S.roleHighlight then refreshHL() end
         if S.espEnabled then updateESP() end
-        
         if S.fly and LP.Character then
             local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
@@ -1639,7 +1701,6 @@ local function mainLoop()
                 else hrp.Velocity = Vector3.new(0,0,0) end
             end
         end
-        
         if S.noclip and LP.Character then
             for _, p in ipairs(LP.Character:GetDescendants()) do
                 if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end
@@ -1667,7 +1728,6 @@ local function runLoading()
         lf.BorderSizePixel = 0
         lf.ZIndex = 500
         lf.Parent = S.gui
-
         if LOGO then
             local li = Instance.new("ImageLabel")
             li.Size = UDim2.new(0,180,0,180)
@@ -1678,7 +1738,6 @@ local function runLoading()
             li.ZIndex = 501
             li.Parent = lf
         end
-
         local lt = Instance.new("TextLabel")
         lt.Size = UDim2.new(1,0,0,40)
         lt.Position = UDim2.new(0,0,0.5,30)
@@ -1689,7 +1748,6 @@ local function runLoading()
         lt.Font = Enum.Font.GothamBold
         lt.ZIndex = 501
         lt.Parent = lf
-
         local ls = Instance.new("TextLabel")
         ls.Size = UDim2.new(1,0,0,22)
         ls.Position = UDim2.new(0,0,0.5,75)
@@ -1700,7 +1758,6 @@ local function runLoading()
         ls.Font = Enum.Font.GothamMedium
         ls.ZIndex = 501
         ls.Parent = lf
-
         local bb = Instance.new("Frame")
         bb.Size = UDim2.new(0,360,0,12)
         bb.Position = UDim2.new(0.5,-180,0.5,140)
@@ -1709,7 +1766,6 @@ local function runLoading()
         bb.ZIndex = 501
         bb.Parent = lf
         Instance.new("UICorner", bb).CornerRadius = UDim.new(1,0)
-
         local bf = Instance.new("Frame")
         bf.Size = UDim2.new(0,0,1,0)
         bf.BackgroundColor3 = S.panelColor
@@ -1717,7 +1773,6 @@ local function runLoading()
         bf.ZIndex = 502
         bf.Parent = bb
         Instance.new("UICorner", bf).CornerRadius = UDim.new(1,0)
-
         for i = 1, 100, 5 do
             ls.Text = i .. "%"
             local tw = TweenService:Create(bf, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
@@ -1747,10 +1802,7 @@ _G.VankaPanel = {
         for _, c in ipairs(S.conns) do
             pcall(function() if c and c.Disconnect then c:Disconnect() end end)
         end
-        clearHL()
-        stopKillAllLoop()
-        stopAutoPickup()
-        stopAutoGunPlay()
+        clearHL() stopKillAllLoop() stopAutoPickup() stopAutoGunPlay()
         for _, bb in pairs(S.espBillboards) do
             pcall(function() bb:Destroy() end)
         end
@@ -1771,4 +1823,4 @@ runLoading()
 
 task.delay(5, function() notify(T("loaded"), Color3.fromRGB(0,200,100)) end)
 
-print("[VANKA v23] OK")
+print("[VANKA v25] OK")
