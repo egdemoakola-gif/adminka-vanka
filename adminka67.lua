@@ -1,4 +1,4 @@
--- АДМИНКА ВАНЬКА v25
+-- АДМИНКА ВАНЬКА v26
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players           = game:GetService("Players")
@@ -20,6 +20,7 @@ local L = {
         main="ГЛАВНАЯ", visual="ВИЗУАЛ", esp="ESP", rage="РЕЙДЖ", players="ИГРОКИ", settings="НАСТРОЙКИ",
         sheriff_sec="ШЕРИФ", sheriff="Auto Sheriff",
         killall_sec="АВТО-КИЛЛ", killall="Auto Kill All",
+        farm_sec="ФАРМ", farm="Auto Farm Coins",
         pickup_sec="ПОДБОР", pickup="Подбор пистолета",
         roles_sec="РОЛИ", roles="Подсветка ролей",
         clear_inv="Очистить инвентарь",
@@ -40,6 +41,9 @@ local L = {
         wait_gun="Жду пистолет", target="Цель", killed="Убил",
         fling_run="Флингаю", fling_done="Отфлингован", no_target="Нет цели",
         sheriff_off="Шериф ВЫКЛ", all_off="Всё выключено",
+        farm_on="Фарм ВКЛ", farm_off="Фарм ВЫКЛ", farm_search="Ищу монету",
+        farm_pick="Беру монету", farm_gone="Монета исчезла", farm_next="К следующей",
+        farm_full="Сумка полная, стоп", farm_none="Монет нет",
         cross_1="Классик", cross_2="Точка", cross_3="Круг",
         preview_name="Игрок123", preview_dist="15m",
     },
@@ -48,13 +52,14 @@ local L = {
         main="MAIN", visual="VISUAL", esp="ESP", rage="RAGE", players="PLAYERS", settings="SETTINGS",
         sheriff_sec="SHERIFF", sheriff="Auto Sheriff",
         killall_sec="AUTO-KILL", killall="Auto Kill All",
+        farm_sec="FARM", farm="Auto Farm Coins",
         pickup_sec="PICKUP", pickup="Gun pickup",
         roles_sec="ROLES", roles="Role highlight",
         clear_inv="Clear inventory",
         cross_sec="CROSSHAIR", cross="Crosshair", cross_style="Style",
         fov="FOV circle", hardaim="Hard aim",
         esp_sec="ESP", esp_main="Enable", esp_health="Health",
-        esp_name="Name", esp_dist="Distance", esp_weapon="Weapon in hand",
+        esp_name="Name", esp_dist="Distance", esp_weapon="Weapon",
         esp_preview="Preview:",
         move_sec="MOVEMENT", fly="Fly", noclip="Noclip", infjump="Infinite jump",
         speed="Speed 50",
@@ -68,6 +73,9 @@ local L = {
         wait_gun="Waiting for gun", target="Target", killed="Killed",
         fling_run="Flinging", fling_done="Flinged", no_target="No target",
         sheriff_off="Sheriff OFF", all_off="All disabled",
+        farm_on="Farm ON", farm_off="Farm OFF", farm_search="Searching coin",
+        farm_pick="Picking coin", farm_gone="Coin gone", farm_next="Next coin",
+        farm_full="Bag full, stop", farm_none="No coins",
         cross_1="Classic", cross_2="Dot", cross_3="Circle",
         preview_name="Player123", preview_dist="15m",
     }
@@ -79,10 +87,8 @@ local SAVE_FILE = "vanka_settings.txt"
 local SaveData = {
     lang="ru",
     esp=false, esp_health=true, esp_name=true, esp_dist=true, esp_weapon=true,
-    cross_style=1,
-    cross_color={255,0,100},
-    panel_color={255,0,100},
-    speed50=false,
+    cross_style=1, cross_color={255,0,100}, panel_color={255,0,100},
+    speed50=false, farm=false,
 }
 
 local function serialize()
@@ -97,6 +103,7 @@ local function serialize()
     s = s .. "cross_color=" .. SaveData.cross_color[1] .. "," .. SaveData.cross_color[2] .. "," .. SaveData.cross_color[3] .. "\n"
     s = s .. "panel_color=" .. SaveData.panel_color[1] .. "," .. SaveData.panel_color[2] .. "," .. SaveData.panel_color[3] .. "\n"
     s = s .. "speed50=" .. tostring(SaveData.speed50) .. "\n"
+    s = s .. "farm=" .. tostring(SaveData.farm) .. "\n"
     return s
 end
 local function saveSettings()
@@ -119,6 +126,7 @@ local function loadSettings()
             elseif key=="esp_dist" then SaveData.esp_dist=(val=="true")
             elseif key=="esp_weapon" then SaveData.esp_weapon=(val=="true")
             elseif key=="speed50" then SaveData.speed50=(val=="true")
+            elseif key=="farm" then SaveData.farm=(val=="true")
             elseif key=="cross_style" then SaveData.cross_style=tonumber(val) or 1
             elseif key=="cross_color" then
                 local r,g,b=string.match(val,"(%d+),(%d+),(%d+)")
@@ -159,12 +167,12 @@ local IMG_VIS   = downloadImg("visial.png")
 local IMG_RAGE  = downloadImg("rage.png")
 local IMG_NOOB  = downloadImg("Roblox-Noob-Blocky-Avatar-Transparent-PNG.png")
 
--- СОСТОЯНИЕ
 local S = {
     roleHighlight=false, roleHL={},
     aimbot=false, aimbotFOV=200, aimT=nil, hardAim=true,
     autoGunPlay=false, autoGunThread=nil,
     autoPickup=false, sheriffThread=nil, lastSheriffPos=nil, lastSheriff=nil,
+    farmEnabled=SaveData.farm, farmThread=nil,
     spin=false, spinSpeed=30,
     fly=false, noclip=false, infjump=false,
     crosshair=true, fovCircle=true,
@@ -236,41 +244,30 @@ local function getRole(plr)
     if has("gun") or has("pistol") or has("revolver") then return "Sheriff" end
     return "Innocent"
 end
-
 local function roleColor(plr)
     local r = getRole(plr)
     if r == "Murderer" then return Color3.fromRGB(255,60,60) end
     if r == "Sheriff" then return Color3.fromRGB(60,150,255) end
     return Color3.fromRGB(60,220,100)
 end
-
 local function isGun(t)
     if not t or not t.Name then return false end
     local n = string.lower(t.Name)
     return string.find(n,"gun") or string.find(n,"pistol") or string.find(n,"revolver")
 end
-
 local function isKnife(t)
     if not t or not t.Name then return false end
     local n = string.lower(t.Name)
     return string.find(n,"knife") or string.find(n,"dagger") or string.find(n,"sword")
 end
-
--- Найти Tool в руках игрока
 local function getToolInHand(plr)
     if not plr or not plr.Character then return nil end
     return plr.Character:FindFirstChildOfClass("Tool")
 end
-
--- Найти руку игрока
 local function getHandPart(plr)
     if not plr or not plr.Character then return nil end
-    return plr.Character:FindFirstChild("RightHand") 
-        or plr.Character:FindFirstChild("Right Arm") 
-        or plr.Character:FindFirstChild("LeftHand")
-        or plr.Character:FindFirstChild("Left Arm")
+    return plr.Character:FindFirstChild("RightHand") or plr.Character:FindFirstChild("Right Arm") or plr.Character:FindFirstChild("LeftHand") or plr.Character:FindFirstChild("Left Arm")
 end
-
 local function hasGunInHand()
     if not LP.Character then return false end
     local t = LP.Character:FindFirstChildOfClass("Tool")
@@ -320,8 +317,177 @@ local function equipMyKnife()
 end
 
 -- ═════════════════════════════════════════════════════
--- ФЛИНГ v25: ЯКОРЮ СЕБЯ, СИЛУ НА ЖЕРТВУ
+-- АВТО-ФАРМ МОНЕТ
 -- ═════════════════════════════════════════════════════
+-- Ищем монету по всему workspace. В MM2 монеты это Tool с "Coin" в имени,
+-- либо Part/Model в CoinContainer.
+local function findCoin()
+    -- Ищем в CoinContainer если есть
+    local containers = {}
+    for _, obj in ipairs(workspace:GetChildren()) do
+        if string.find(string.lower(obj.Name), "coin") then
+            table.insert(containers, obj)
+        end
+    end
+    
+    -- Добавляем весь workspace как fallback
+    table.insert(containers, workspace)
+    
+    local closest = nil
+    local closestDist = math.huge
+    local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+    if not myHrp then return nil end
+    
+    for _, container in ipairs(containers) do
+        for _, obj in ipairs(container:GetDescendants()) do
+            local nm = string.lower(obj.Name)
+            if string.find(nm, "coin") then
+                -- Это монета? Tool или BasePart
+                local part = nil
+                if obj:IsA("Tool") then
+                    part = obj:FindFirstChild("Handle")
+                elseif obj:IsA("BasePart") then
+                    part = obj
+                elseif obj:IsA("Model") then
+                    part = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                end
+                
+                if part then
+                    -- Проверка что не в руках у игрока
+                    local used = false
+                    for _, plr in ipairs(Players:GetPlayers()) do
+                        if plr.Character and obj:IsDescendantOf(plr.Character) then used = true break end
+                        if plr.Backpack and obj:IsDescendantOf(plr.Backpack) then used = true break end
+                    end
+                    
+                    if not used then
+                        local d = (part.Position - myHrp.Position).Magnitude
+                        if d < closestDist then
+                            closestDist = d
+                            closest = {obj = obj, part = part}
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
+local function isBagFull()
+    -- Проверка на FullBagIcon в PlayerGui
+    local pg = LP:FindFirstChild("PlayerGui")
+    if pg then
+        for _, gui in ipairs(pg:GetDescendants()) do
+            if string.find(string.lower(gui.Name), "fullbag") then
+                if gui:IsA("GuiObject") and gui.Visible then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
+local function startFarm()
+    if S.farmThread then return end
+    S.farmThread = task.spawn(function()
+        notify(T("farm_on"), Color3.fromRGB(0,200,100))
+        local collected = 0
+        
+        while S.farmEnabled do
+            -- Проверка на полную сумку
+            if isBagFull() then
+                notify(T("farm_full"), Color3.fromRGB(255,200,0))
+                S.farmEnabled = false
+                break
+            end
+            
+            -- Ищем монету
+            local coin = findCoin()
+            if not coin then
+                notify(T("farm_none"), Color3.fromRGB(150,150,150))
+                task.wait(1)
+                -- проверяем есть ли монеты вообще
+                task.wait(2)
+                if not S.farmEnabled then break end
+                continue
+            end
+            
+            local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+            if not myHrp then
+                task.wait(0.5)
+                continue
+            end
+            
+            -- Запоминаем монету
+            local targetCoin = coin.obj
+            local targetPart = coin.part
+            local targetPos = targetPart.Position
+            
+            -- Телепортируемся к монете
+            local originalPos = myHrp.CFrame
+            pcall(function()
+                myHrp.CFrame = CFrame.new(targetPos + Vector3.new(0, 1, 0))
+            end)
+            
+            -- Ждём исчезновения монеты (с таймаутом)
+            local t0 = tick()
+            local gone = false
+            while tick() - t0 < 1.5 do
+                -- Проверка — монета исчезла?
+                if not targetCoin or not targetCoin.Parent then
+                    gone = true
+                    break
+                end
+                -- Или её взял кто-то
+                local used = false
+                for _, plr in ipairs(Players:GetPlayers()) do
+                    if plr.Character and targetCoin:IsDescendantOf(plr.Character) then used = true break end
+                    if plr.Backpack and targetCoin:IsDescendantOf(plr.Backpack) then used = true break end
+                end
+                if used then
+                    gone = true
+                    break
+                end
+                
+                -- Двигаемся к монете если она двигается
+                if targetPart and targetPart.Parent then
+                    pcall(function()
+                        myHrp.CFrame = CFrame.new(targetPart.Position + Vector3.new(0, 1, 0))
+                    end)
+                end
+                
+                -- Проверка на полную сумку во время ожидания
+                if isBagFull() then
+                    notify(T("farm_full"), Color3.fromRGB(255,200,0))
+                    S.farmEnabled = false
+                    gone = true
+                    break
+                end
+                
+                task.wait()
+            end
+            
+            if gone then
+                collected = collected + 1
+            end
+            
+            -- Небольшая пауза перед следующей
+            task.wait(0.05)
+        end
+        
+        notify(T("farm_off"), Color3.fromRGB(150,150,150))
+        S.farmThread = nil
+    end)
+end
+
+local function stopFarm()
+    S.farmEnabled = false
+    S.farmThread = nil
+end
+
+-- ═════ ФЛИНГ ═════
 local flingBusy = false
 local function fling(target)
     if not target or target == LP or not target.Character then
@@ -330,79 +496,44 @@ local function fling(target)
     end
     if flingBusy then return end
     flingBusy = true
-
     local tChar = target.Character
     local tHrp = tChar:FindFirstChild("HumanoidRootPart")
     local myChar = LP.Character
     local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
     if not tHrp or not myHrp then flingBusy = false return end
-
     notify(T("fling_run") .. ": " .. target.Name, Color3.fromRGB(255,0,150))
-
     task.spawn(function()
         local myPos = myHrp.CFrame
         local wasAnchored = myHrp.Anchored
-
-        -- 1) ЯКОРЮ СЕБЯ — не улечу
         myHrp.Anchored = true
-
-        -- 2) Сетевой контроль над жертвой
         for _, p in ipairs(tChar:GetDescendants()) do
-            if p:IsA("BasePart") then
-                pcall(function() p:SetNetworkOwner(LP) end)
-            end
+            if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
         end
-
-        -- 3) BodyVelocity НА ЖЕРТВЕ
         local bv = Instance.new("BodyVelocity")
         bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
         bv.Velocity = Vector3.new(0,0,0)
         bv.Parent = tHrp
-
         local bav = Instance.new("BodyAngularVelocity")
         bav.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
         bav.AngularVelocity = Vector3.new(0,0,0)
         bav.Parent = tHrp
-
         local t0 = tick()
         while tick() - t0 < 2.5 do
             if not target.Character then break end
             local curHrp = target.Character:FindFirstChild("HumanoidRootPart")
             if not curHrp then break end
-
-            -- Сила вверх + в стороны
             pcall(function()
-                bv.Velocity = Vector3.new(
-                    math.random(-40000, 40000),
-                    math.random(50000, 90000),
-                    math.random(-40000, 40000)
-                )
-                bav.AngularVelocity = Vector3.new(
-                    math.random(-800, 800),
-                    math.random(-800, 800),
-                    math.random(-800, 800)
-                )
-                curHrp.AssemblyLinearVelocity = Vector3.new(
-                    math.random(-30000, 30000),
-                    math.random(40000, 80000),
-                    math.random(-30000, 30000)
-                )
+                bv.Velocity = Vector3.new(math.random(-40000, 40000), math.random(50000, 90000), math.random(-40000, 40000))
+                bav.AngularVelocity = Vector3.new(math.random(-800, 800), math.random(-800, 800), math.random(-800, 800))
+                curHrp.AssemblyLinearVelocity = Vector3.new(math.random(-30000, 30000), math.random(40000, 80000), math.random(-30000, 30000))
             end)
-
-            -- Следим чтобы я оставался на месте
             pcall(function() myHrp.CFrame = myPos end)
             task.wait()
         end
-
-        -- 4) Убираем силу
         if bv then pcall(function() bv:Destroy() end) end
         if bav then pcall(function() bav:Destroy() end) end
-
-        -- 5) Отпускаем якорь через 1 сек (жертва должна уже лететь)
         task.wait(1)
         myHrp.Anchored = wasAnchored
-
-        -- 6) Возврат на место на всякий случай
         task.wait(0.2)
         pcall(function()
             if myHrp and myHrp.Parent then
@@ -410,20 +541,13 @@ local function fling(target)
                 myHrp.Velocity = Vector3.new(0,0,0)
             end
         end)
-
         flingBusy = false
-
-        -- 7) Проверка результата
         task.wait(1)
         if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
             local y = target.Character.HumanoidRootPart.Position.Y
-            if y > 500 then
-                notify(target.Name .. " В КОСМОСЕ!", Color3.fromRGB(255,100,200))
-            elseif y > myPos.Position.Y + 50 then
-                notify(target.Name .. " УЛЕТЕЛ!", Color3.fromRGB(255,150,50))
-            else
-                notify(target.Name .. " чуть откинуло", Color3.fromRGB(150,150,150))
-            end
+            if y > 500 then notify(target.Name .. " В КОСМОСЕ!", Color3.fromRGB(255,100,200))
+            elseif y > myPos.Position.Y + 50 then notify(target.Name .. " УЛЕТЕЛ!", Color3.fromRGB(255,150,50))
+            else notify(target.Name .. " чуть откинуло", Color3.fromRGB(150,150,150)) end
         end
     end)
 end
@@ -584,9 +708,7 @@ local function stopKillAllLoop()
     S.killLoopThread = nil
 end
 
--- ═════════════════════════════════════════════════════
--- ESP с оружием
--- ═════════════════════════════════════════════════════
+-- ESP
 local function updateESP()
     if not S.espEnabled then
         for _, bb in pairs(S.espBillboards) do
@@ -608,7 +730,6 @@ local function updateESP()
                     bb.StudsOffset = Vector3.new(0, 3.5, 0)
                     bb.AlwaysOnTop = true
                     bb.Parent = head
-
                     local nameLbl = Instance.new("TextLabel")
                     nameLbl.Name = "NameLbl"
                     nameLbl.Size = UDim2.new(1, 0, 0, 16)
@@ -619,7 +740,6 @@ local function updateESP()
                     nameLbl.TextSize = 12
                     nameLbl.Font = Enum.Font.GothamBold
                     nameLbl.Parent = bb
-
                     local weaponLbl = Instance.new("TextLabel")
                     weaponLbl.Name = "WeaponLbl"
                     weaponLbl.Size = UDim2.new(1, 0, 0, 16)
@@ -629,7 +749,6 @@ local function updateESP()
                     weaponLbl.TextSize = 13
                     weaponLbl.Font = Enum.Font.GothamBold
                     weaponLbl.Parent = bb
-
                     local distLbl = Instance.new("TextLabel")
                     distLbl.Name = "DistLbl"
                     distLbl.Size = UDim2.new(1, 0, 0, 14)
@@ -639,7 +758,6 @@ local function updateESP()
                     distLbl.TextSize = 11
                     distLbl.Font = Enum.Font.Gotham
                     distLbl.Parent = bb
-
                     local hpBg = Instance.new("Frame")
                     hpBg.Name = "HpBg"
                     hpBg.Size = UDim2.new(0, 120, 0, 6)
@@ -648,7 +766,6 @@ local function updateESP()
                     hpBg.BorderSizePixel = 0
                     hpBg.Parent = bb
                     Instance.new("UICorner", hpBg).CornerRadius = UDim.new(0, 3)
-
                     local hpFill = Instance.new("Frame")
                     hpFill.Name = "HpFill"
                     hpFill.Size = UDim2.new(1, 0, 1, 0)
@@ -656,22 +773,17 @@ local function updateESP()
                     hpFill.BorderSizePixel = 0
                     hpFill.Parent = hpBg
                     Instance.new("UICorner", hpFill).CornerRadius = UDim.new(0, 3)
-
                     S.espBillboards[plr] = bb
                 end
-
                 local nameLbl = bb:FindFirstChild("NameLbl")
                 local weaponLbl = bb:FindFirstChild("WeaponLbl")
                 local distLbl = bb:FindFirstChild("DistLbl")
                 local hpBg = bb:FindFirstChild("HpBg")
-
                 if nameLbl then
                     nameLbl.Visible = S.espName
                     nameLbl.Text = plr.Name .. " [" .. getRole(plr) .. "]"
                     nameLbl.TextColor3 = roleColor(plr)
                 end
-
-                -- ОРУЖИЕ В РУКАХ
                 if weaponLbl then
                     weaponLbl.Visible = S.espWeapon
                     if S.espWeapon then
@@ -680,34 +792,28 @@ local function updateESP()
                             if isKnife(tool) then
                                 weaponLbl.Text = "🔪 " .. tool.Name
                                 weaponLbl.TextColor3 = Color3.fromRGB(255,80,80)
-                                -- Подсветка руки красным
                                 local hand = getHandPart(plr)
-                                if hand then
-                                    if not hand:FindFirstChild("VankaHandHL") then
-                                        local hl = Instance.new("Highlight")
-                                        hl.Name = "VankaHandHL"
-                                        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                                        hl.FillColor = Color3.fromRGB(255,50,50)
-                                        hl.OutlineColor = Color3.fromRGB(255,255,255)
-                                        hl.FillTransparency = 0.3
-                                        hl.Parent = hand
-                                    end
+                                if hand and not hand:FindFirstChild("VankaHandHL") then
+                                    local hl = Instance.new("Highlight")
+                                    hl.Name = "VankaHandHL"
+                                    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                                    hl.FillColor = Color3.fromRGB(255,50,50)
+                                    hl.OutlineColor = Color3.fromRGB(255,255,255)
+                                    hl.FillTransparency = 0.3
+                                    hl.Parent = hand
                                 end
                             elseif isGun(tool) then
                                 weaponLbl.Text = "🔫 " .. tool.Name
                                 weaponLbl.TextColor3 = Color3.fromRGB(80,180,255)
-                                -- Подсветка руки синим
                                 local hand = getHandPart(plr)
-                                if hand then
-                                    if not hand:FindFirstChild("VankaHandHL") then
-                                        local hl = Instance.new("Highlight")
-                                        hl.Name = "VankaHandHL"
-                                        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                                        hl.FillColor = Color3.fromRGB(50,150,255)
-                                        hl.OutlineColor = Color3.fromRGB(255,255,255)
-                                        hl.FillTransparency = 0.3
-                                        hl.Parent = hand
-                                    end
+                                if hand and not hand:FindFirstChild("VankaHandHL") then
+                                    local hl = Instance.new("Highlight")
+                                    hl.Name = "VankaHandHL"
+                                    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                                    hl.FillColor = Color3.fromRGB(50,150,255)
+                                    hl.OutlineColor = Color3.fromRGB(255,255,255)
+                                    hl.FillTransparency = 0.3
+                                    hl.Parent = hand
                                 end
                             else
                                 weaponLbl.Text = "⚔ " .. tool.Name
@@ -718,8 +824,6 @@ local function updateESP()
                         end
                     end
                 end
-
-                -- Убираем подсветку руки если оружия нет или выключено
                 if not S.espWeapon or not getToolInHand(plr) then
                     local hand = getHandPart(plr)
                     if hand then
@@ -727,7 +831,6 @@ local function updateESP()
                         if old then old:Destroy() end
                     end
                 end
-
                 if distLbl and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
                     distLbl.Visible = S.espDist
                     local myHrp = LP.Character.HumanoidRootPart
@@ -738,7 +841,6 @@ local function updateESP()
                         distLbl.TextColor3 = Color3.fromRGB(255,255,255)
                     end
                 end
-
                 if hpBg then
                     hpBg.Visible = S.espHealth
                     local tHum = plr.Character:FindFirstChildOfClass("Humanoid")
@@ -765,9 +867,7 @@ local function startSpeed50Loop()
         while S.speed50Enabled do
             if LP.Character then
                 local h = LP.Character:FindFirstChildOfClass("Humanoid")
-                if h and h.WalkSpeed ~= 50 then
-                    h.WalkSpeed = 50
-                end
+                if h and h.WalkSpeed ~= 50 then h.WalkSpeed = 50 end
             end
             task.wait(0.3)
         end
@@ -845,7 +945,6 @@ local function clearHL()
     S.roleHL = {}
 end
 
--- ПРЕВЬЮ ESP
 local function updatePreview()
     local refs = S.previewRefs
     if refs.nameLbl then refs.nameLbl.Visible = S.espName end
@@ -854,7 +953,7 @@ local function updatePreview()
     if refs.weaponLbl then refs.weaponLbl.Visible = S.espWeapon end
 end
 
--- СОЗДАНИЕ GUI
+-- ═════ СОЗДАНИЕ GUI ═════
 local function createGUI()
     local parent = (gethui and gethui()) or game:GetService("CoreGui")
     local gui = Instance.new("ScreenGui")
@@ -878,8 +977,8 @@ local function createGUI()
 
     local main = Instance.new("Frame")
     main.Name = "MainFrame"
-    main.Size = UDim2.new(0, 560, 0, 660)
-    main.Position = UDim2.new(0, 20, 0.5, -330)
+    main.Size = UDim2.new(0, 580, 0, 680)
+    main.Position = UDim2.new(0, 20, 0.5, -340)
     main.BackgroundColor3 = Color3.fromRGB(11, 11, 18)
     main.BorderSizePixel = 0
     main.Active = true
@@ -941,7 +1040,7 @@ local function createGUI()
     ttl.Size = UDim2.new(1, -180, 1, 0)
     ttl.Position = UDim2.new(0, 64, 0, 0)
     ttl.BackgroundTransparency = 1
-    ttl.Text = T("title") .. " v25"
+    ttl.Text = T("title") .. " v26"
     ttl.TextColor3 = Color3.new(1,1,1)
     ttl.TextSize = 16
     ttl.Font = Enum.Font.GothamBold
@@ -1051,14 +1150,14 @@ local function createGUI()
         p.ScrollBarImageColor3 = S.panelColor
         p.CanvasSize = UDim2.new(0, 0, 0, 0)
         p.Visible = false
-        -- ФИКС: отступы чтобы кнопки не вылезали
         p.Parent = content
         pages[key] = p
+        -- ФИКС: отступы чтобы кнопки не вылезали
         local padding = Instance.new("UIPadding")
-        padding.PaddingTop = UDim.new(0, 8)
-        padding.PaddingBottom = UDim.new(0, 20)
-        padding.PaddingLeft = UDim.new(0, 6)
-        padding.PaddingRight = UDim.new(0, 6)
+        padding.PaddingTop = UDim.new(0, 12)
+        padding.PaddingBottom = UDim.new(0, 30)
+        padding.PaddingLeft = UDim.new(0, 4)
+        padding.PaddingRight = UDim.new(0, 4)
         padding.Parent = p
 
         local lay = Instance.new("UIListLayout")
@@ -1066,7 +1165,7 @@ local function createGUI()
         lay.SortOrder = Enum.SortOrder.LayoutOrder
         lay.Parent = p
         lay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            p.CanvasSize = UDim2.new(0, 0, 0, lay.AbsoluteContentSize.Y + 40)
+            p.CanvasSize = UDim2.new(0, 0, 0, lay.AbsoluteContentSize.Y + 60)
         end)
         b.MouseButton1Click:Connect(function() switchTab(key) end)
         return p
@@ -1178,6 +1277,13 @@ local function createGUI()
     addToggle(tabMain, T("killall"), false, function(v)
         S.killAllEnabled = v
         if v then startKillAllLoop() else stopKillAllLoop() end
+    end)
+    addLabel(tabMain, T("farm_sec"))
+    addToggle(tabMain, T("farm"), S.farmEnabled, function(v)
+        S.farmEnabled = v
+        SaveData.farm = v
+        saveSettings()
+        if v then startFarm() else stopFarm() end
     end)
     addLabel(tabMain, T("pickup_sec"))
     addToggle(tabMain, T("pickup"), false, function(v)
@@ -1295,7 +1401,6 @@ local function createGUI()
         noobImg.Image = IMG_NOOB
         noobImg.ScaleType = Enum.ScaleType.Fit
         noobImg.Parent = previewFrame
-
         local nameLbl = Instance.new("TextLabel")
         nameLbl.Name = "PrevName"
         nameLbl.Size = UDim2.new(0, 180, 0, 18)
@@ -1308,7 +1413,6 @@ local function createGUI()
         nameLbl.Font = Enum.Font.GothamBold
         nameLbl.Parent = previewFrame
         S.previewRefs.nameLbl = nameLbl
-
         local weaponLbl = Instance.new("TextLabel")
         weaponLbl.Name = "PrevWeapon"
         weaponLbl.Size = UDim2.new(0, 180, 0, 18)
@@ -1321,7 +1425,6 @@ local function createGUI()
         weaponLbl.Font = Enum.Font.GothamBold
         weaponLbl.Parent = previewFrame
         S.previewRefs.weaponLbl = weaponLbl
-
         local hpBg = Instance.new("Frame")
         hpBg.Name = "PrevHpBg"
         hpBg.Size = UDim2.new(0, 120, 0, 8)
@@ -1337,7 +1440,6 @@ local function createGUI()
         hpFill.Parent = hpBg
         Instance.new("UICorner", hpFill).CornerRadius = UDim.new(0, 4)
         S.previewRefs.hpBg = hpBg
-
         local distLbl = Instance.new("TextLabel")
         distLbl.Name = "PrevDist"
         distLbl.Size = UDim2.new(0, 180, 0, 16)
@@ -1350,7 +1452,6 @@ local function createGUI()
         distLbl.Font = Enum.Font.Gotham
         distLbl.Parent = previewFrame
         S.previewRefs.distLbl = distLbl
-
         updatePreview()
     else
         local errLbl = Instance.new("TextLabel")
@@ -1382,7 +1483,8 @@ local function createGUI()
         S.aimbot=false S.roleHighlight=false S.fly=false S.noclip=false S.infjump=false
         S.spin=false S.autoPickup=false S.killAllEnabled=false S.killList={}
         S.autoGunPlay=false S.espEnabled=false S.speed50Enabled=false
-        stopKillAllLoop() stopAutoPickup() stopAutoGunPlay() clearHL()
+        S.farmEnabled=false
+        stopKillAllLoop() stopAutoPickup() stopAutoGunPlay() stopFarm() clearHL()
         if LP.Character then
             local h = LP.Character:FindFirstChildOfClass("Humanoid")
             if h then h.WalkSpeed=16 h.JumpPower=50 end
@@ -1426,7 +1528,6 @@ local function createGUI()
                 row.BorderSizePixel = 0
                 row.Parent = pScroll
                 Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
-
                 local av = Instance.new("ImageLabel")
                 av.Size = UDim2.new(0, 38, 0, 38)
                 av.Position = UDim2.new(0, 5, 0.5, -19)
@@ -1435,7 +1536,6 @@ local function createGUI()
                 av.Image = "rbxthumb://type=AvatarHeadShot&id=" .. plr.UserId .. "&w=150&h=150"
                 av.Parent = row
                 Instance.new("UICorner", av).CornerRadius = UDim.new(0, 19)
-
                 local tag = Instance.new("Frame")
                 tag.Size = UDim2.new(0, 6, 0, 30)
                 tag.Position = UDim2.new(0, 48, 0.5, -15)
@@ -1443,7 +1543,6 @@ local function createGUI()
                 tag.BorderSizePixel = 0
                 tag.Parent = row
                 Instance.new("UICorner", tag).CornerRadius = UDim.new(1, 0)
-
                 local nm = Instance.new("TextLabel")
                 nm.Size = UDim2.new(1, -200, 1, 0)
                 nm.Position = UDim2.new(0, 62, 0, 0)
@@ -1455,7 +1554,6 @@ local function createGUI()
                 nm.TextXAlignment = Enum.TextXAlignment.Left
                 nm.TextTruncate = Enum.TextTruncate.AtEnd
                 nm.Parent = row
-
                 local tpB = Instance.new("TextButton")
                 tpB.Size = UDim2.new(0, 42, 0, 30)
                 tpB.Position = UDim2.new(1, -140, 0.5, -15)
@@ -1473,7 +1571,6 @@ local function createGUI()
                         if t and m then pcall(function() m.CFrame = t.CFrame * CFrame.new(0,0,4) end) end
                     end
                 end)
-
                 local flB = Instance.new("TextButton")
                 flB.Size = UDim2.new(0, 76, 0, 30)
                 flB.Position = UDim2.new(1, -94, 0.5, -15)
@@ -1485,7 +1582,6 @@ local function createGUI()
                 flB.Parent = row
                 Instance.new("UICorner", flB).CornerRadius = UDim.new(0, 6)
                 flB.MouseButton1Click:Connect(function() fling(plr) end)
-
                 rows[plr] = row
             end
         end
@@ -1498,15 +1594,14 @@ local function createGUI()
     addLabel(tabSettings, T("lang_sec"))
     addBtn(tabSettings, T("lang_ru"), Color3.fromRGB(50,80,150), function()
         LANG = "ru" SaveData.lang = "ru" saveSettings()
-        ttl.Text = T("title") .. " v25"
+        ttl.Text = T("title") .. " v26"
         notify(T("saved") .. ": Русский", Color3.fromRGB(0,200,100))
     end)
     addBtn(tabSettings, T("lang_en"), Color3.fromRGB(50,80,150), function()
         LANG = "en" SaveData.lang = "en" saveSettings()
-        ttl.Text = T("title") .. " v25"
+        ttl.Text = T("title") .. " v26"
         notify(T("saved") .. ": English", Color3.fromRGB(0,200,100))
     end)
-
     addLabel(tabSettings, T("panel_sec"))
     local colorHolder = Instance.new("Frame")
     colorHolder.Size = UDim2.new(1, 0, 0, 120)
@@ -1546,7 +1641,7 @@ local function createGUI()
     end
 
     closeB.MouseButton1Click:Connect(function()
-        pcall(clearHL) stopKillAllLoop() stopAutoPickup() stopAutoGunPlay()
+        pcall(clearHL) stopKillAllLoop() stopAutoPickup() stopAutoGunPlay() stopFarm()
         for _, bb in pairs(S.espBillboards) do
             pcall(function() bb:Destroy() end)
         end
@@ -1564,7 +1659,6 @@ local function createGUI()
         main.Visible = true
         openB.Visible = false
     end)
-
     return gui
 end
 
@@ -1802,7 +1896,7 @@ _G.VankaPanel = {
         for _, c in ipairs(S.conns) do
             pcall(function() if c and c.Disconnect then c:Disconnect() end end)
         end
-        clearHL() stopKillAllLoop() stopAutoPickup() stopAutoGunPlay()
+        clearHL() stopKillAllLoop() stopAutoPickup() stopAutoGunPlay() stopFarm()
         for _, bb in pairs(S.espBillboards) do
             pcall(function() bb:Destroy() end)
         end
@@ -1811,9 +1905,8 @@ _G.VankaPanel = {
     end
 }
 
-if S.speed50Enabled then
-    startSpeed50Loop()
-end
+if S.speed50Enabled then startSpeed50Loop() end
+if S.farmEnabled then startFarm() end
 
 createGUI()
 createOverlays()
@@ -1823,4 +1916,4 @@ runLoading()
 
 task.delay(5, function() notify(T("loaded"), Color3.fromRGB(0,200,100)) end)
 
-print("[VANKA v25] OK")
+print("[VANKA v26] OK")
