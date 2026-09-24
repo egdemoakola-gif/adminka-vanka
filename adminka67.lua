@@ -54,6 +54,8 @@ local L = {
         loaded="Загружено", saved="Сохранено",
         wait_gun="Жду пистолет", target="Цель", killed="Убил",
         fling_run="Флингаю", no_target="Нет цели",
+        fling_launched="Цель в космосе! Флинг завершён",
+        fling_return="Меня уносит, возвращаюсь",
         sheriff_off="Авто-выстрел ВЫКЛ", all_off="Всё выключено",
         farm_on="Фарм ВКЛ", farm_off="Фарм ВЫКЛ", farm_full="Сумка полная", farm_none="Монет нет",
         inv_on="Невидимость ВКЛ", inv_off="Невидимость ВЫКЛ",
@@ -101,6 +103,8 @@ local L = {
         loaded="Loaded", saved="Saved",
         wait_gun="Waiting for gun", target="Target", killed="Killed",
         fling_run="Flinging", no_target="No target",
+        fling_launched="Target in space! Fling ended",
+        fling_return="Getting pulled, returning",
         sheriff_off="Auto Shoot OFF", all_off="All disabled",
         farm_on="Farm ON", farm_off="Farm OFF", farm_full="Bag full", farm_none="No coins",
         inv_on="Invisible ON", inv_off="Invisible OFF",
@@ -148,6 +152,8 @@ local L = {
         loaded="已加载", saved="已保存",
         wait_gun="等待枪支", target="目标", killed="击杀",
         fling_run="甩飞", no_target="无目标",
+        fling_launched="目标上天了！甩飞结束",
+        fling_return="被拖走，返回中",
         sheriff_off="自动射击关闭", all_off="全部关闭",
         farm_on="农场开", farm_off="农场关", farm_full="满包", farm_none="无硬币",
         inv_on="隐身开", inv_off="隐身关",
@@ -645,7 +651,10 @@ local function startAutoTp()
 end
 local function stopAutoTp() S.autoTpEnabled = false S.autoTpThread = nil end
 
--- ==== FLING (телепорт-толчок, как у друга) ====
+-- ==== FLING (телепорт-толчок + детектор само-вылета + детектор цели в космосе) ====
+local FLING_MAX_SELF_DISTANCE = 30    -- если я отлетел больше 30 стюдов от старта — возвращаемся
+local FLING_TARGET_SPACE_Y = 500      -- если цель выше 500 по Y — считаем что она в космосе
+
 local function flingCleanup()
     for _, c in ipairs(S.flingConns) do
         pcall(function() if c and c.Disconnect then c:Disconnect() end end)
@@ -653,7 +662,7 @@ local function flingCleanup()
     S.flingConns = {}
 end
 
-local function flingStop()
+local function flingStop(silent)
     S.flingRunning = false
     if S.flingThread then
         pcall(task.cancel, S.flingThread)
@@ -670,7 +679,9 @@ local function flingStop()
             hum.UseJumpPower = true
         end
     end
-    notify("Флинг остановлен", Color3.fromRGB(200,200,200))
+    if not silent then
+        notify("Флинг остановлен", Color3.fromRGB(200,200,200))
+    end
 end
 
 local function flingStart(targetName)
@@ -694,7 +705,7 @@ local function flingStart(targetName)
         local targetRoot = targetChar:WaitForChild("HumanoidRootPart", 10)
         if not targetRoot then
             notify("Нет персонажа цели", Color3.fromRGB(255,60,60))
-            flingStop()
+            flingStop(true)
             return
         end
 
@@ -708,9 +719,14 @@ local function flingStart(targetName)
         local myChar, myRoot, myHum = getMyChar()
         if not myRoot or not myHum then
             notify("Ошибка персонажа", Color3.fromRGB(255,60,60))
-            flingStop()
+            flingStop(true)
             return
         end
+
+        -- ЗАПОМИНАЕМ СТАРТ
+        local startPos = myRoot.Position
+        local returnCFrame = myRoot.CFrame
+        local targetStartY = targetRoot.Position.Y
 
         myHum.WalkSpeed = S.flingSpeed
         myHum.JumpPower = S.flingSpeed
@@ -724,6 +740,10 @@ local function flingStart(targetName)
                 myHum.WalkSpeed = S.flingSpeed
                 myHum.JumpPower = S.flingSpeed
                 myHum.UseJumpPower = true
+            end
+            if myRoot then
+                startPos = myRoot.Position
+                returnCFrame = myRoot.CFrame
             end
         end))
 
@@ -752,6 +772,39 @@ local function flingStart(targetName)
                     targetRoot = t.Character:FindFirstChild("HumanoidRootPart")
                 end
             end
+
+            -- ==== ЗАЩИТА 1: Я отлетел слишком далеко ====
+            if myRoot and myRoot.Parent then
+                local distFromStart = (myRoot.Position - startPos).Magnitude
+                if distFromStart > FLING_MAX_SELF_DISTANCE then
+                    notify(T("fling_return"), Color3.fromRGB(255,200,0))
+                    flingStop(true)
+                    task.wait(0.05)
+                    if myRoot and myRoot.Parent then
+                        myRoot.CFrame = returnCFrame
+                        myRoot.AssemblyLinearVelocity = Vector3.zero
+                    end
+                    return
+                end
+            end
+
+            -- ==== ЗАЩИТА 2: Цель улетела в космос → флинг завершён ====
+            if targetRoot and targetRoot.Parent then
+                local targetY = targetRoot.Position.Y
+                local targetDistFromStart = (targetRoot.Position - startPos).Magnitude
+
+                if targetY > FLING_TARGET_SPACE_Y or targetDistFromStart > 300 then
+                    notify(T("fling_launched") .. " (" .. targetName .. ")", Color3.fromRGB(100,255,150))
+                    flingStop(true)
+                    -- Возвращаем себя на исходную
+                    if myRoot and myRoot.Parent then
+                        myRoot.CFrame = returnCFrame
+                        myRoot.AssemblyLinearVelocity = Vector3.zero
+                    end
+                    return
+                end
+            end
+            -- ==== END ЗАЩИТА ====
 
             if targetRoot and targetRoot.Parent and myRoot and myRoot.Parent then
                 local myPos = myRoot.Position
@@ -1966,24 +2019,20 @@ local function createOverlays()
     crossH = Instance.new("Frame")
     crossH.Size = UDim2.new(0,20,0,2); crossH.Position = UDim2.new(0.5,-10,0.5,-1)
     crossH.BackgroundColor3 = S.crossColor; crossH.BorderSizePixel = 0; crossH.Parent = S.gui
-
     crossV = Instance.new("Frame")
     crossV.Size = UDim2.new(0,2,0,20); crossV.Position = UDim2.new(0.5,-1,0.5,-10)
     crossV.BackgroundColor3 = S.crossColor; crossV.BorderSizePixel = 0; crossV.Parent = S.gui
-
     crossDot = Instance.new("Frame")
     crossDot.Size = UDim2.new(0,5,0,5); crossDot.Position = UDim2.new(0.5,-2.5,0.5,-2.5)
     crossDot.BackgroundColor3 = S.crossColor; crossDot.BorderSizePixel = 0
     crossDot.Visible = false; crossDot.Parent = S.gui
     Instance.new("UICorner", crossDot).CornerRadius = UDim.new(1, 0)
-
     crossCircle = Instance.new("Frame")
     crossCircle.Size = UDim2.new(0,30,0,30); crossCircle.Position = UDim2.new(0.5,-15,0.5,-15)
     crossCircle.BackgroundTransparency = 1; crossCircle.Visible = false; crossCircle.Parent = S.gui
     Instance.new("UICorner", crossCircle).CornerRadius = UDim.new(1, 0)
     local ccStroke = Instance.new("UIStroke")
     ccStroke.Color = S.crossColor; ccStroke.Thickness = 2; ccStroke.Parent = crossCircle
-
     fovCircle = Instance.new("Frame")
     fovCircle.AnchorPoint = Vector2.new(0.5,0.5)
     fovCircle.Size = UDim2.new(0,400,0,400); fovCircle.Position = UDim2.new(0.5,0,0.5,0)
@@ -1991,7 +2040,6 @@ local function createOverlays()
     Instance.new("UICorner", fovCircle).CornerRadius = UDim.new(1, 0)
     local fs = Instance.new("UIStroke")
     fs.Color = S.panelColor; fs.Thickness = 1.5; fs.Transparency = 0.35; fs.Parent = fovCircle
-
     updateCrosshair()
 end
 
@@ -1999,7 +2047,6 @@ local function mainLoop()
     local conn = RunService.RenderStepped:Connect(function(dt)
         if not S.gui then return end
         updateCrosshair()
-
         if fovCircle then
             if S.aimbot and S.fovCircle then
                 fovCircle.Visible = true
@@ -2008,7 +2055,6 @@ local function mainLoop()
                 fovCircle.Visible = false
             end
         end
-
         if S.aimbot then
             local cl, dist = nil, S.aimbotFOV * 3
             for _, plr in ipairs(Players:GetPlayers()) do
@@ -2032,18 +2078,15 @@ local function mainLoop()
                 else Cam.CFrame = Cam.CFrame:Lerp(newCF, 1 - S.aimSmooth) end
             else S.aimT = nil end
         end
-
         if S.spin and LP.Character then
             local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
                 hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(S.spinSpeed * dt * 60), 0)
             end
         end
-
         if S.roleHighlight then refreshHL() end
         if S.espEnabled then updateESP() end
         if S.invisibleEnabled then applyInvisible() end
-
         if S.fly and LP.Character then
             local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
@@ -2058,7 +2101,6 @@ local function mainLoop()
                 else hrp.Velocity = Vector3.new(0,0,0) end
             end
         end
-
         if S.noclip and LP.Character then
             for _, p in ipairs(LP.Character:GetDescendants()) do
                 if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end
@@ -2087,44 +2129,37 @@ function showLoading()
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     gui.Parent = parent
     S.gui = gui
-
     local loadF = Instance.new("Frame")
     loadF.Size = UDim2.new(1,0,1,0)
     loadF.BackgroundColor3 = Color3.fromRGB(6,6,12)
     loadF.BorderSizePixel = 0
     loadF.ZIndex = 500
     loadF.Parent = gui
-
     if LOGO then
         local li = Instance.new("ImageLabel")
         li.Size = UDim2.new(0,160,0,160); li.Position = UDim2.new(0.5,-80,0.5,-160)
         li.BackgroundTransparency = 1; li.Image = LOGO
         li.ScaleType = Enum.ScaleType.Fit; li.ZIndex = 501; li.Parent = loadF
     end
-
     local lt = Instance.new("TextLabel")
     lt.Size = UDim2.new(1,0,0,40); lt.Position = UDim2.new(0,0,0.5,20)
     lt.BackgroundTransparency = 1; lt.Text = "VANKA ADMIN"
     lt.TextColor3 = Color3.new(1,1,1); lt.TextSize = 28
     lt.Font = Enum.Font.GothamBold; lt.ZIndex = 501; lt.Parent = loadF
-
     local ls = Instance.new("TextLabel")
     ls.Size = UDim2.new(1,0,0,22); ls.Position = UDim2.new(0,0,0.5,65)
     ls.BackgroundTransparency = 1; ls.Text = "0%"
     ls.TextColor3 = Color3.fromRGB(180,180,210); ls.TextSize = 15
     ls.Font = Enum.Font.GothamMedium; ls.ZIndex = 501; ls.Parent = loadF
-
     local bb = Instance.new("Frame")
     bb.Size = UDim2.new(0,360,0,12); bb.Position = UDim2.new(0.5,-180,0.5,130)
     bb.BackgroundColor3 = Color3.fromRGB(28,28,40); bb.BorderSizePixel = 0
     bb.ZIndex = 501; bb.Parent = loadF
     Instance.new("UICorner", bb).CornerRadius = UDim.new(1,0)
-
     local bf = Instance.new("Frame")
     bf.Size = UDim2.new(0,0,1,0); bf.BackgroundColor3 = S.panelColor
     bf.BorderSizePixel = 0; bf.ZIndex = 502; bf.Parent = bb
     Instance.new("UICorner", bf).CornerRadius = UDim.new(1,0)
-
     task.spawn(function()
         for i = 1, 100, 5 do
             ls.Text = i .. "%"
