@@ -18,10 +18,6 @@ local L = {
     ru = {
         title="АДМИНКА ВАНЬКА",
         loading="Загрузка", ready="Готово",
-        startup_dev="ВЫБЕРИТЕ УСТРОЙСТВО",
-        startup_pc="Компьютер", startup_mobile="Телефон",
-        startup_continue="Продолжить",
-        startup_warning="Выберите устройство!",
         tab_main="ГЛАВНАЯ", tab_visual="ВИЗУАЛ", tab_esp="ESP", tab_rage="РЕЙДЖ",
         tab_players="ИГРОКИ", tab_settings="НАСТРОЙКИ", tab_configs="КОНФИГИ",
         role_murderer="Мардер", role_sheriff="Шериф", role_innocent="Невиновный",
@@ -63,14 +59,11 @@ local L = {
         cross_loaded="Прицел загружен", cross_notfound="Файл не найден",
         cfg_saved="Конфиг сохранён", cfg_loaded="Конфиг загружен", cfg_notfound="Не найден",
         preview_name="Игрок123", preview_dist="15м",
+        device_pc="Компьютер", device_mobile="Телефон", device_tablet="Планшет",
     },
     en = {
         title="VANKA ADMIN",
         loading="Loading", ready="Ready",
-        startup_dev="SELECT DEVICE",
-        startup_pc="Computer", startup_mobile="Phone",
-        startup_continue="Continue",
-        startup_warning="Select device!",
         tab_main="MAIN", tab_visual="VISUAL", tab_esp="ESP", tab_rage="RAGE",
         tab_players="PLAYERS", tab_settings="SETTINGS", tab_configs="CONFIGS",
         role_murderer="Murderer", role_sheriff="Sheriff", role_innocent="Innocent",
@@ -112,14 +105,11 @@ local L = {
         cross_loaded="Crosshair loaded", cross_notfound="File not found",
         cfg_saved="Config saved", cfg_loaded="Config loaded", cfg_notfound="Not found",
         preview_name="Player123", preview_dist="15m",
+        device_pc="PC", device_mobile="Phone", device_tablet="Tablet",
     },
     zh = {
         title="VANKA 管理员",
         loading="加载中", ready="完成",
-        startup_dev="选择设备",
-        startup_pc="电脑", startup_mobile="手机",
-        startup_continue="继续",
-        startup_warning="请选择设备!",
         tab_main="主要", tab_visual="视觉", tab_esp="ESP", tab_rage="愤怒",
         tab_players="玩家", tab_settings="设置", tab_configs="配置",
         role_murderer="凶手", role_sheriff="警长", role_innocent="无辜",
@@ -161,9 +151,33 @@ local L = {
         cross_loaded="准星加载", cross_notfound="文件未找到",
         cfg_saved="已保存", cfg_loaded="已加载", cfg_notfound="未找到",
         preview_name="玩家123", preview_dist="15米",
+        device_pc="电脑", device_mobile="手机", device_tablet="平板",
     }
 }
 local function T(k) return L[LANG][k] or k end
+
+-- АВТО-ОПРЕДЕЛЕНИЕ УСТРОЙСТВА
+local function detectDevice()
+    local touch = UIS.TouchEnabled
+    local keyboard = UIS.KeyboardEnabled
+    local mouse = UIS.MouseEnabled
+    local gamepad = UIS.GamepadEnabled
+
+    if keyboard and mouse and not touch then
+        return "pc"
+    elseif touch and not keyboard then
+        local screen = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(0,0)
+        if screen.X >= 900 or screen.Y >= 700 then
+            return "tablet"
+        end
+        return "mobile"
+    elseif touch and keyboard then
+        return "tablet"
+    elseif gamepad then
+        return "console"
+    end
+    return "pc"
+end
 
 local SAVE_FILE = "vanka_settings_v33.txt"
 local SaveData = {
@@ -268,13 +282,21 @@ local IMG_VIS   = downloadImg("visial.png")
 local IMG_RAGE  = downloadImg("rage.png")
 local IMG_NOOB  = downloadImg("Roblox-Noob-Blocky-Avatar-Transparent-PNG.png")
 
-local isMobile = (SaveData.device == "mobile")
-local PANEL_W = isMobile and 50 or 200
-local PANEL_H = isMobile and 100 or 400
-local BTN_H = isMobile and 8 or 20
-local TOGGLE_H = isMobile and 8 or 22
-local FONT_SZ = isMobile and 4 or 9
-local HEADER_H = isMobile and 10 or 26
+-- АВТО-ОПРЕДЕЛЕНИЕ + НОРМАЛЬНЫЕ РАЗМЕРЫ
+local detectedDevice = SaveData.device
+if detectedDevice == "" or detectedDevice == nil then
+    detectedDevice = detectDevice()
+    SaveData.device = detectedDevice
+    saveSettings()
+end
+
+local isMobile = (detectedDevice == "mobile" or detectedDevice == "tablet")
+local PANEL_W = 540
+local PANEL_H = 660
+local BTN_H = isMobile and 32 or 34
+local TOGGLE_H = isMobile and 34 or 36
+local FONT_SZ = isMobile and 11 or 12
+local HEADER_H = isMobile and 50 or 54
 
 local S = {
     roleHighlight=false, roleHL={},
@@ -312,7 +334,7 @@ local function notify(text, color)
     local h = S.gui:FindFirstChild("NotifHolder")
     if not h then return end
     local n = Instance.new("Frame")
-    n.Size = UDim2.new(0, 220, 0, isMobile and 22 or 36)
+    n.Size = UDim2.new(0, 260, 0, 40)
     n.BackgroundColor3 = Color3.fromRGB(18,18,26)
     n.BorderSizePixel = 0
     n.Parent = h
@@ -327,14 +349,14 @@ local function notify(text, color)
     l.Size = UDim2.new(1, -14, 1, 0); l.Position = UDim2.new(0, 10, 0, 0)
     l.BackgroundTransparency = 1
     l.Text = text
-    l.TextColor3 = Color3.new(1,1,1); l.TextSize = isMobile and 5 or 11
+    l.TextColor3 = Color3.new(1,1,1); l.TextSize = 12
     l.Font = Enum.Font.GothamMedium
     l.TextXAlignment = Enum.TextXAlignment.Left
     l.TextWrapped = true; l.Parent = n
-    n.Position = UDim2.new(1, 240, 0, 0)
+    n.Position = UDim2.new(1, 280, 0, 0)
     TweenService:Create(n, TweenInfo.new(0.3), {Position = UDim2.new(0,0,0,0)}):Play()
     task.delay(3, function()
-        local t = TweenService:Create(n, TweenInfo.new(0.3), {Position = UDim2.new(1,240,0,0)})
+        local t = TweenService:Create(n, TweenInfo.new(0.3), {Position = UDim2.new(1,280,0,0)})
         t:Play(); t.Completed:Connect(function() n:Destroy() end)
     end)
 end
@@ -1036,11 +1058,11 @@ local function createGUI()
 
     local nh = Instance.new("Frame")
     nh.Name = "NotifHolder"
-    nh.Size = UDim2.new(0, 240, 1, -20)
-    nh.Position = UDim2.new(1, -250, 0, 10)
+    nh.Size = UDim2.new(0, 280, 1, -20)
+    nh.Position = UDim2.new(1, -300, 0, 10)
     nh.BackgroundTransparency = 1; nh.Parent = gui
     local nl = Instance.new("UIListLayout")
-    nl.Padding = UDim.new(0, 6); nl.SortOrder = Enum.SortOrder.LayoutOrder; nl.Parent = nh
+    nl.Padding = UDim.new(0, 8); nl.SortOrder = Enum.SortOrder.LayoutOrder; nl.Parent = nh
 
     local main = Instance.new("Frame")
     main.Name = "MainFrame"
@@ -1051,7 +1073,7 @@ local function createGUI()
     main.Active = true
     main.Draggable = true
     main.Parent = gui
-    Instance.new("UICorner", main).CornerRadius = UDim.new(0, isMobile and 4 or 12)
+    Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
     S.panel = main
 
     local bgGrad = Instance.new("UIGradient")
@@ -1064,7 +1086,7 @@ local function createGUI()
     local mstk = Instance.new("UIStroke")
     mstk.Name = "MainStroke"
     mstk.Color = S.panelColor
-    mstk.Thickness = isMobile and 1 or 2
+    mstk.Thickness = 2
     mstk.Parent = main
 
     local top = Instance.new("Frame")
@@ -1072,93 +1094,86 @@ local function createGUI()
     top.BackgroundColor3 = Color3.fromRGB(22,22,32)
     top.BorderSizePixel = 0
     top.Parent = main
-    Instance.new("UICorner", top).CornerRadius = UDim.new(0, isMobile and 4 or 12)
+    Instance.new("UICorner", top).CornerRadius = UDim.new(0, 12)
 
     local tf = Instance.new("Frame")
-    tf.Size = UDim2.new(1,0,0,HEADER_H-10)
-    tf.Position = UDim2.new(0,0,1,-(HEADER_H-10))
+    tf.Size = UDim2.new(1,0,0,HEADER_H-28)
+    tf.Position = UDim2.new(0,0,1,-(HEADER_H-28))
     tf.BackgroundColor3 = Color3.fromRGB(22,22,32)
     tf.BorderSizePixel = 0
     tf.Parent = top
 
     if LOGO then
         local li = Instance.new("ImageLabel")
-        li.Size = UDim2.new(0,isMobile and 8 or 22,0,isMobile and 8 or 22)
-        li.Position = UDim2.new(0,isMobile and 2 or 6,0.5,-(isMobile and 4 or 11))
+        li.Size = UDim2.new(0,36,0,36); li.Position = UDim2.new(0,12,0.5,-18)
         li.BackgroundTransparency = 1; li.Image = LOGO
         li.ScaleType = Enum.ScaleType.Fit; li.Parent = top
-        Instance.new("UICorner", li).CornerRadius = UDim.new(0, 4)
+        Instance.new("UICorner", li).CornerRadius = UDim.new(0, 8)
     else
         local he = Instance.new("TextLabel")
-        he.Size = UDim2.new(0,isMobile and 8 or 22,1,0)
-        he.Position = UDim2.new(0,isMobile and 2 or 6,0,0)
+        he.Size = UDim2.new(0,36,1,0); he.Position = UDim2.new(0,12,0,0)
         he.BackgroundTransparency = 1; he.Text = "V"
-        he.TextColor3 = S.panelColor; he.TextSize = isMobile and 5 or 14
+        he.TextColor3 = S.panelColor; he.TextSize = 24
         he.Font = Enum.Font.GothamBold; he.Parent = top
     end
 
     local ttl = Instance.new("TextLabel")
     ttl.Name = "Title"
-    ttl.Size = UDim2.new(1,-(isMobile and 26 or 90),1,0)
-    ttl.Position = UDim2.new(0,isMobile and 12 or 32,0,0)
+    ttl.Size = UDim2.new(1,-160,1,0); ttl.Position = UDim2.new(0,58,0,0)
     ttl.BackgroundTransparency = 1
     ttl.Text = T("title")
-    ttl.TextColor3 = Color3.new(1,1,1); ttl.TextSize = isMobile and 4 or 10
+    ttl.TextColor3 = Color3.new(1,1,1); ttl.TextSize = 15
     ttl.Font = Enum.Font.GothamBold
     ttl.TextXAlignment = Enum.TextXAlignment.Left
     ttl.Parent = top
 
     local minB = Instance.new("TextButton")
-    minB.Size = UDim2.new(0,isMobile and 7 or 18,0,isMobile and 7 or 18)
-    minB.Position = UDim2.new(1,-(isMobile and 16 or 40),0.5,-(isMobile and 3 or 9))
+    minB.Size = UDim2.new(0,30,0,30); minB.Position = UDim2.new(1,-72,0.5,-15)
     minB.BackgroundColor3 = Color3.fromRGB(55,55,70); minB.Text = "−"
-    minB.TextColor3 = Color3.new(1,1,1); minB.TextSize = isMobile and 5 or 12
+    minB.TextColor3 = Color3.new(1,1,1); minB.TextSize = 18
     minB.Font = Enum.Font.GothamBold; minB.Parent = top
-    Instance.new("UICorner", minB).CornerRadius = UDim.new(0, 3)
+    Instance.new("UICorner", minB).CornerRadius = UDim.new(0, 8)
 
     local closeB = Instance.new("TextButton")
-    closeB.Size = UDim2.new(0,isMobile and 7 or 18,0,isMobile and 7 or 18)
-    closeB.Position = UDim2.new(1,-(isMobile and 8 or 20),0.5,-(isMobile and 3 or 9))
+    closeB.Size = UDim2.new(0,30,0,30); closeB.Position = UDim2.new(1,-38,0.5,-15)
     closeB.BackgroundColor3 = Color3.fromRGB(255,55,75); closeB.Text = "×"
-    closeB.TextColor3 = Color3.new(1,1,1); closeB.TextSize = isMobile and 5 or 12
+    closeB.TextColor3 = Color3.new(1,1,1); closeB.TextSize = 18
     closeB.Font = Enum.Font.GothamBold; closeB.Parent = top
-    Instance.new("UICorner", closeB).CornerRadius = UDim.new(0, 3)
+    Instance.new("UICorner", closeB).CornerRadius = UDim.new(0, 8)
 
     local openB = Instance.new("TextButton")
-    openB.Size = UDim2.new(0,isMobile and 16 or 36,0,isMobile and 16 or 36)
-    openB.Position = UDim2.new(0,6,0.5,-(isMobile and 8 or 18))
+    openB.Size = UDim2.new(0,55,0,55); openB.Position = UDim2.new(0,15,0.5,-27)
     openB.BackgroundColor3 = S.panelColor; openB.Text = "V"
-    openB.TextColor3 = Color3.new(1,1,1); openB.TextSize = isMobile and 7 or 16
+    openB.TextColor3 = Color3.new(1,1,1); openB.TextSize = 22
     openB.Font = Enum.Font.GothamBold
     openB.Visible = false; openB.Parent = gui
-    Instance.new("UICorner", openB).CornerRadius = UDim.new(1, 0)
+    Instance.new("UICorner", openB).CornerRadius = UDim.new(0, 28)
     if LOGO then
         openB.Text = ""
         local oi = Instance.new("ImageLabel")
-        oi.Size = UDim2.new(0,isMobile and 12 or 26,0,isMobile and 12 or 26)
-        oi.Position = UDim2.new(0.5,-(isMobile and 6 or 13),0.5,-(isMobile and 6 or 13))
+        oi.Size = UDim2.new(0,38,0,38); oi.Position = UDim2.new(0.5,-19,0.5,-19)
         oi.BackgroundTransparency = 1; oi.Image = LOGO
         oi.ScaleType = Enum.ScaleType.Fit; oi.Parent = openB
     end
 
     local tabBar = Instance.new("Frame")
-    tabBar.Size = UDim2.new(1,-4,0,isMobile and 12 or 24)
-    tabBar.Position = UDim2.new(0,2,0,HEADER_H+1)
+    tabBar.Size = UDim2.new(1,-20,0,42)
+    tabBar.Position = UDim2.new(0,10,0,HEADER_H+6)
     tabBar.BackgroundColor3 = Color3.fromRGB(20,20,28)
     tabBar.BorderSizePixel = 0
     tabBar.Parent = main
-    Instance.new("UICorner", tabBar).CornerRadius = UDim.new(0, 5)
+    Instance.new("UICorner", tabBar).CornerRadius = UDim.new(0, 10)
 
     local tl = Instance.new("UIListLayout")
     tl.FillDirection = Enum.FillDirection.Horizontal
-    tl.Padding = UDim.new(0, 1)
+    tl.Padding = UDim.new(0, 3)
     tl.VerticalAlignment = Enum.VerticalAlignment.Center
     tl.HorizontalAlignment = Enum.HorizontalAlignment.Center
     tl.Parent = tabBar
 
     local content = Instance.new("Frame")
-    content.Size = UDim2.new(1,-4,1,-(HEADER_H+isMobile and 16 or 30))
-    content.Position = UDim2.new(0,2,0,HEADER_H+isMobile and 14 or 26)
+    content.Size = UDim2.new(1,-20,1,-(HEADER_H+68))
+    content.Position = UDim2.new(0,10,0,HEADER_H+54)
     content.BackgroundTransparency = 1
     content.Parent = main
 
@@ -1172,40 +1187,37 @@ local function createGUI()
 
     local function addTab(key, img, txt)
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(0, isMobile and 6 or 24, 0, isMobile and 9 or 20)
+        b.Size = UDim2.new(0, 78, 0, 34)
         b.BackgroundColor3 = Color3.fromRGB(32,32,44)
         b.Text = ""; b.AutoButtonColor = false
         b.Parent = tabBar
-        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 3)
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
         tabs[key] = b
         if img then
             local im = Instance.new("ImageLabel")
-            im.Size = UDim2.new(0,isMobile and 5 or 14,0,isMobile and 5 or 14)
-            im.Position = UDim2.new(0.5,-(isMobile and 2 or 7),0.5,-(isMobile and 2 or 7))
+            im.Size = UDim2.new(0,22,0,22); im.Position = UDim2.new(0.5,-11,0.5,-11)
             im.BackgroundTransparency = 1; im.Image = img
             im.ScaleType = Enum.ScaleType.Fit; im.Parent = b
         else
             b.Text = txt or key:upper()
-            b.TextColor3 = Color3.fromRGB(170,170,190); b.TextSize = isMobile and 4 or 7
+            b.TextColor3 = Color3.fromRGB(170,170,190); b.TextSize = 10
             b.Font = Enum.Font.GothamBold
         end
         local p = Instance.new("ScrollingFrame")
         p.Size = UDim2.new(1,0,1,0); p.BackgroundTransparency = 1
-        p.BorderSizePixel = 0; p.ScrollBarThickness = isMobile and 2 or 4
+        p.BorderSizePixel = 0; p.ScrollBarThickness = 5
         p.ScrollBarImageColor3 = S.panelColor; p.CanvasSize = UDim2.new(0,0,0,0)
         p.Visible = false; p.Parent = content
         pages[key] = p
         local padding = Instance.new("UIPadding")
-        padding.PaddingTop = UDim.new(0,isMobile and 2 or 6)
-        padding.PaddingBottom = UDim.new(0,isMobile and 3 or 10)
-        padding.PaddingLeft = UDim.new(0,1); padding.PaddingRight = UDim.new(0,1)
+        padding.PaddingTop = UDim.new(0,10); padding.PaddingBottom = UDim.new(0,20)
+        padding.PaddingLeft = UDim.new(0,3); padding.PaddingRight = UDim.new(0,3)
         padding.Parent = p
         local lay = Instance.new("UIListLayout")
-        lay.Padding = UDim.new(0,isMobile and 1 or 4)
-        lay.SortOrder = Enum.SortOrder.LayoutOrder
+        lay.Padding = UDim.new(0,6); lay.SortOrder = Enum.SortOrder.LayoutOrder
         lay.Parent = p
         lay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            p.CanvasSize = UDim2.new(0,0,0, lay.AbsoluteContentSize.Y + 10)
+            p.CanvasSize = UDim2.new(0,0,0, lay.AbsoluteContentSize.Y + 40)
         end)
         b.MouseButton1Click:Connect(function() switchTab(key) end)
         return p
@@ -1219,7 +1231,7 @@ local function createGUI()
         b.TextSize = FONT_SZ
         b.Font = Enum.Font.GothamMedium; b.TextWrapped = true
         b.Parent = parent
-        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 3)
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 7)
         b.MouseButton1Click:Connect(function()
             local ok, err = pcall(cb, b)
             if not ok then notify("Err: " .. tostring(err), Color3.fromRGB(255,60,60)) end
@@ -1233,26 +1245,32 @@ local function createGUI()
         row.BackgroundColor3 = Color3.fromRGB(22,22,32)
         row.Text = ""; row.AutoButtonColor = false
         row.Parent = parent
-        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 3)
+        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 7)
         local lbl = Instance.new("TextLabel")
-        lbl.Size = UDim2.new(1,-(isMobile and 14 or 30),1,0)
-        lbl.Position = UDim2.new(0,isMobile and 2 or 6,0,0)
+        lbl.Size = UDim2.new(1,-70,1,0); lbl.Position = UDim2.new(0,12,0,0)
         lbl.BackgroundTransparency = 1; lbl.Text = text
         lbl.TextColor3 = Color3.fromRGB(230,230,240); lbl.TextSize = FONT_SZ
         lbl.Font = Enum.Font.GothamMedium
         lbl.TextXAlignment = Enum.TextXAlignment.Left
         lbl.Parent = row
         local sw = Instance.new("Frame")
-        sw.Size = UDim2.new(0,isMobile and 8 or 18,0,isMobile and 4 or 9)
-        sw.Position = UDim2.new(1,-(isMobile and 10 or 22),0.5,-(isMobile and 2 or 4))
+        sw.Size = UDim2.new(0,42,0,20); sw.Position = UDim2.new(1,-54,0.5,-10)
         sw.BackgroundColor3 = initial and Color3.fromRGB(0,200,100) or Color3.fromRGB(55,55,70)
         sw.BorderSizePixel = 0; sw.Parent = row
         Instance.new("UICorner", sw).CornerRadius = UDim.new(1, 0)
+        local kn = Instance.new("Frame")
+        kn.Size = UDim2.new(0,16,0,16)
+        kn.Position = initial and UDim2.new(1,-18,0.5,-8) or UDim2.new(0,2,0.5,-8)
+        kn.BackgroundColor3 = Color3.new(1,1,1); kn.BorderSizePixel = 0; kn.Parent = sw
+        Instance.new("UICorner", kn).CornerRadius = UDim.new(1, 0)
         local st = initial
         row.MouseButton1Click:Connect(function()
             st = not st
             TweenService:Create(sw, TweenInfo.new(0.15), {
                 BackgroundColor3 = st and Color3.fromRGB(0,200,100) or Color3.fromRGB(55,55,70)
+            }):Play()
+            TweenService:Create(kn, TweenInfo.new(0.15), {
+                Position = st and UDim2.new(1,-18,0.5,-8) or UDim2.new(0,2,0.5,-8)
             }):Play()
             cb(st)
         end)
@@ -1261,17 +1279,15 @@ local function createGUI()
 
     local function addLabel(parent, text)
         local w = Instance.new("Frame")
-        w.Size = UDim2.new(1,0,0,isMobile and 6 or 16)
-        w.BackgroundTransparency = 1; w.Parent = parent
+        w.Size = UDim2.new(1,0,0,26); w.BackgroundTransparency = 1; w.Parent = parent
         local a = Instance.new("Frame")
-        a.Size = UDim2.new(0,2,0,isMobile and 4 or 10)
-        a.Position = UDim2.new(0,0,0.5,-(isMobile and 2 or 5))
+        a.Size = UDim2.new(0,3,0,16); a.Position = UDim2.new(0,0,0.5,-8)
         a.BackgroundColor3 = S.panelColor; a.BorderSizePixel = 0; a.Parent = w
         Instance.new("UICorner", a).CornerRadius = UDim.new(1, 0)
         local l = Instance.new("TextLabel")
-        l.Size = UDim2.new(1,-6,1,0); l.Position = UDim2.new(0,4,0,0)
+        l.Size = UDim2.new(1,-12,1,0); l.Position = UDim2.new(0,10,0,0)
         l.BackgroundTransparency = 1; l.Text = text
-        l.TextColor3 = S.panelColor; l.TextSize = isMobile and 4 or 7
+        l.TextColor3 = S.panelColor; l.TextSize = FONT_SZ - 1
         l.Font = Enum.Font.GothamBold
         l.TextXAlignment = Enum.TextXAlignment.Left
         l.Parent = w
@@ -1437,15 +1453,15 @@ local function createGUI()
 
     addLabel(tabESP, T("esp_preview"))
     local previewFrame = Instance.new("Frame")
-    previewFrame.Size = UDim2.new(1,0,0,isMobile and 90 or 220)
+    previewFrame.Size = UDim2.new(1,0,0,240)
     previewFrame.BackgroundColor3 = Color3.fromRGB(30,30,45)
     previewFrame.BorderSizePixel = 0; previewFrame.Parent = tabESP
-    Instance.new("UICorner", previewFrame).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", previewFrame).CornerRadius = UDim.new(0, 10)
 
     if IMG_NOOB then
         local noobImg = Instance.new("ImageLabel")
-        noobImg.Size = UDim2.new(0,isMobile and 50 or 120,0,isMobile and 50 or 120)
-        noobImg.Position = UDim2.new(0.5,-(isMobile and 25 or 60),0.5,-(isMobile and 20 or 15))
+        noobImg.Size = UDim2.new(0,130,0,130)
+        noobImg.Position = UDim2.new(0.5,-65,0.5,-20)
         noobImg.BackgroundTransparency = 1
         noobImg.Image = IMG_NOOB
         noobImg.ScaleType = Enum.ScaleType.Fit
@@ -1453,56 +1469,56 @@ local function createGUI()
 
         local nameLbl = Instance.new("TextLabel")
         nameLbl.Name = "PrevName"
-        nameLbl.Size = UDim2.new(0,isMobile and 100 or 180,0,isMobile and 8 or 16)
-        nameLbl.Position = UDim2.new(0.5,-(isMobile and 50 or 90),0,isMobile and 10 or 22)
+        nameLbl.Size = UDim2.new(0,180,0,18)
+        nameLbl.Position = UDim2.new(0.5,-90,0,26)
         nameLbl.BackgroundTransparency = 1
         nameLbl.Text = T("preview_name") .. " [" .. T("role_innocent") .. "]"
         nameLbl.TextColor3 = S.espColorInnocent
         nameLbl.TextStrokeTransparency = 0
-        nameLbl.TextSize = isMobile and 5 or 11
+        nameLbl.TextSize = 13
         nameLbl.Font = Enum.Font.GothamBold
         nameLbl.Parent = previewFrame
         S.previewRefs.nameLbl = nameLbl
 
         local weaponLbl = Instance.new("TextLabel")
         weaponLbl.Name = "PrevWeapon"
-        weaponLbl.Size = UDim2.new(0,isMobile and 100 or 180,0,isMobile and 8 or 16)
-        weaponLbl.Position = UDim2.new(0.5,-(isMobile and 50 or 90),0,isMobile and 20 or 40)
+        weaponLbl.Size = UDim2.new(0,180,0,18)
+        weaponLbl.Position = UDim2.new(0.5,-90,0,44)
         weaponLbl.BackgroundTransparency = 1
         weaponLbl.Text = "🔫 Gun"
         weaponLbl.TextColor3 = Color3.fromRGB(80,180,255)
         weaponLbl.TextStrokeTransparency = 0
-        weaponLbl.TextSize = isMobile and 5 or 11
+        weaponLbl.TextSize = 13
         weaponLbl.Font = Enum.Font.GothamBold
         weaponLbl.Parent = previewFrame
         S.previewRefs.weaponLbl = weaponLbl
 
         local hpBg = Instance.new("Frame")
         hpBg.Name = "PrevHpBg"
-        hpBg.Size = UDim2.new(0,isMobile and 60 or 110,0,isMobile and 4 or 7)
-        hpBg.Position = UDim2.new(0.5,-(isMobile and 30 or 55),0,isMobile and 30 or 58)
+        hpBg.Size = UDim2.new(0,120,0,8)
+        hpBg.Position = UDim2.new(0.5,-60,0,64)
         hpBg.BackgroundColor3 = Color3.fromRGB(20,20,20)
         hpBg.BorderSizePixel = 0
         hpBg.Parent = previewFrame
-        Instance.new("UICorner", hpBg).CornerRadius = UDim.new(0, 3)
+        Instance.new("UICorner", hpBg).CornerRadius = UDim.new(0, 4)
 
         local hpFill = Instance.new("Frame")
         hpFill.Size = UDim2.new(1,0,1,0)
         hpFill.BackgroundColor3 = Color3.fromRGB(0,255,0)
         hpFill.BorderSizePixel = 0
         hpFill.Parent = hpBg
-        Instance.new("UICorner", hpFill).CornerRadius = UDim.new(0, 3)
+        Instance.new("UICorner", hpFill).CornerRadius = UDim.new(0, 4)
         S.previewRefs.hpBg = hpBg
 
         local distLbl = Instance.new("TextLabel")
         distLbl.Name = "PrevDist"
-        distLbl.Size = UDim2.new(0,isMobile and 100 or 180,0,isMobile and 8 or 14)
-        distLbl.Position = UDim2.new(0.5,-(isMobile and 50 or 90),0,isMobile and 40 or 72)
+        distLbl.Size = UDim2.new(0,180,0,16)
+        distLbl.Position = UDim2.new(0.5,-90,0,78)
         distLbl.BackgroundTransparency = 1
         distLbl.Text = "[" .. T("preview_dist") .. "]"
         distLbl.TextColor3 = Color3.new(1,1,1)
         distLbl.TextStrokeTransparency = 0
-        distLbl.TextSize = isMobile and 5 or 10
+        distLbl.TextSize = 12
         distLbl.Font = Enum.Font.Gotham
         distLbl.Parent = previewFrame
         S.previewRefs.distLbl = distLbl
@@ -1562,25 +1578,25 @@ local function createGUI()
 
     addLabel(tabPlayers, T("plist"))
     local pList = Instance.new("Frame")
-    pList.Size = UDim2.new(1,0,0,isMobile and 60 or 240)
+    pList.Size = UDim2.new(1,0,0,380)
     pList.BackgroundColor3 = Color3.fromRGB(16,16,24)
     pList.BorderSizePixel = 0; pList.Parent = tabPlayers
-    Instance.new("UICorner", pList).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", pList).CornerRadius = UDim.new(0, 10)
 
     local pScroll = Instance.new("ScrollingFrame")
-    pScroll.Size = UDim2.new(1,-4,1,-4)
-    pScroll.Position = UDim2.new(0,2,0,2)
+    pScroll.Size = UDim2.new(1,-10,1,-10)
+    pScroll.Position = UDim2.new(0,5,0,5)
     pScroll.BackgroundTransparency = 1
     pScroll.BorderSizePixel = 0
-    pScroll.ScrollBarThickness = isMobile and 2 or 4
+    pScroll.ScrollBarThickness = 5
     pScroll.ScrollBarImageColor3 = S.panelColor
     pScroll.CanvasSize = UDim2.new(0,0,0,0)
     pScroll.Parent = pList
 
     local pLay = Instance.new("UIListLayout")
-    pLay.Padding = UDim.new(0, 2); pLay.Parent = pScroll
+    pLay.Padding = UDim.new(0, 5); pLay.Parent = pScroll
     pLay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        pScroll.CanvasSize = UDim2.new(0,0,0, pLay.AbsoluteContentSize.Y + 6)
+        pScroll.CanvasSize = UDim2.new(0,0,0, pLay.AbsoluteContentSize.Y + 8)
     end)
 
     local rows = {}
@@ -1590,49 +1606,51 @@ local function createGUI()
         for _, plr in ipairs(Players:GetPlayers()) do
             if plr ~= LP then
                 local row = Instance.new("Frame")
-                row.Size = UDim2.new(1,-2,0,isMobile and 12 or 26)
+                row.Size = UDim2.new(1,-4,0,42)
                 row.BackgroundColor3 = Color3.fromRGB(26,26,36)
                 row.BorderSizePixel = 0
                 row.Parent = pScroll
-                Instance.new("UICorner", row).CornerRadius = UDim.new(0, 4)
+                Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
 
                 local av = Instance.new("ImageLabel")
-                av.Size = UDim2.new(0,isMobile and 10 or 22,0,isMobile and 10 or 22)
-                av.Position = UDim2.new(0,2,0.5,-(isMobile and 5 or 11))
+                av.Size = UDim2.new(0,34,0,34)
+                av.Position = UDim2.new(0,4,0.5,-17)
                 av.BackgroundColor3 = Color3.fromRGB(40,40,55)
                 av.BorderSizePixel = 0
                 av.Image = "rbxthumb://type=AvatarHeadShot&id=" .. plr.UserId .. "&w=150&h=150"
                 av.Parent = row
-                Instance.new("UICorner", av).CornerRadius = UDim.new(0, isMobile and 5 or 11)
+                Instance.new("UICorner", av).CornerRadius = UDim.new(0, 17)
 
                 local tag = Instance.new("Frame")
-                tag.Size = UDim2.new(0,isMobile and 2 or 4,0,isMobile and 8 or 18)
-                tag.Position = UDim2.new(0,isMobile and 14 or 28,0.5,-(isMobile and 4 or 9))
+                tag.Size = UDim2.new(0,5,0,26)
+                tag.Position = UDim2.new(0,42,0.5,-13)
                 tag.BackgroundColor3 = roleColor(plr)
                 tag.BorderSizePixel = 0
                 tag.Parent = row
                 Instance.new("UICorner", tag).CornerRadius = UDim.new(1, 0)
 
                 local nm = Instance.new("TextLabel")
-                nm.Size = UDim2.new(0.5,-(isMobile and 20 or 40),1,0)
-                nm.Position = UDim2.new(0,isMobile and 18 or 36,0,0)
+                nm.Size = UDim2.new(1,-170,1,0)
+                nm.Position = UDim2.new(0,52,0,0)
                 nm.BackgroundTransparency = 1
                 nm.Text = plr.Name
                 nm.TextColor3 = Color3.fromRGB(230,230,240)
-                nm.TextSize = isMobile and 4 or 8
+                nm.TextSize = 11
                 nm.Font = Enum.Font.GothamMedium
                 nm.TextXAlignment = Enum.TextXAlignment.Left
                 nm.TextTruncate = Enum.TextTruncate.AtEnd
                 nm.Parent = row
 
                 local tpB = Instance.new("TextButton")
-                tpB.Size = UDim2.new(0,isMobile and 16 or 36,0,isMobile and 9 or 20)
-                tpB.Position = UDim2.new(1,-(isMobile and 56 or 120),0.5,-(isMobile and 4 or 10))
+                tpB.Size = UDim2.new(0,36,0,26)
+                tpB.Position = UDim2.new(1,-120,0.5,-13)
                 tpB.BackgroundColor3 = Color3.fromRGB(40,100,200)
-                tpB.Text = T("tp"); tpB.TextColor3 = Color3.new(1,1,1)
-                tpB.TextSize = isMobile and 4 or 7
-                tpB.Font = Enum.Font.GothamBold; tpB.Parent = row
-                Instance.new("UICorner", tpB).CornerRadius = UDim.new(0, 3)
+                tpB.Text = T("tp")
+                tpB.TextColor3 = Color3.new(1,1,1)
+                tpB.TextSize = 10
+                tpB.Font = Enum.Font.GothamBold
+                tpB.Parent = row
+                Instance.new("UICorner", tpB).CornerRadius = UDim.new(0, 6)
                 tpB.MouseButton1Click:Connect(function()
                     if plr.Character and LP.Character then
                         local t = plr.Character:FindFirstChild("HumanoidRootPart")
@@ -1644,13 +1662,15 @@ local function createGUI()
                 end)
 
                 local flB = Instance.new("TextButton")
-                flB.Size = UDim2.new(0,isMobile and 22 or 50,0,isMobile and 9 or 20)
-                flB.Position = UDim2.new(1,-(isMobile and 32 or 70),0.5,-(isMobile and 4 or 10))
+                flB.Size = UDim2.new(0,76,0,26)
+                flB.Position = UDim2.new(1,-80,0.5,-13)
                 flB.BackgroundColor3 = Color3.fromRGB(180,20,100)
-                flB.Text = T("fling"); flB.TextColor3 = Color3.new(1,1,1)
-                flB.TextSize = isMobile and 4 or 7
-                flB.Font = Enum.Font.GothamBold; flB.Parent = row
-                Instance.new("UICorner", flB).CornerRadius = UDim.new(0, 3)
+                flB.Text = T("fling")
+                flB.TextColor3 = Color3.new(1,1,1)
+                flB.TextSize = 10
+                flB.Font = Enum.Font.GothamBold
+                flB.Parent = row
+                Instance.new("UICorner", flB).CornerRadius = UDim.new(0, 6)
                 flB.MouseButton1Click:Connect(function() fling(plr) end)
 
                 rows[plr] = row
@@ -1680,15 +1700,15 @@ local function createGUI()
 
     addLabel(tabSettings, T("sec_panel"))
     local colorHolder = Instance.new("Frame")
-    colorHolder.Size = UDim2.new(1,0,0,isMobile and 40 or 100)
+    colorHolder.Size = UDim2.new(1,0,0,120)
     colorHolder.BackgroundColor3 = Color3.fromRGB(22,22,32)
     colorHolder.BorderSizePixel = 0
     colorHolder.Parent = tabSettings
-    Instance.new("UICorner", colorHolder).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", colorHolder).CornerRadius = UDim.new(0, 10)
 
     local colorGrid = Instance.new("UIGridLayout")
-    colorGrid.CellSize = UDim2.new(0,isMobile and 8 or 26,0,isMobile and 8 or 26)
-    colorGrid.CellPadding = UDim2.new(0,2,0,2)
+    colorGrid.CellSize = UDim2.new(0,48,0,48)
+    colorGrid.CellPadding = UDim2.new(0,8,0,8)
     colorGrid.Parent = colorHolder
 
     local palette = {
@@ -1730,9 +1750,9 @@ local function createGUI()
     nameBox.TextSize = FONT_SZ
     nameBox.Font = Enum.Font.GothamMedium
     nameBox.Parent = tabConfigs
-    Instance.new("UICorner", nameBox).CornerRadius = UDim.new(0, 4)
+    Instance.new("UICorner", nameBox).CornerRadius = UDim.new(0, 7)
     local pad = Instance.new("UIPadding", nameBox)
-    pad.PaddingLeft = UDim.new(0, 8)
+    pad.PaddingLeft = UDim.new(0, 12)
 
     addBtn(tabConfigs, T("cfg_save"), Color3.fromRGB(50,120,80), function()
         if not writefile or nameBox.Text == "" then return end
@@ -1767,20 +1787,29 @@ local function createGUI()
     end)
 
     closeB.MouseButton1Click:Connect(function()
-        pcall(clearHL) stopAutoShoot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm()
-        for _, bb in pairs(S.espBillboards) do pcall(function() bb:Destroy() end) end
-        if S.invisibleConn then pcall(function() S.invisibleConn:Disconnect() end) end
-        for _, c in ipairs(S.conns) do
-            pcall(function() if c and c.Disconnect then c:Disconnect() end end)
-        end
-        pcall(function() gui:Destroy() end)
-        _G.VankaPanel = nil
+        main.Visible = false
+        openB.Visible = true
     end)
     minB.MouseButton1Click:Connect(function()
-        main.Visible = false; openB.Visible = true
+        main.Visible = false
+        openB.Visible = true
     end)
     openB.MouseButton1Click:Connect(function()
-        main.Visible = true; openB.Visible = false
+        main.Visible = true
+        openB.Visible = false
+    end)
+
+    UIS.InputBegan:Connect(function(input, gp)
+        if gp then return end
+        if input.KeyCode == Enum.KeyCode.RightShift then
+            if main.Visible then
+                main.Visible = false
+                openB.Visible = true
+            else
+                main.Visible = true
+                openB.Visible = false
+            end
+        end
     end)
 
     return gui
@@ -1970,10 +1999,10 @@ local function setupInfJump()
     table.insert(S.conns, c)
 end
 
-local function showStartup()
+local function showLoading()
     local parent = (gethui and gethui()) or game:GetService("CoreGui")
     local gui = Instance.new("ScreenGui")
-    gui.Name = "VankaStartup_" .. tostring(math.random(1000,9999))
+    gui.Name = "VankaLoading_" .. tostring(math.random(1000,9999))
     gui.ResetOnSpawn = false
     gui.IgnoreGuiInset = true
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -2031,7 +2060,7 @@ local function showStartup()
 
     local bf = Instance.new("Frame")
     bf.Size = UDim2.new(0,0,1,0)
-    bf.BackgroundColor3 = Color3.fromRGB(255,0,100)
+    bf.BackgroundColor3 = S.panelColor
     bf.BorderSizePixel = 0
     bf.ZIndex = 502
     bf.Parent = bb
@@ -2040,119 +2069,21 @@ local function showStartup()
     task.spawn(function()
         for i = 1, 100, 5 do
             ls.Text = i .. "%"
-            local tw = TweenService:Create(bf, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Size = UDim2.new(i/100, 0, 1, 0)
-            })
-            tw:Play()
+            TweenService:Create(bf, TweenInfo.new(0.3), {Size = UDim2.new(i/100, 0, 1, 0)}):Play()
             task.wait(0.06)
         end
         task.wait(0.4)
-
         loadF:Destroy()
+        gui:Destroy()
+        S.gui = nil
 
-        local selF = Instance.new("Frame")
-        selF.Size = UDim2.new(1,0,1,0)
-        selF.BackgroundColor3 = Color3.fromRGB(6,6,12)
-        selF.BorderSizePixel = 0
-        selF.ZIndex = 500
-        selF.Parent = gui
-
-        if LOGO then
-            local li = Instance.new("ImageLabel")
-            li.Size = UDim2.new(0,100,0,100)
-            li.Position = UDim2.new(0.5,-50,0.2,-50)
-            li.BackgroundTransparency = 1
-            li.Image = LOGO
-            li.ScaleType = Enum.ScaleType.Fit
-            li.ZIndex = 501
-            li.Parent = selF
-        end
-
-        local t1 = Instance.new("TextLabel")
-        t1.Size = UDim2.new(1,0,0,30)
-        t1.Position = UDim2.new(0,0,0.2,60)
-        t1.BackgroundTransparency = 1
-        t1.Text = "ВЫБЕРИТЕ УСТРОЙСТВО"
-        t1.TextColor3 = Color3.fromRGB(220,220,240)
-        t1.TextSize = 16
-        t1.Font = Enum.Font.GothamBold
-        t1.ZIndex = 501
-        t1.Parent = selF
-
-        local selDev = ""
-
-        local btnPc = Instance.new("TextButton")
-        btnPc.Size = UDim2.new(0,200,0,80)
-        btnPc.Position = UDim2.new(0.5,-220,0.5,-40)
-        btnPc.BackgroundColor3 = Color3.fromRGB(60,60,100)
-        btnPc.Text = "💻\nКомпьютер"
-        btnPc.TextColor3 = Color3.new(1,1,1)
-        btnPc.TextSize = 15
-        btnPc.Font = Enum.Font.GothamBold
-        btnPc.ZIndex = 501
-        btnPc.Parent = selF
-        Instance.new("UICorner", btnPc).CornerRadius = UDim.new(0, 12)
-
-        local btnMob = Instance.new("TextButton")
-        btnMob.Size = UDim2.new(0,200,0,80)
-        btnMob.Position = UDim2.new(0.5,20,0.5,-40)
-        btnMob.BackgroundColor3 = Color3.fromRGB(60,60,100)
-        btnMob.Text = "📱\nТелефон"
-        btnMob.TextColor3 = Color3.new(1,1,1)
-        btnMob.TextSize = 15
-        btnMob.Font = Enum.Font.GothamBold
-        btnMob.ZIndex = 501
-        btnMob.Parent = selF
-        Instance.new("UICorner", btnMob).CornerRadius = UDim.new(0, 12)
-
-        local btnGo = Instance.new("TextButton")
-        btnGo.Size = UDim2.new(0,280,0,50)
-        btnGo.Position = UDim2.new(0.5,-140,0.5,90)
-        btnGo.BackgroundColor3 = Color3.fromRGB(0,180,100)
-        btnGo.Text = "▶ Продолжить"
-        btnGo.TextColor3 = Color3.new(1,1,1)
-        btnGo.TextSize = 15
-        btnGo.Font = Enum.Font.GothamBold
-        btnGo.ZIndex = 501
-        btnGo.Parent = selF
-        Instance.new("UICorner", btnGo).CornerRadius = UDim.new(0, 10)
-
-        local function updateBtns()
-            btnPc.BackgroundColor3 = (selDev == "pc") and Color3.fromRGB(0,180,100) or Color3.fromRGB(60,60,100)
-            btnMob.BackgroundColor3 = (selDev == "mobile") and Color3.fromRGB(0,180,100) or Color3.fromRGB(60,60,100)
-        end
-
-        btnPc.MouseButton1Click:Connect(function() selDev = "pc" updateBtns() end)
-        btnMob.MouseButton1Click:Connect(function() selDev = "mobile" updateBtns() end)
-
-        btnGo.MouseButton1Click:Connect(function()
-            if selDev == "" then
-                btnGo.Text = "⚠ Выберите устройство!"
-                task.wait(1)
-                btnGo.Text = "▶ Продолжить"
-                return
-            end
-
-            SaveData.device = selDev
-            isMobile = (selDev == "mobile")
-            PANEL_W = isMobile and 50 or 200
-            PANEL_H = isMobile and 100 or 400
-            BTN_H = isMobile and 8 or 20
-            TOGGLE_H = isMobile and 8 or 22
-            FONT_SZ = isMobile and 4 or 9
-            HEADER_H = isMobile and 10 or 26
-            saveSettings()
-
-            selF:Destroy()
-
-            createGUI()
-            createOverlays()
-            mainLoop()
-            setupInfJump()
-            if S.speed50Enabled then startSpeed50Loop() end
-            if S.farmEnabled then startFarm() end
-            task.delay(0.5, function() notify(T("loaded"), Color3.fromRGB(0,200,100)) end)
-        end)
+        createGUI()
+        createOverlays()
+        mainLoop()
+        setupInfJump()
+        if S.speed50Enabled then startSpeed50Loop() end
+        if S.farmEnabled then startFarm() end
+        task.delay(0.5, function() notify(T("loaded") .. " [" .. detectedDevice .. "]", Color3.fromRGB(0,200,100)) end)
     end)
 end
 
@@ -2169,14 +2100,4 @@ _G.VankaPanel = {
     end
 }
 
-if SaveData.device == "" then
-    showStartup()
-else
-    createGUI()
-    createOverlays()
-    mainLoop()
-    setupInfJump()
-    if S.speed50Enabled then startSpeed50Loop() end
-    if S.farmEnabled then startFarm() end
-    task.delay(0.5, function() notify(T("loaded"), Color3.fromRGB(0,200,100)) end)
-end
+showLoading()
