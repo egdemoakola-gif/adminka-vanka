@@ -1,7 +1,5 @@
--- ═══════════════════════════════════════════════════════════════
---  VANKA ADMIN v32
---  Загрузка → Выбор устройства → Панель (язык = Русский)
--- ═══════════════════════════════════════════════════════════════
+-- Vanka Admin Panel v33
+
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players           = game:GetService("Players")
@@ -10,15 +8,11 @@ local UIS               = game:GetService("UserInputService")
 local TweenService      = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Lighting          = game:GetService("Lighting")
-local HttpService       = game:GetService("HttpService")
 
 local LP    = Players.LocalPlayer
 local Cam   = workspace.CurrentCamera
 local Mouse = LP:GetMouse()
 
--- ═══════════════════════════════════════════════════════════════
---  ЯЗЫКИ
--- ═══════════════════════════════════════════════════════════════
 local LANG = "ru"
 local L = {
     ru = {
@@ -32,7 +26,8 @@ local L = {
         tab_players="ИГРОКИ", tab_settings="НАСТРОЙКИ", tab_configs="КОНФИГИ",
         role_murderer="Мардер", role_sheriff="Шериф", role_innocent="Невиновный",
         sec_sheriff="ШЕРИФ", autoshoot="Авто-выстрел в Мардера",
-        sec_autokill="АВТО-КИЛЛ", autokill="Авто-убийство (нож, если Мардер)",
+        sec_autokill="АВТО-КИЛЛ", autokill="Авто-убийство ножом",
+        autoTpMurderer="Следование за Мардером",
         sec_farm="ФАРМ", farm="Авто-фарм монет",
         sec_pickup="ПОДБОР", pickup="Подбор пистолета",
         sec_roles="РОЛИ", roles="Подсветка ролей",
@@ -55,7 +50,7 @@ local L = {
         sec_util="УТИЛИТЫ", respawn="Респавн", disable_all="ВЫКЛЮЧИТЬ ВСЁ",
         plist="СПИСОК ИГРОКОВ", tp="ТП", fling="ФЛИНГ",
         sec_lang="ЯЗЫК", lang_ru="Русский", lang_en="English", lang_zh="中文",
-        sec_panel="ЦВЕТ ПАНЕЛИ", sec_reload="ПЕРЕЗАПУСК", reload="Перезапустить панель",
+        sec_panel="ЦВЕТ ПАНЕЛИ",
         sec_cfg_save="СОХРАНЕНИЕ", cfg_name="Имя конфига", cfg_save="Сохранить",
         cfg_load="Загрузить", cfg_presets="Готовые конфиги:",
         cfg_default="По умолчанию", cfg_aim="Для аима", cfg_farm="Для фарма",
@@ -73,14 +68,15 @@ local L = {
         title="VANKA ADMIN",
         loading="Loading", ready="Ready",
         startup_dev="SELECT DEVICE",
-        startup_pc="PC", startup_mobile="Mobile",
+        startup_pc="Computer", startup_mobile="Phone",
         startup_continue="Continue",
         startup_warning="Select device!",
         tab_main="MAIN", tab_visual="VISUAL", tab_esp="ESP", tab_rage="RAGE",
         tab_players="PLAYERS", tab_settings="SETTINGS", tab_configs="CONFIGS",
         role_murderer="Murderer", role_sheriff="Sheriff", role_innocent="Innocent",
         sec_sheriff="SHERIFF", autoshoot="Auto Shoot (Murderer)",
-        sec_autokill="AUTO-KILL", autokill="Auto Kill (knife if Murderer)",
+        sec_autokill="AUTO-KILL", autokill="Auto knife kill",
+        autoTpMurderer="Follow Murderer",
         sec_farm="FARM", farm="Auto Farm Coins",
         sec_pickup="PICKUP", pickup="Gun pickup",
         sec_roles="ROLES", roles="Role highlight",
@@ -103,7 +99,7 @@ local L = {
         sec_util="UTILITIES", respawn="Respawn", disable_all="TURN OFF ALL",
         plist="PLAYERS LIST", tp="TP", fling="FLING",
         sec_lang="LANGUAGE", lang_ru="Русский", lang_en="English", lang_zh="中文",
-        sec_panel="PANEL COLOR", sec_reload="RELOAD", reload="Reload panel",
+        sec_panel="PANEL COLOR",
         sec_cfg_save="SAVE", cfg_name="Config name", cfg_save="Save",
         cfg_load="Load", cfg_presets="Presets:",
         cfg_default="Default", cfg_aim="For aim", cfg_farm="For farm",
@@ -128,7 +124,8 @@ local L = {
         tab_players="玩家", tab_settings="设置", tab_configs="配置",
         role_murderer="凶手", role_sheriff="警长", role_innocent="无辜",
         sec_sheriff="警长", autoshoot="自动射击 (凶手)",
-        sec_autokill="自动击杀", autokill="自动击杀 (刀)",
+        sec_autokill="自动击杀", autokill="自动刀杀",
+        autoTpMurderer="跟踪凶手",
         sec_farm="农场", farm="自动农场",
         sec_pickup="拾取", pickup="拾取枪支",
         sec_roles="角色", roles="角色高亮",
@@ -151,7 +148,7 @@ local L = {
         sec_util="工具", respawn="重生", disable_all="关闭所有",
         plist="玩家列表", tp="传送", fling="甩飞",
         sec_lang="语言", lang_ru="Русский", lang_en="English", lang_zh="中文",
-        sec_panel="面板颜色", sec_reload="重载", reload="重载面板",
+        sec_panel="面板颜色",
         sec_cfg_save="保存", cfg_name="配置名", cfg_save="保存",
         cfg_load="加载", cfg_presets="预设:",
         cfg_default="默认", cfg_aim="瞄准", cfg_farm="农场",
@@ -168,10 +165,7 @@ local L = {
 }
 local function T(k) return L[LANG][k] or k end
 
--- ═══════════════════════════════════════════════════════════════
---  СОХРАНЕНИЕ
--- ═══════════════════════════════════════════════════════════════
-local SAVE_FILE = "vanka_settings_v32.txt"
+local SAVE_FILE = "vanka_settings_v33.txt"
 local SaveData = {
     lang="ru", device="",
     esp=false, esp_health=true, esp_name=true, esp_dist=true, esp_weapon=true, esp_rainbow=false,
@@ -198,7 +192,9 @@ local function serialize()
     return s
 end
 
-local function saveSettings() if writefile then pcall(writefile, SAVE_FILE, serialize()) end end
+local function saveSettings()
+    if writefile then pcall(writefile, SAVE_FILE, serialize()) end
+end
 
 local function loadSettings()
     if not readfile or not isfile then return end
@@ -246,9 +242,6 @@ local function loadSettings()
 end
 loadSettings()
 
--- ═══════════════════════════════════════════════════════════════
---  КАРТИНКИ
--- ═══════════════════════════════════════════════════════════════
 local GH = "https://raw.githubusercontent.com/egdemoakola-gif/adminka-vanka/main/"
 local function downloadImg(name)
     local file = "vanka_" .. name
@@ -275,25 +268,20 @@ local IMG_VIS   = downloadImg("visial.png")
 local IMG_RAGE  = downloadImg("rage.png")
 local IMG_NOOB  = downloadImg("Roblox-Noob-Blocky-Avatar-Transparent-PNG.png")
 
--- ═══════════════════════════════════════════════════════════════
---  УСТРОЙСТВО
--- ═══════════════════════════════════════════════════════════════
 local isMobile = (SaveData.device == "mobile")
-local PANEL_W = isMobile and 480 or 540
-local PANEL_H = isMobile and 620 or 660
-local BTN_H = isMobile and 32 or 34
-local TOGGLE_H = isMobile and 34 or 36
-local FONT_SZ = isMobile and 11 or 12
-local HEADER_H = isMobile and 50 or 54
+local PANEL_W = isMobile and 50 or 200
+local PANEL_H = isMobile and 100 or 400
+local BTN_H = isMobile and 8 or 20
+local TOGGLE_H = isMobile and 8 or 22
+local FONT_SZ = isMobile and 4 or 9
+local HEADER_H = isMobile and 10 or 26
 
--- ═══════════════════════════════════════════════════════════════
---  СОСТОЯНИЕ
--- ═══════════════════════════════════════════════════════════════
 local S = {
     roleHighlight=false, roleHL={},
     aimbot=false, aimbotFOV=200, aimT=nil, hardAim=true,
     autoShootEnabled=false, autoShootThread=nil,
-    autoKillEnabled=false, autoKillThread=nil, autoKillList={},
+    autoKillEnabled=false, autoKillThread=nil, autoKillList={}, autoKillLoopThread=nil,
+    autoTpEnabled=false, autoTpThread=nil,
     autoPickup=false, sheriffThread=nil, lastSheriffPos=nil, lastSheriff=nil,
     farmEnabled=SaveData.farm, farmThread=nil,
     spin=false, spinSpeed=30,
@@ -318,46 +306,39 @@ local S = {
     previewRefs={}, crossImage=nil,
 }
 
--- ═══════════════════════════════════════════════════════════════
---  УВЕДОМЛЕНИЯ
--- ═══════════════════════════════════════════════════════════════
 local function notify(text, color)
     color = color or Color3.fromRGB(255,0,100)
     if not S.gui then return end
     local h = S.gui:FindFirstChild("NotifHolder")
     if not h then return end
     local n = Instance.new("Frame")
-    n.Size = UDim2.new(1, 0, 0, 46)
+    n.Size = UDim2.new(0, 220, 0, isMobile and 22 or 36)
     n.BackgroundColor3 = Color3.fromRGB(18,18,26)
     n.BorderSizePixel = 0
     n.Parent = h
-    Instance.new("UICorner", n).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", n).CornerRadius = UDim.new(0, 6)
     local s = Instance.new("UIStroke")
-    s.Color = color; s.Thickness = 2; s.Parent = n
+    s.Color = color; s.Thickness = 1.5; s.Parent = n
     local bar = Instance.new("Frame")
-    bar.Size = UDim2.new(0, 4, 1, 0)
+    bar.Size = UDim2.new(0, 3, 1, 0)
     bar.BackgroundColor3 = color; bar.BorderSizePixel = 0; bar.Parent = n
-    Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 6)
     local l = Instance.new("TextLabel")
-    l.Size = UDim2.new(1, -20, 1, 0)
-    l.Position = UDim2.new(0, 14, 0, 0)
+    l.Size = UDim2.new(1, -14, 1, 0); l.Position = UDim2.new(0, 10, 0, 0)
     l.BackgroundTransparency = 1
     l.Text = text
-    l.TextColor3 = Color3.new(1,1,1); l.TextSize = 12
+    l.TextColor3 = Color3.new(1,1,1); l.TextSize = isMobile and 5 or 11
     l.Font = Enum.Font.GothamMedium
     l.TextXAlignment = Enum.TextXAlignment.Left
     l.TextWrapped = true; l.Parent = n
-    n.Position = UDim2.new(1, 320, 0, 0)
+    n.Position = UDim2.new(1, 240, 0, 0)
     TweenService:Create(n, TweenInfo.new(0.3), {Position = UDim2.new(0,0,0,0)}):Play()
     task.delay(3, function()
-        local t = TweenService:Create(n, TweenInfo.new(0.3), {Position = UDim2.new(1,320,0,0)})
+        local t = TweenService:Create(n, TweenInfo.new(0.3), {Position = UDim2.new(1,240,0,0)})
         t:Play(); t.Completed:Connect(function() n:Destroy() end)
     end)
 end
 
--- ═══════════════════════════════════════════════════════════════
---  РОЛИ И ОРУЖИЕ
--- ═══════════════════════════════════════════════════════════════
 local function getRole(plr)
     if not plr or not plr.Character then return "Innocent" end
     local function has(nm)
@@ -384,9 +365,7 @@ local function getRoleDisplay(plr)
 end
 
 local function roleColor(plr)
-    if S.espRainbow then
-        return Color3.fromHSV((tick() * 0.5) % 1, 1, 1)
-    end
+    if S.espRainbow then return Color3.fromHSV((tick() * 0.5) % 1, 1, 1) end
     local r = getRole(plr)
     if r == "Murderer" then return S.espColorKiller end
     if r == "Sheriff" then return S.espColorSheriff end
@@ -462,9 +441,6 @@ local function equipMyKnife()
     return k
 end
 
--- ═══════════════════════════════════════════════════════════════
---  AUTO SHOOT (Шериф в Мардера)
--- ═══════════════════════════════════════════════════════════════
 local function getAimPart(tChar)
     if S.aimPart == "Random" then
         local parts = {"Head", "UpperTorso", "Torso", "HumanoidRootPart"}
@@ -481,22 +457,18 @@ local function startAutoShoot()
         while S.autoShootEnabled do
             if not hasGunAnywhere() then
                 if currentTarget then currentTarget = nil end
-                task.wait(0.3)
-                continue
+                task.wait(0.3); continue
             end
             if not hasGunInHand() then
-                equipGun()
-                task.wait(0.1)
+                equipGun(); task.wait(0.1)
                 if not hasGunInHand() then task.wait(0.3) continue end
             end
             if not currentTarget or not currentTarget.Character then
                 currentTarget = nil
                 for _, plr in ipairs(Players:GetPlayers()) do
-                    if plr ~= LP and plr.Character then
-                        if getRole(plr) == "Murderer" then
-                            local h = plr.Character:FindFirstChildOfClass("Humanoid")
-                            if h and h.Health > 0 then currentTarget = plr break end
-                        end
+                    if plr ~= LP and plr.Character and getRole(plr) == "Murderer" then
+                        local h = plr.Character:FindFirstChildOfClass("Humanoid")
+                        if h and h.Health > 0 then currentTarget = plr break end
                     end
                 end
                 if not currentTarget then task.wait(0.3) continue end
@@ -507,9 +479,7 @@ local function startAutoShoot()
             local tHrp = tChar:FindFirstChild("HumanoidRootPart")
             if not tHum or tHum.Health <= 0 or not tHrp then
                 notify(T("killed") .. " " .. currentTarget.Name, Color3.fromRGB(0,255,100))
-                currentTarget = nil
-                task.wait(0.2)
-                continue
+                currentTarget = nil; task.wait(0.2); continue
             end
             for _, p in ipairs(tChar:GetDescendants()) do
                 if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
@@ -525,21 +495,15 @@ local function startAutoShoot()
             end
             local targetPos = hitbox.Position
             local newCF = CFrame.new(Cam.CFrame.Position, targetPos)
-            if S.hardAim then
-                Cam.CFrame = newCF
-            else
-                Cam.CFrame = Cam.CFrame:Lerp(newCF, 1 - S.aimSmooth)
-            end
-            local lookDir = Cam.CFrame.LookVector
-            local toTarget = (targetPos - Cam.CFrame.Position).Unit
-            local dot = lookDir:Dot(toTarget)
+            if S.hardAim then Cam.CFrame = newCF
+            else Cam.CFrame = Cam.CFrame:Lerp(newCF, 1 - S.aimSmooth) end
+            local dot = Cam.CFrame.LookVector:Dot((targetPos - Cam.CFrame.Position).Unit)
             local canShoot = true
             if S.wallCheck then
                 local rp = RaycastParams.new()
                 rp.FilterType = Enum.RaycastFilterType.Exclude
                 rp.FilterDescendantsInstances = {LP.Character, tChar}
-                local res = workspace:Raycast(Cam.CFrame.Position, targetPos - Cam.CFrame.Position, rp)
-                if res then canShoot = false end
+                if workspace:Raycast(Cam.CFrame.Position, targetPos - Cam.CFrame.Position, rp) then canShoot = false end
             end
             if dot > 0.99 and canShoot then
                 local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
@@ -555,9 +519,6 @@ local function startAutoShoot()
 end
 local function stopAutoShoot() S.autoShootEnabled = false S.autoShootThread = nil end
 
--- ═══════════════════════════════════════════════════════════════
---  AUTO KILL (нож, если ты Мардер)
--- ═══════════════════════════════════════════════════════════════
 local function killOneTarget(target)
     if not target or target == LP or not target.Character then return false end
     local myChar = LP.Character
@@ -638,9 +599,33 @@ local function stopAutoKillLoop()
     S.autoKillLoopThread = nil
 end
 
--- ═══════════════════════════════════════════════════════════════
---  ФЛИНГ
--- ═══════════════════════════════════════════════════════════════
+local function startAutoTp()
+    if S.autoTpThread then return end
+    S.autoTpThread = task.spawn(function()
+        while S.autoTpEnabled do
+            local murderer = nil
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= LP and plr.Character and getRole(plr) == "Murderer" then
+                    local h = plr.Character:FindFirstChildOfClass("Humanoid")
+                    if h and h.Health > 0 then murderer = plr break end
+                end
+            end
+            if murderer and murderer.Character then
+                local tHrp = murderer.Character:FindFirstChild("HumanoidRootPart")
+                local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                if tHrp and myHrp then
+                    pcall(function()
+                        myHrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
+                    end)
+                end
+            end
+            task.wait(0.05)
+        end
+        S.autoTpThread = nil
+    end)
+end
+local function stopAutoTp() S.autoTpEnabled = false S.autoTpThread = nil end
+
 local flingBusy = false
 local function fling(target)
     if not target or target == LP or not target.Character then
@@ -649,24 +634,33 @@ local function fling(target)
     end
     if flingBusy then return end
     flingBusy = true
+
     local tChar = target.Character
     local tHrp = tChar:FindFirstChild("HumanoidRootPart")
     local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
     if not tHrp or not myHrp then flingBusy = false return end
+
     notify(T("fling_run") .. ": " .. target.Name, Color3.fromRGB(255,0,150))
+
     task.spawn(function()
         local myPos = myHrp.CFrame
         local wasAnchored = myHrp.Anchored
         myHrp.Anchored = true
+
         for _, p in ipairs(tChar:GetDescendants()) do
-            if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
+            if p:IsA("BasePart") then
+                pcall(function() p:SetNetworkOwner(LP) end)
+            end
         end
+
         local bv = Instance.new("BodyVelocity")
         bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
         bv.Velocity = Vector3.new(0,0,0); bv.Parent = tHrp
+
         local bav = Instance.new("BodyAngularVelocity")
         bav.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
         bav.AngularVelocity = Vector3.new(0,0,0); bav.Parent = tHrp
+
         local t0 = tick()
         while tick() - t0 < 2.5 do
             if not target.Character then break end
@@ -684,6 +678,7 @@ local function fling(target)
             pcall(function() myHrp.CFrame = myPos end)
             task.wait()
         end
+
         if bv then pcall(function() bv:Destroy() end) end
         if bav then pcall(function() bav:Destroy() end) end
         task.wait(1)
@@ -706,9 +701,6 @@ local function fling(target)
     end)
 end
 
--- ═══════════════════════════════════════════════════════════════
---  ФАРМ
--- ═══════════════════════════════════════════════════════════════
 local function findCoin()
     local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
     if not myHrp then return nil end
@@ -734,6 +726,7 @@ local function findCoin()
     end
     return closest
 end
+
 local function isBagFull()
     local pg = LP:FindFirstChild("PlayerGui")
     if pg then
@@ -745,6 +738,7 @@ local function isBagFull()
     end
     return false
 end
+
 local function startFarm()
     if S.farmThread then return end
     S.farmThread = task.spawn(function()
@@ -781,9 +775,6 @@ local function startFarm()
 end
 local function stopFarm() S.farmEnabled = false S.farmThread = nil end
 
--- ═══════════════════════════════════════════════════════════════
---  ESP
--- ═══════════════════════════════════════════════════════════════
 local function updateESP()
     if not S.espEnabled then
         for _, bb in pairs(S.espBillboards) do pcall(function() bb:Destroy() end) end
@@ -906,9 +897,6 @@ local function updateESP()
     end
 end
 
--- ═══════════════════════════════════════════════════════════════
---  НЕВИДИМОСТЬ
--- ═══════════════════════════════════════════════════════════════
 local function applyInvisible()
     if not S.invisibleEnabled then return end
     if not LP.Character then return end
@@ -924,6 +912,7 @@ local function applyInvisible()
         end
     end
 end
+
 local function setInvisible(state)
     S.invisibleEnabled = state
     SaveData.invisible = state
@@ -953,9 +942,6 @@ local function setInvisible(state)
     end
 end
 
--- ═══════════════════════════════════════════════════════════════
---  АВТО-СКОРОСТЬ
--- ═══════════════════════════════════════════════════════════════
 local function startSpeed50Loop()
     if S.speedThread then return end
     S.speedThread = task.spawn(function()
@@ -970,9 +956,6 @@ local function startSpeed50Loop()
     end)
 end
 
--- ═══════════════════════════════════════════════════════════════
---  АВТО-ПОДБОР
--- ═══════════════════════════════════════════════════════════════
 local function startAutoPickup()
     if S.sheriffThread then return end
     S.lastSheriff = nil; S.lastSheriffPos = nil
@@ -1010,9 +993,6 @@ local function stopAutoPickup()
     S.lastSheriff = nil; S.lastSheriffPos = nil
 end
 
--- ═══════════════════════════════════════════════════════════════
---  ПОДСВЕТКА
--- ═══════════════════════════════════════════════════════════════
 local function refreshHL()
     if not S.roleHighlight then return end
     for _, plr in ipairs(Players:GetPlayers()) do
@@ -1044,9 +1024,6 @@ local function updatePreview()
     if refs.weaponLbl then refs.weaponLbl.Visible = S.espWeapon end
 end
 
--- ═══════════════════════════════════════════════════════════════
---  ГЛАВНОЕ ОКНО ПАНЕЛИ
--- ═══════════════════════════════════════════════════════════════
 local function createGUI()
     local parent = (gethui and gethui()) or game:GetService("CoreGui")
     local gui = Instance.new("ScreenGui")
@@ -1057,16 +1034,14 @@ local function createGUI()
     gui.Parent = parent
     S.gui = gui
 
-    -- Контейнер уведомлений
     local nh = Instance.new("Frame")
     nh.Name = "NotifHolder"
-    nh.Size = UDim2.new(0, 320, 1, -40)
-    nh.Position = UDim2.new(1, -340, 0, 20)
+    nh.Size = UDim2.new(0, 240, 1, -20)
+    nh.Position = UDim2.new(1, -250, 0, 10)
     nh.BackgroundTransparency = 1; nh.Parent = gui
     local nl = Instance.new("UIListLayout")
-    nl.Padding = UDim.new(0, 8); nl.SortOrder = Enum.SortOrder.LayoutOrder; nl.Parent = nh
+    nl.Padding = UDim.new(0, 6); nl.SortOrder = Enum.SortOrder.LayoutOrder; nl.Parent = nh
 
-    -- Главное окно
     local main = Instance.new("Frame")
     main.Name = "MainFrame"
     main.Size = UDim2.new(0, PANEL_W, 0, PANEL_H)
@@ -1076,7 +1051,7 @@ local function createGUI()
     main.Active = true
     main.Draggable = true
     main.Parent = gui
-    Instance.new("UICorner", main).CornerRadius = UDim.new(0, 16)
+    Instance.new("UICorner", main).CornerRadius = UDim.new(0, isMobile and 4 or 12)
     S.panel = main
 
     local bgGrad = Instance.new("UIGradient")
@@ -1089,97 +1064,101 @@ local function createGUI()
     local mstk = Instance.new("UIStroke")
     mstk.Name = "MainStroke"
     mstk.Color = S.panelColor
-    mstk.Thickness = 2
+    mstk.Thickness = isMobile and 1 or 2
     mstk.Parent = main
 
-    -- Заголовок
     local top = Instance.new("Frame")
     top.Size = UDim2.new(1, 0, 0, HEADER_H)
     top.BackgroundColor3 = Color3.fromRGB(22,22,32)
     top.BorderSizePixel = 0
     top.Parent = main
-    Instance.new("UICorner", top).CornerRadius = UDim.new(0, 16)
+    Instance.new("UICorner", top).CornerRadius = UDim.new(0, isMobile and 4 or 12)
 
     local tf = Instance.new("Frame")
-    tf.Size = UDim2.new(1,0,0,HEADER_H-28)
-    tf.Position = UDim2.new(0,0,1,-(HEADER_H-28))
+    tf.Size = UDim2.new(1,0,0,HEADER_H-10)
+    tf.Position = UDim2.new(0,0,1,-(HEADER_H-10))
     tf.BackgroundColor3 = Color3.fromRGB(22,22,32)
     tf.BorderSizePixel = 0
     tf.Parent = top
 
     if LOGO then
         local li = Instance.new("ImageLabel")
-        li.Size = UDim2.new(0,36,0,36); li.Position = UDim2.new(0,12,0.5,-18)
+        li.Size = UDim2.new(0,isMobile and 8 or 22,0,isMobile and 8 or 22)
+        li.Position = UDim2.new(0,isMobile and 2 or 6,0.5,-(isMobile and 4 or 11))
         li.BackgroundTransparency = 1; li.Image = LOGO
         li.ScaleType = Enum.ScaleType.Fit; li.Parent = top
-        Instance.new("UICorner", li).CornerRadius = UDim.new(0, 8)
+        Instance.new("UICorner", li).CornerRadius = UDim.new(0, 4)
     else
         local he = Instance.new("TextLabel")
-        he.Size = UDim2.new(0,36,1,0); he.Position = UDim2.new(0,12,0,0)
+        he.Size = UDim2.new(0,isMobile and 8 or 22,1,0)
+        he.Position = UDim2.new(0,isMobile and 2 or 6,0,0)
         he.BackgroundTransparency = 1; he.Text = "V"
-        he.TextColor3 = S.panelColor; he.TextSize = 24
+        he.TextColor3 = S.panelColor; he.TextSize = isMobile and 5 or 14
         he.Font = Enum.Font.GothamBold; he.Parent = top
     end
 
     local ttl = Instance.new("TextLabel")
     ttl.Name = "Title"
-    ttl.Size = UDim2.new(1,-160,1,0); ttl.Position = UDim2.new(0,58,0,0)
+    ttl.Size = UDim2.new(1,-(isMobile and 26 or 90),1,0)
+    ttl.Position = UDim2.new(0,isMobile and 12 or 32,0,0)
     ttl.BackgroundTransparency = 1
     ttl.Text = T("title")
-    ttl.TextColor3 = Color3.new(1,1,1); ttl.TextSize = 15
+    ttl.TextColor3 = Color3.new(1,1,1); ttl.TextSize = isMobile and 4 or 10
     ttl.Font = Enum.Font.GothamBold
     ttl.TextXAlignment = Enum.TextXAlignment.Left
     ttl.Parent = top
 
     local minB = Instance.new("TextButton")
-    minB.Size = UDim2.new(0,30,0,30); minB.Position = UDim2.new(1,-72,0.5,-15)
+    minB.Size = UDim2.new(0,isMobile and 7 or 18,0,isMobile and 7 or 18)
+    minB.Position = UDim2.new(1,-(isMobile and 16 or 40),0.5,-(isMobile and 3 or 9))
     minB.BackgroundColor3 = Color3.fromRGB(55,55,70); minB.Text = "−"
-    minB.TextColor3 = Color3.new(1,1,1); minB.TextSize = 18
+    minB.TextColor3 = Color3.new(1,1,1); minB.TextSize = isMobile and 5 or 12
     minB.Font = Enum.Font.GothamBold; minB.Parent = top
-    Instance.new("UICorner", minB).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", minB).CornerRadius = UDim.new(0, 3)
 
     local closeB = Instance.new("TextButton")
-    closeB.Size = UDim2.new(0,30,0,30); closeB.Position = UDim2.new(1,-38,0.5,-15)
+    closeB.Size = UDim2.new(0,isMobile and 7 or 18,0,isMobile and 7 or 18)
+    closeB.Position = UDim2.new(1,-(isMobile and 8 or 20),0.5,-(isMobile and 3 or 9))
     closeB.BackgroundColor3 = Color3.fromRGB(255,55,75); closeB.Text = "×"
-    closeB.TextColor3 = Color3.new(1,1,1); closeB.TextSize = 18
+    closeB.TextColor3 = Color3.new(1,1,1); closeB.TextSize = isMobile and 5 or 12
     closeB.Font = Enum.Font.GothamBold; closeB.Parent = top
-    Instance.new("UICorner", closeB).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", closeB).CornerRadius = UDim.new(0, 3)
 
-    -- Круглая кнопка открывашка
     local openB = Instance.new("TextButton")
-    openB.Size = UDim2.new(0,55,0,55); openB.Position = UDim2.new(0,15,0.5,-27)
+    openB.Size = UDim2.new(0,isMobile and 16 or 36,0,isMobile and 16 or 36)
+    openB.Position = UDim2.new(0,6,0.5,-(isMobile and 8 or 18))
     openB.BackgroundColor3 = S.panelColor; openB.Text = "V"
-    openB.TextColor3 = Color3.new(1,1,1); openB.TextSize = 22
+    openB.TextColor3 = Color3.new(1,1,1); openB.TextSize = isMobile and 7 or 16
     openB.Font = Enum.Font.GothamBold
     openB.Visible = false; openB.Parent = gui
-    Instance.new("UICorner", openB).CornerRadius = UDim.new(0, 28)
+    Instance.new("UICorner", openB).CornerRadius = UDim.new(1, 0)
     if LOGO then
         openB.Text = ""
         local oi = Instance.new("ImageLabel")
-        oi.Size = UDim2.new(0,38,0,38); oi.Position = UDim2.new(0.5,-19,0.5,-19)
+        oi.Size = UDim2.new(0,isMobile and 12 or 26,0,isMobile and 12 or 26)
+        oi.Position = UDim2.new(0.5,-(isMobile and 6 or 13),0.5,-(isMobile and 6 or 13))
         oi.BackgroundTransparency = 1; oi.Image = LOGO
         oi.ScaleType = Enum.ScaleType.Fit; oi.Parent = openB
     end
 
-    -- Табы
     local tabBar = Instance.new("Frame")
-    tabBar.Size = UDim2.new(1,-20,0,42)
-    tabBar.Position = UDim2.new(0,10,0,HEADER_H+6)
+    tabBar.Size = UDim2.new(1,-4,0,isMobile and 12 or 24)
+    tabBar.Position = UDim2.new(0,2,0,HEADER_H+1)
     tabBar.BackgroundColor3 = Color3.fromRGB(20,20,28)
     tabBar.BorderSizePixel = 0
     tabBar.Parent = main
-    Instance.new("UICorner", tabBar).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", tabBar).CornerRadius = UDim.new(0, 5)
 
     local tl = Instance.new("UIListLayout")
     tl.FillDirection = Enum.FillDirection.Horizontal
-    tl.Padding = UDim.new(0, 3)
+    tl.Padding = UDim.new(0, 1)
     tl.VerticalAlignment = Enum.VerticalAlignment.Center
     tl.HorizontalAlignment = Enum.HorizontalAlignment.Center
     tl.Parent = tabBar
 
     local content = Instance.new("Frame")
-    content.Size = UDim2.new(1,-20,1,-(HEADER_H+68))
-    content.Position = UDim2.new(0,10,0,HEADER_H+54)
+    content.Size = UDim2.new(1,-4,1,-(HEADER_H+isMobile and 16 or 30))
+    content.Position = UDim2.new(0,2,0,HEADER_H+isMobile and 14 or 26)
     content.BackgroundTransparency = 1
     content.Parent = main
 
@@ -1193,43 +1172,45 @@ local function createGUI()
 
     local function addTab(key, img, txt)
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(0, isMobile and 68 or 78, 0, 34)
+        b.Size = UDim2.new(0, isMobile and 6 or 24, 0, isMobile and 9 or 20)
         b.BackgroundColor3 = Color3.fromRGB(32,32,44)
         b.Text = ""; b.AutoButtonColor = false
         b.Parent = tabBar
-        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 3)
         tabs[key] = b
         if img then
             local im = Instance.new("ImageLabel")
-            im.Size = UDim2.new(0,22,0,22); im.Position = UDim2.new(0.5,-11,0.5,-11)
+            im.Size = UDim2.new(0,isMobile and 5 or 14,0,isMobile and 5 or 14)
+            im.Position = UDim2.new(0.5,-(isMobile and 2 or 7),0.5,-(isMobile and 2 or 7))
             im.BackgroundTransparency = 1; im.Image = img
             im.ScaleType = Enum.ScaleType.Fit; im.Parent = b
         else
             b.Text = txt or key:upper()
-            b.TextColor3 = Color3.fromRGB(170,170,190); b.TextSize = 10
+            b.TextColor3 = Color3.fromRGB(170,170,190); b.TextSize = isMobile and 4 or 7
             b.Font = Enum.Font.GothamBold
         end
         local p = Instance.new("ScrollingFrame")
         p.Size = UDim2.new(1,0,1,0); p.BackgroundTransparency = 1
-        p.BorderSizePixel = 0; p.ScrollBarThickness = 5
+        p.BorderSizePixel = 0; p.ScrollBarThickness = isMobile and 2 or 4
         p.ScrollBarImageColor3 = S.panelColor; p.CanvasSize = UDim2.new(0,0,0,0)
         p.Visible = false; p.Parent = content
         pages[key] = p
         local padding = Instance.new("UIPadding")
-        padding.PaddingTop = UDim.new(0,10); padding.PaddingBottom = UDim.new(0,20)
-        padding.PaddingLeft = UDim.new(0,3); padding.PaddingRight = UDim.new(0,3)
+        padding.PaddingTop = UDim.new(0,isMobile and 2 or 6)
+        padding.PaddingBottom = UDim.new(0,isMobile and 3 or 10)
+        padding.PaddingLeft = UDim.new(0,1); padding.PaddingRight = UDim.new(0,1)
         padding.Parent = p
         local lay = Instance.new("UIListLayout")
-        lay.Padding = UDim.new(0,6); lay.SortOrder = Enum.SortOrder.LayoutOrder
+        lay.Padding = UDim.new(0,isMobile and 1 or 4)
+        lay.SortOrder = Enum.SortOrder.LayoutOrder
         lay.Parent = p
         lay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            p.CanvasSize = UDim2.new(0,0,0, lay.AbsoluteContentSize.Y + 40)
+            p.CanvasSize = UDim2.new(0,0,0, lay.AbsoluteContentSize.Y + 10)
         end)
         b.MouseButton1Click:Connect(function() switchTab(key) end)
         return p
     end
 
-    -- Хелперы
     local function addBtn(parent, text, color, cb)
         local b = Instance.new("TextButton")
         b.Size = UDim2.new(1,0,0,BTN_H)
@@ -1238,10 +1219,10 @@ local function createGUI()
         b.TextSize = FONT_SZ
         b.Font = Enum.Font.GothamMedium; b.TextWrapped = true
         b.Parent = parent
-        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 7)
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 3)
         b.MouseButton1Click:Connect(function()
             local ok, err = pcall(cb, b)
-            if not ok then notify("Error: " .. tostring(err), Color3.fromRGB(255,60,60)) end
+            if not ok then notify("Err: " .. tostring(err), Color3.fromRGB(255,60,60)) end
         end)
         return b
     end
@@ -1252,32 +1233,26 @@ local function createGUI()
         row.BackgroundColor3 = Color3.fromRGB(22,22,32)
         row.Text = ""; row.AutoButtonColor = false
         row.Parent = parent
-        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 7)
+        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 3)
         local lbl = Instance.new("TextLabel")
-        lbl.Size = UDim2.new(1,-70,1,0); lbl.Position = UDim2.new(0,12,0,0)
+        lbl.Size = UDim2.new(1,-(isMobile and 14 or 30),1,0)
+        lbl.Position = UDim2.new(0,isMobile and 2 or 6,0,0)
         lbl.BackgroundTransparency = 1; lbl.Text = text
         lbl.TextColor3 = Color3.fromRGB(230,230,240); lbl.TextSize = FONT_SZ
         lbl.Font = Enum.Font.GothamMedium
         lbl.TextXAlignment = Enum.TextXAlignment.Left
         lbl.Parent = row
         local sw = Instance.new("Frame")
-        sw.Size = UDim2.new(0,42,0,20); sw.Position = UDim2.new(1,-54,0.5,-10)
+        sw.Size = UDim2.new(0,isMobile and 8 or 18,0,isMobile and 4 or 9)
+        sw.Position = UDim2.new(1,-(isMobile and 10 or 22),0.5,-(isMobile and 2 or 4))
         sw.BackgroundColor3 = initial and Color3.fromRGB(0,200,100) or Color3.fromRGB(55,55,70)
         sw.BorderSizePixel = 0; sw.Parent = row
         Instance.new("UICorner", sw).CornerRadius = UDim.new(1, 0)
-        local kn = Instance.new("Frame")
-        kn.Size = UDim2.new(0,16,0,16)
-        kn.Position = initial and UDim2.new(1,-18,0.5,-8) or UDim2.new(0,2,0.5,-8)
-        kn.BackgroundColor3 = Color3.new(1,1,1); kn.BorderSizePixel = 0; kn.Parent = sw
-        Instance.new("UICorner", kn).CornerRadius = UDim.new(1, 0)
         local st = initial
         row.MouseButton1Click:Connect(function()
             st = not st
             TweenService:Create(sw, TweenInfo.new(0.15), {
                 BackgroundColor3 = st and Color3.fromRGB(0,200,100) or Color3.fromRGB(55,55,70)
-            }):Play()
-            TweenService:Create(kn, TweenInfo.new(0.15), {
-                Position = st and UDim2.new(1,-18,0.5,-8) or UDim2.new(0,2,0.5,-8)
             }):Play()
             cb(st)
         end)
@@ -1286,21 +1261,22 @@ local function createGUI()
 
     local function addLabel(parent, text)
         local w = Instance.new("Frame")
-        w.Size = UDim2.new(1,0,0,26); w.BackgroundTransparency = 1; w.Parent = parent
+        w.Size = UDim2.new(1,0,0,isMobile and 6 or 16)
+        w.BackgroundTransparency = 1; w.Parent = parent
         local a = Instance.new("Frame")
-        a.Size = UDim2.new(0,3,0,16); a.Position = UDim2.new(0,0,0.5,-8)
+        a.Size = UDim2.new(0,2,0,isMobile and 4 or 10)
+        a.Position = UDim2.new(0,0,0.5,-(isMobile and 2 or 5))
         a.BackgroundColor3 = S.panelColor; a.BorderSizePixel = 0; a.Parent = w
         Instance.new("UICorner", a).CornerRadius = UDim.new(1, 0)
         local l = Instance.new("TextLabel")
-        l.Size = UDim2.new(1,-12,1,0); l.Position = UDim2.new(0,10,0,0)
+        l.Size = UDim2.new(1,-6,1,0); l.Position = UDim2.new(0,4,0,0)
         l.BackgroundTransparency = 1; l.Text = text
-        l.TextColor3 = S.panelColor; l.TextSize = FONT_SZ - 1
+        l.TextColor3 = S.panelColor; l.TextSize = isMobile and 4 or 7
         l.Font = Enum.Font.GothamBold
         l.TextXAlignment = Enum.TextXAlignment.Left
         l.Parent = w
     end
 
-    -- Создание табов
     local tabMain     = addTab("main", IMG_MAIN)
     local tabVisual   = addTab("visual", IMG_VIS)
     local tabESP      = addTab("esp", nil, T("tab_esp"))
@@ -1310,7 +1286,6 @@ local function createGUI()
     local tabConfigs  = addTab("configs", nil, T("tab_configs"))
     switchTab("main")
 
-    -- ═════ MAIN ═════
     addLabel(tabMain, T("sec_sheriff"))
     addToggle(tabMain, T("autoshoot"), false, function(v)
         S.autoShootEnabled = v
@@ -1320,6 +1295,10 @@ local function createGUI()
     addToggle(tabMain, T("autokill"), false, function(v)
         S.autoKillEnabled = v
         if v then startAutoKillLoop() else stopAutoKillLoop() end
+    end)
+    addToggle(tabMain, T("autoTpMurderer"), false, function(v)
+        S.autoTpEnabled = v
+        if v then startAutoTp() else stopAutoTp() end
     end)
     addLabel(tabMain, T("sec_farm"))
     addToggle(tabMain, T("farm"), S.farmEnabled, function(v)
@@ -1350,7 +1329,6 @@ local function createGUI()
         end
     end)
 
-    -- ═════ VISUAL ═════
     addLabel(tabVisual, T("sec_cross"))
     addToggle(tabVisual, T("cross"), true, function(v) S.crosshair = v end)
     addToggle(tabVisual, T("fov"), true, function(v) S.fovCircle = v end)
@@ -1437,7 +1415,6 @@ local function createGUI()
         end
     end)
 
-    -- ═════ ESP ═════
     addLabel(tabESP, T("sec_esp"))
     addToggle(tabESP, T("esp_main"), S.espEnabled, function(v)
         S.espEnabled = v SaveData.esp = v saveSettings()
@@ -1460,15 +1437,15 @@ local function createGUI()
 
     addLabel(tabESP, T("esp_preview"))
     local previewFrame = Instance.new("Frame")
-    previewFrame.Size = UDim2.new(1,0,0,240)
+    previewFrame.Size = UDim2.new(1,0,0,isMobile and 90 or 220)
     previewFrame.BackgroundColor3 = Color3.fromRGB(30,30,45)
     previewFrame.BorderSizePixel = 0; previewFrame.Parent = tabESP
-    Instance.new("UICorner", previewFrame).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", previewFrame).CornerRadius = UDim.new(0, 8)
 
     if IMG_NOOB then
         local noobImg = Instance.new("ImageLabel")
-        noobImg.Size = UDim2.new(0,130,0,130)
-        noobImg.Position = UDim2.new(0.5,-65,0.5,-20)
+        noobImg.Size = UDim2.new(0,isMobile and 50 or 120,0,isMobile and 50 or 120)
+        noobImg.Position = UDim2.new(0.5,-(isMobile and 25 or 60),0.5,-(isMobile and 20 or 15))
         noobImg.BackgroundTransparency = 1
         noobImg.Image = IMG_NOOB
         noobImg.ScaleType = Enum.ScaleType.Fit
@@ -1476,56 +1453,56 @@ local function createGUI()
 
         local nameLbl = Instance.new("TextLabel")
         nameLbl.Name = "PrevName"
-        nameLbl.Size = UDim2.new(0,180,0,18)
-        nameLbl.Position = UDim2.new(0.5,-90,0,26)
+        nameLbl.Size = UDim2.new(0,isMobile and 100 or 180,0,isMobile and 8 or 16)
+        nameLbl.Position = UDim2.new(0.5,-(isMobile and 50 or 90),0,isMobile and 10 or 22)
         nameLbl.BackgroundTransparency = 1
         nameLbl.Text = T("preview_name") .. " [" .. T("role_innocent") .. "]"
         nameLbl.TextColor3 = S.espColorInnocent
         nameLbl.TextStrokeTransparency = 0
-        nameLbl.TextSize = 13
+        nameLbl.TextSize = isMobile and 5 or 11
         nameLbl.Font = Enum.Font.GothamBold
         nameLbl.Parent = previewFrame
         S.previewRefs.nameLbl = nameLbl
 
         local weaponLbl = Instance.new("TextLabel")
         weaponLbl.Name = "PrevWeapon"
-        weaponLbl.Size = UDim2.new(0,180,0,18)
-        weaponLbl.Position = UDim2.new(0.5,-90,0,44)
+        weaponLbl.Size = UDim2.new(0,isMobile and 100 or 180,0,isMobile and 8 or 16)
+        weaponLbl.Position = UDim2.new(0.5,-(isMobile and 50 or 90),0,isMobile and 20 or 40)
         weaponLbl.BackgroundTransparency = 1
         weaponLbl.Text = "🔫 Gun"
         weaponLbl.TextColor3 = Color3.fromRGB(80,180,255)
         weaponLbl.TextStrokeTransparency = 0
-        weaponLbl.TextSize = 13
+        weaponLbl.TextSize = isMobile and 5 or 11
         weaponLbl.Font = Enum.Font.GothamBold
         weaponLbl.Parent = previewFrame
         S.previewRefs.weaponLbl = weaponLbl
 
         local hpBg = Instance.new("Frame")
         hpBg.Name = "PrevHpBg"
-        hpBg.Size = UDim2.new(0,120,0,8)
-        hpBg.Position = UDim2.new(0.5,-60,0,64)
+        hpBg.Size = UDim2.new(0,isMobile and 60 or 110,0,isMobile and 4 or 7)
+        hpBg.Position = UDim2.new(0.5,-(isMobile and 30 or 55),0,isMobile and 30 or 58)
         hpBg.BackgroundColor3 = Color3.fromRGB(20,20,20)
         hpBg.BorderSizePixel = 0
         hpBg.Parent = previewFrame
-        Instance.new("UICorner", hpBg).CornerRadius = UDim.new(0, 4)
+        Instance.new("UICorner", hpBg).CornerRadius = UDim.new(0, 3)
 
         local hpFill = Instance.new("Frame")
         hpFill.Size = UDim2.new(1,0,1,0)
         hpFill.BackgroundColor3 = Color3.fromRGB(0,255,0)
         hpFill.BorderSizePixel = 0
         hpFill.Parent = hpBg
-        Instance.new("UICorner", hpFill).CornerRadius = UDim.new(0, 4)
+        Instance.new("UICorner", hpFill).CornerRadius = UDim.new(0, 3)
         S.previewRefs.hpBg = hpBg
 
         local distLbl = Instance.new("TextLabel")
         distLbl.Name = "PrevDist"
-        distLbl.Size = UDim2.new(0,180,0,16)
-        distLbl.Position = UDim2.new(0.5,-90,0,78)
+        distLbl.Size = UDim2.new(0,isMobile and 100 or 180,0,isMobile and 8 or 14)
+        distLbl.Position = UDim2.new(0.5,-(isMobile and 50 or 90),0,isMobile and 40 or 72)
         distLbl.BackgroundTransparency = 1
         distLbl.Text = "[" .. T("preview_dist") .. "]"
         distLbl.TextColor3 = Color3.new(1,1,1)
         distLbl.TextStrokeTransparency = 0
-        distLbl.TextSize = 12
+        distLbl.TextSize = isMobile and 5 or 10
         distLbl.Font = Enum.Font.Gotham
         distLbl.Parent = previewFrame
         S.previewRefs.distLbl = distLbl
@@ -1533,7 +1510,6 @@ local function createGUI()
         updatePreview()
     end
 
-    -- ═════ RAGE ═════
     addLabel(tabRage, T("sec_aim"))
     addToggle(tabRage, T("aimbot"), false, function(v) S.aimbot = v end)
     addToggle(tabRage, T("wallcheck"), S.wallCheck, function(v)
@@ -1573,9 +1549,10 @@ local function createGUI()
     end)
     addBtn(tabRage, T("disable_all"), Color3.fromRGB(180,0,100), function()
         S.aimbot=false S.roleHighlight=false S.fly=false S.noclip=false S.infjump=false
-        S.spin=false S.autoPickup=false S.autoShootEnabled=false S.autoKillEnabled=false
+        S.spin=false S.autoPickup=false S.autoShootEnabled=false
+        S.autoKillEnabled=false S.autoTpEnabled=false
         S.espEnabled=false S.speed50Enabled=false S.farmEnabled=false
-        stopAutoShoot() stopAutoKillLoop() stopAutoPickup() stopFarm() clearHL()
+        stopAutoShoot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm() clearHL()
         if LP.Character then
             local h = LP.Character:FindFirstChildOfClass("Humanoid")
             if h then h.WalkSpeed=16 h.JumpPower=50 end
@@ -1583,28 +1560,27 @@ local function createGUI()
         notify(T("all_off"), Color3.fromRGB(255,60,60))
     end)
 
-    -- ═════ PLAYERS ═════
     addLabel(tabPlayers, T("plist"))
     local pList = Instance.new("Frame")
-    pList.Size = UDim2.new(1,0,0,380)
+    pList.Size = UDim2.new(1,0,0,isMobile and 60 or 240)
     pList.BackgroundColor3 = Color3.fromRGB(16,16,24)
     pList.BorderSizePixel = 0; pList.Parent = tabPlayers
-    Instance.new("UICorner", pList).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", pList).CornerRadius = UDim.new(0, 8)
 
     local pScroll = Instance.new("ScrollingFrame")
-    pScroll.Size = UDim2.new(1,-10,1,-10)
-    pScroll.Position = UDim2.new(0,5,0,5)
+    pScroll.Size = UDim2.new(1,-4,1,-4)
+    pScroll.Position = UDim2.new(0,2,0,2)
     pScroll.BackgroundTransparency = 1
     pScroll.BorderSizePixel = 0
-    pScroll.ScrollBarThickness = 5
+    pScroll.ScrollBarThickness = isMobile and 2 or 4
     pScroll.ScrollBarImageColor3 = S.panelColor
     pScroll.CanvasSize = UDim2.new(0,0,0,0)
     pScroll.Parent = pList
 
     local pLay = Instance.new("UIListLayout")
-    pLay.Padding = UDim.new(0, 5); pLay.Parent = pScroll
+    pLay.Padding = UDim.new(0, 2); pLay.Parent = pScroll
     pLay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        pScroll.CanvasSize = UDim2.new(0,0,0, pLay.AbsoluteContentSize.Y + 8)
+        pScroll.CanvasSize = UDim2.new(0,0,0, pLay.AbsoluteContentSize.Y + 6)
     end)
 
     local rows = {}
@@ -1614,51 +1590,49 @@ local function createGUI()
         for _, plr in ipairs(Players:GetPlayers()) do
             if plr ~= LP then
                 local row = Instance.new("Frame")
-                row.Size = UDim2.new(1,-4,0,42)
+                row.Size = UDim2.new(1,-2,0,isMobile and 12 or 26)
                 row.BackgroundColor3 = Color3.fromRGB(26,26,36)
                 row.BorderSizePixel = 0
                 row.Parent = pScroll
-                Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
+                Instance.new("UICorner", row).CornerRadius = UDim.new(0, 4)
 
                 local av = Instance.new("ImageLabel")
-                av.Size = UDim2.new(0,34,0,34)
-                av.Position = UDim2.new(0,4,0.5,-17)
+                av.Size = UDim2.new(0,isMobile and 10 or 22,0,isMobile and 10 or 22)
+                av.Position = UDim2.new(0,2,0.5,-(isMobile and 5 or 11))
                 av.BackgroundColor3 = Color3.fromRGB(40,40,55)
                 av.BorderSizePixel = 0
                 av.Image = "rbxthumb://type=AvatarHeadShot&id=" .. plr.UserId .. "&w=150&h=150"
                 av.Parent = row
-                Instance.new("UICorner", av).CornerRadius = UDim.new(0, 17)
+                Instance.new("UICorner", av).CornerRadius = UDim.new(0, isMobile and 5 or 11)
 
                 local tag = Instance.new("Frame")
-                tag.Size = UDim2.new(0,5,0,26)
-                tag.Position = UDim2.new(0,42,0.5,-13)
+                tag.Size = UDim2.new(0,isMobile and 2 or 4,0,isMobile and 8 or 18)
+                tag.Position = UDim2.new(0,isMobile and 14 or 28,0.5,-(isMobile and 4 or 9))
                 tag.BackgroundColor3 = roleColor(plr)
                 tag.BorderSizePixel = 0
                 tag.Parent = row
                 Instance.new("UICorner", tag).CornerRadius = UDim.new(1, 0)
 
                 local nm = Instance.new("TextLabel")
-                nm.Size = UDim2.new(1,-170,1,0)
-                nm.Position = UDim2.new(0,52,0,0)
+                nm.Size = UDim2.new(0.5,-(isMobile and 20 or 40),1,0)
+                nm.Position = UDim2.new(0,isMobile and 18 or 36,0,0)
                 nm.BackgroundTransparency = 1
                 nm.Text = plr.Name
                 nm.TextColor3 = Color3.fromRGB(230,230,240)
-                nm.TextSize = 11
+                nm.TextSize = isMobile and 4 or 8
                 nm.Font = Enum.Font.GothamMedium
                 nm.TextXAlignment = Enum.TextXAlignment.Left
                 nm.TextTruncate = Enum.TextTruncate.AtEnd
                 nm.Parent = row
 
                 local tpB = Instance.new("TextButton")
-                tpB.Size = UDim2.new(0,36,0,26)
-                tpB.Position = UDim2.new(1,-120,0.5,-13)
+                tpB.Size = UDim2.new(0,isMobile and 16 or 36,0,isMobile and 9 or 20)
+                tpB.Position = UDim2.new(1,-(isMobile and 56 or 120),0.5,-(isMobile and 4 or 10))
                 tpB.BackgroundColor3 = Color3.fromRGB(40,100,200)
-                tpB.Text = T("tp")
-                tpB.TextColor3 = Color3.new(1,1,1)
-                tpB.TextSize = 10
-                tpB.Font = Enum.Font.GothamBold
-                tpB.Parent = row
-                Instance.new("UICorner", tpB).CornerRadius = UDim.new(0, 6)
+                tpB.Text = T("tp"); tpB.TextColor3 = Color3.new(1,1,1)
+                tpB.TextSize = isMobile and 4 or 7
+                tpB.Font = Enum.Font.GothamBold; tpB.Parent = row
+                Instance.new("UICorner", tpB).CornerRadius = UDim.new(0, 3)
                 tpB.MouseButton1Click:Connect(function()
                     if plr.Character and LP.Character then
                         local t = plr.Character:FindFirstChild("HumanoidRootPart")
@@ -1670,15 +1644,13 @@ local function createGUI()
                 end)
 
                 local flB = Instance.new("TextButton")
-                flB.Size = UDim2.new(0,76,0,26)
-                flB.Position = UDim2.new(1,-80,0.5,-13)
+                flB.Size = UDim2.new(0,isMobile and 22 or 50,0,isMobile and 9 or 20)
+                flB.Position = UDim2.new(1,-(isMobile and 32 or 70),0.5,-(isMobile and 4 or 10))
                 flB.BackgroundColor3 = Color3.fromRGB(180,20,100)
-                flB.Text = T("fling")
-                flB.TextColor3 = Color3.new(1,1,1)
-                flB.TextSize = 10
-                flB.Font = Enum.Font.GothamBold
-                flB.Parent = row
-                Instance.new("UICorner", flB).CornerRadius = UDim.new(0, 6)
+                flB.Text = T("fling"); flB.TextColor3 = Color3.new(1,1,1)
+                flB.TextSize = isMobile and 4 or 7
+                flB.Font = Enum.Font.GothamBold; flB.Parent = row
+                Instance.new("UICorner", flB).CornerRadius = UDim.new(0, 3)
                 flB.MouseButton1Click:Connect(function() fling(plr) end)
 
                 rows[plr] = row
@@ -1689,7 +1661,6 @@ local function createGUI()
     Players.PlayerAdded:Connect(function() task.wait(1) rebuild() end)
     Players.PlayerRemoving:Connect(function() task.wait(0.3) rebuild() end)
 
-    -- ═════ SETTINGS ═════
     addLabel(tabSettings, T("sec_lang"))
     addBtn(tabSettings, T("lang_ru"), Color3.fromRGB(50,80,150), function()
         LANG = "ru" SaveData.lang = "ru" saveSettings()
@@ -1709,15 +1680,15 @@ local function createGUI()
 
     addLabel(tabSettings, T("sec_panel"))
     local colorHolder = Instance.new("Frame")
-    colorHolder.Size = UDim2.new(1,0,0,120)
+    colorHolder.Size = UDim2.new(1,0,0,isMobile and 40 or 100)
     colorHolder.BackgroundColor3 = Color3.fromRGB(22,22,32)
     colorHolder.BorderSizePixel = 0
     colorHolder.Parent = tabSettings
-    Instance.new("UICorner", colorHolder).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", colorHolder).CornerRadius = UDim.new(0, 8)
 
     local colorGrid = Instance.new("UIGridLayout")
-    colorGrid.CellSize = UDim2.new(0,48,0,48)
-    colorGrid.CellPadding = UDim2.new(0,8,0,8)
+    colorGrid.CellSize = UDim2.new(0,isMobile and 8 or 26,0,isMobile and 8 or 26)
+    colorGrid.CellPadding = UDim2.new(0,2,0,2)
     colorGrid.Parent = colorHolder
 
     local palette = {
@@ -1748,7 +1719,6 @@ local function createGUI()
         end)
     end
 
-    -- ═════ CONFIGS ═════
     addLabel(tabConfigs, T("sec_cfg_save"))
     local nameBox = Instance.new("TextBox")
     nameBox.Size = UDim2.new(1,0,0,BTN_H)
@@ -1760,9 +1730,9 @@ local function createGUI()
     nameBox.TextSize = FONT_SZ
     nameBox.Font = Enum.Font.GothamMedium
     nameBox.Parent = tabConfigs
-    Instance.new("UICorner", nameBox).CornerRadius = UDim.new(0, 7)
+    Instance.new("UICorner", nameBox).CornerRadius = UDim.new(0, 4)
     local pad = Instance.new("UIPadding", nameBox)
-    pad.PaddingLeft = UDim.new(0, 12)
+    pad.PaddingLeft = UDim.new(0, 8)
 
     addBtn(tabConfigs, T("cfg_save"), Color3.fromRGB(50,120,80), function()
         if not writefile or nameBox.Text == "" then return end
@@ -1796,9 +1766,8 @@ local function createGUI()
         nameBox.Text = "farm"
     end)
 
-    -- Обработчики
     closeB.MouseButton1Click:Connect(function()
-        pcall(clearHL) stopAutoShoot() stopAutoKillLoop() stopAutoPickup() stopFarm()
+        pcall(clearHL) stopAutoShoot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm()
         for _, bb in pairs(S.espBillboards) do pcall(function() bb:Destroy() end) end
         if S.invisibleConn then pcall(function() S.invisibleConn:Disconnect() end) end
         for _, c in ipairs(S.conns) do
@@ -1817,9 +1786,6 @@ local function createGUI()
     return gui
 end
 
--- ═══════════════════════════════════════════════════════════════
---  ОВЕРЛЕИ (прицел, FOV)
--- ═══════════════════════════════════════════════════════════════
 local crossH, crossV, crossDot, crossCircle, crossImage, fovCircle
 
 local function updateCrosshair()
@@ -1909,9 +1875,6 @@ local function createOverlays()
     updateCrosshair()
 end
 
--- ═══════════════════════════════════════════════════════════════
---  ГЛАВНЫЙ ЦИКЛ
--- ═══════════════════════════════════════════════════════════════
 local function mainLoop()
     local conn = RunService.RenderStepped:Connect(function(dt)
         if not S.gui then return end
@@ -2007,9 +1970,6 @@ local function setupInfJump()
     table.insert(S.conns, c)
 end
 
--- ═══════════════════════════════════════════════════════════════
---  СТАРТОВЫЙ ЭКРАН (Загрузка → Выбор устройства)
--- ═══════════════════════════════════════════════════════════════
 local function showStartup()
     local parent = (gethui and gethui()) or game:GetService("CoreGui")
     local gui = Instance.new("ScreenGui")
@@ -2020,7 +1980,6 @@ local function showStartup()
     gui.Parent = parent
     S.gui = gui
 
-    -- ФАЗА 1: ЗАГРУЗКА
     local loadF = Instance.new("Frame")
     loadF.Size = UDim2.new(1,0,1,0)
     loadF.BackgroundColor3 = Color3.fromRGB(6,6,12)
@@ -2089,7 +2048,6 @@ local function showStartup()
         end
         task.wait(0.4)
 
-        -- ФАЗА 2: ВЫБОР УСТРОЙСТВА
         loadF:Destroy()
 
         local selF = Instance.new("Frame")
@@ -2177,17 +2135,16 @@ local function showStartup()
 
             SaveData.device = selDev
             isMobile = (selDev == "mobile")
-            PANEL_W = isMobile and 480 or 540
-            PANEL_H = isMobile and 620 or 660
-            BTN_H = isMobile and 32 or 34
-            TOGGLE_H = isMobile and 34 or 36
-            FONT_SZ = isMobile and 11 or 12
-            HEADER_H = isMobile and 50 or 54
+            PANEL_W = isMobile and 50 or 200
+            PANEL_H = isMobile and 100 or 400
+            BTN_H = isMobile and 8 or 20
+            TOGGLE_H = isMobile and 8 or 22
+            FONT_SZ = isMobile and 4 or 9
+            HEADER_H = isMobile and 10 or 26
             saveSettings()
 
             selF:Destroy()
 
-            -- Запускаем панель
             createGUI()
             createOverlays()
             mainLoop()
@@ -2199,15 +2156,12 @@ local function showStartup()
     end)
 end
 
--- ═══════════════════════════════════════════════════════════════
---  ЗАПУСК
--- ═══════════════════════════════════════════════════════════════
 _G.VankaPanel = {
     Destroy = function()
         for _, c in ipairs(S.conns) do
             pcall(function() if c and c.Disconnect then c:Disconnect() end end)
         end
-        clearHL() stopAutoShoot() stopAutoKillLoop() stopAutoPickup() stopFarm()
+        clearHL() stopAutoShoot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm()
         if S.invisibleConn then pcall(function() S.invisibleConn:Disconnect() end) end
         for _, bb in pairs(S.espBillboards) do pcall(function() bb:Destroy() end) end
         if S.gui then pcall(function() S.gui:Destroy() end) end
@@ -2226,5 +2180,3 @@ else
     if S.farmEnabled then startFarm() end
     task.delay(0.5, function() notify(T("loaded"), Color3.fromRGB(0,200,100)) end)
 end
-
-print("[VANKA v32] OK | Device: " .. (SaveData.device == "" and "not selected" or SaveData.device))
