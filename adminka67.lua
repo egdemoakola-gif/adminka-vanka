@@ -18,7 +18,7 @@ local L = {
     ru = {
         title="АДМИНКА ВАНЬКА",
         loading="Загрузка", ready="Готово",
-        tab_main="ГЛАВНАЯ", tab_visual="ВИЗУАЛ", tab_esp="ESP", tab_rage="РЕЙДЖ",
+        tab_main="ГЛАВНАЯ", tab_visual="ВИЗУАЛ", tab_esp="ЕСП", tab_rage="РЕЙДЖ",
         tab_players="ИГРОКИ", tab_settings="НАСТРОЙКИ", tab_configs="КОНФИГИ",
         role_murderer="Мардер", role_sheriff="Шериф", role_innocent="Невиновный",
         sec_sheriff="ШЕРИФ", autoshoot="Авто-выстрел в Мардера",
@@ -35,7 +35,7 @@ local L = {
         sec_move="ДВИЖЕНИЕ", fly="Полёт", noclip="Noclip", infjump="Беск. прыжок",
         speed="Скорость 50",
         sec_vis="ВИЗУАЛ", fullbright="Яркий свет",
-        sec_esp="ESP", esp_main="Включить", esp_health="Здоровье", esp_name="Имя",
+        sec_esp="ЕСП", esp_main="Включить", esp_health="Здоровье", esp_name="Имя",
         esp_dist="Дистанция", esp_weapon="Оружие", esp_rainbow="Радужный режим",
         esp_preview="Превью:",
         sec_aim="АИМ", aimbot="Аимбот", wallcheck="Проверка стен",
@@ -45,6 +45,10 @@ local L = {
         sec_spin="СПИНБОТ", spin="Спинбот",
         sec_util="УТИЛИТЫ", respawn="Респавн", disable_all="ВЫКЛЮЧИТЬ ВСЁ",
         plist="СПИСОК ИГРОКОВ", tp="ТП", fling="ФЛИНГ",
+        sec_fling="НАСТРОЙКИ ФЛИНГА", fling_speed="Скорость",
+        fling_force="Сила толчка", fling_dist="Дистанция",
+        fling_interval="Интервал (сек)", fling_stop="ОСТАНОВИТЬ ФЛИНГ",
+        fling_active="Флинг цели: ", fling_none="Флинг неактивен",
         sec_lang="ЯЗЫК", lang_ru="Русский", lang_en="English", lang_zh="中文",
         sec_panel="ЦВЕТ ПАНЕЛИ",
         sec_cfg_save="СОХРАНЕНИЕ", cfg_name="Имя конфига", cfg_save="Сохранить",
@@ -59,7 +63,6 @@ local L = {
         cross_loaded="Прицел загружен", cross_notfound="Файл не найден",
         cfg_saved="Конфиг сохранён", cfg_loaded="Конфиг загружен", cfg_notfound="Не найден",
         preview_name="Игрок123", preview_dist="15м",
-        device_pc="Компьютер", device_mobile="Телефон", device_tablet="Планшет",
     },
     en = {
         title="VANKA ADMIN",
@@ -91,6 +94,10 @@ local L = {
         sec_spin="SPINBOT", spin="Spinbot",
         sec_util="UTILITIES", respawn="Respawn", disable_all="TURN OFF ALL",
         plist="PLAYERS LIST", tp="TP", fling="FLING",
+        sec_fling="FLING SETTINGS", fling_speed="Speed",
+        fling_force="Push force", fling_dist="Distance",
+        fling_interval="Interval (sec)", fling_stop="STOP FLING",
+        fling_active="Fling target: ", fling_none="Fling inactive",
         sec_lang="LANGUAGE", lang_ru="Русский", lang_en="English", lang_zh="中文",
         sec_panel="PANEL COLOR",
         sec_cfg_save="SAVE", cfg_name="Config name", cfg_save="Save",
@@ -105,7 +112,6 @@ local L = {
         cross_loaded="Crosshair loaded", cross_notfound="File not found",
         cfg_saved="Config saved", cfg_loaded="Config loaded", cfg_notfound="Not found",
         preview_name="Player123", preview_dist="15m",
-        device_pc="PC", device_mobile="Phone", device_tablet="Tablet",
     },
     zh = {
         title="VANKA 管理员",
@@ -137,6 +143,10 @@ local L = {
         sec_spin="旋转", spin="旋转机器人",
         sec_util="工具", respawn="重生", disable_all="关闭所有",
         plist="玩家列表", tp="传送", fling="甩飞",
+        sec_fling="甩飞设置", fling_speed="速度",
+        fling_force="推力", fling_dist="距离",
+        fling_interval="间隔 (秒)", fling_stop="停止甩飞",
+        fling_active="目标: ", fling_none="未激活",
         sec_lang="语言", lang_ru="Русский", lang_en="English", lang_zh="中文",
         sec_panel="面板颜色",
         sec_cfg_save="保存", cfg_name="配置名", cfg_save="保存",
@@ -151,30 +161,20 @@ local L = {
         cross_loaded="准星加载", cross_notfound="文件未找到",
         cfg_saved="已保存", cfg_loaded="已加载", cfg_notfound="未找到",
         preview_name="玩家123", preview_dist="15米",
-        device_pc="电脑", device_mobile="手机", device_tablet="平板",
     }
 }
 local function T(k) return L[LANG][k] or k end
 
--- АВТО-ОПРЕДЕЛЕНИЕ УСТРОЙСТВА
 local function detectDevice()
     local touch = UIS.TouchEnabled
     local keyboard = UIS.KeyboardEnabled
     local mouse = UIS.MouseEnabled
-    local gamepad = UIS.GamepadEnabled
-
-    if keyboard and mouse and not touch then
-        return "pc"
+    if keyboard and mouse and not touch then return "pc"
     elseif touch and not keyboard then
         local screen = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(0,0)
-        if screen.X >= 900 or screen.Y >= 700 then
-            return "tablet"
-        end
+        if screen.X >= 900 or screen.Y >= 700 then return "tablet" end
         return "mobile"
-    elseif touch and keyboard then
-        return "tablet"
-    elseif gamepad then
-        return "console"
+    elseif touch and keyboard then return "tablet"
     end
     return "pc"
 end
@@ -187,11 +187,12 @@ local SaveData = {
     cross_style=1, cross_color={255,0,100}, panel_color={255,0,100},
     speed50=false, farm=false, invisible=false,
     aim_part="Head", aim_smooth=0.35, wallcheck=false, custom_cross="",
+    fling_speed=10000, fling_force=5000, fling_dist=2, fling_interval=0.05,
 }
 
 local function serialize()
     local s = ""
-    local keys = {"lang","device","esp","esp_health","esp_name","esp_dist","esp_weapon","esp_rainbow","cross_style","speed50","farm","invisible","aim_part","aim_smooth","wallcheck","custom_cross"}
+    local keys = {"lang","device","esp","esp_health","esp_name","esp_dist","esp_weapon","esp_rainbow","cross_style","speed50","farm","invisible","aim_part","aim_smooth","wallcheck","custom_cross","fling_speed","fling_force","fling_dist","fling_interval"}
     for _, k in ipairs(keys) do
         local v = SaveData[k]
         if type(v) == "boolean" then s = s .. k .. "=" .. tostring(v) .. "\n"
@@ -235,6 +236,10 @@ local function loadSettings()
             elseif k == "aim_smooth" then SaveData.aim_smooth = tonumber(v) or 0.35
             elseif k == "aim_part" then SaveData.aim_part = v
             elseif k == "custom_cross" then SaveData.custom_cross = v
+            elseif k == "fling_speed" then SaveData.fling_speed = tonumber(v) or 10000
+            elseif k == "fling_force" then SaveData.fling_force = tonumber(v) or 5000
+            elseif k == "fling_dist" then SaveData.fling_dist = tonumber(v) or 2
+            elseif k == "fling_interval" then SaveData.fling_interval = tonumber(v) or 0.05
             elseif k == "cross_color" then
                 local r,g,b = string.match(v, "(%d+),(%d+),(%d+)")
                 if r then SaveData.cross_color = {tonumber(r),tonumber(g),tonumber(b)} end
@@ -282,7 +287,6 @@ local IMG_VIS   = downloadImg("visial.png")
 local IMG_RAGE  = downloadImg("rage.png")
 local IMG_NOOB  = downloadImg("Roblox-Noob-Blocky-Avatar-Transparent-PNG.png")
 
--- АВТО-ОПРЕДЕЛЕНИЕ + НОРМАЛЬНЫЕ РАЗМЕРЫ
 local detectedDevice = SaveData.device
 if detectedDevice == "" or detectedDevice == nil then
     detectedDevice = detectDevice()
@@ -326,6 +330,11 @@ local S = {
     espColorSheriff=Color3.fromRGB(SaveData.esp_color_sheriff[1], SaveData.esp_color_sheriff[2], SaveData.esp_color_sheriff[3]),
     espColorInnocent=Color3.fromRGB(SaveData.esp_color_innocent[1], SaveData.esp_color_innocent[2], SaveData.esp_color_innocent[3]),
     previewRefs={}, crossImage=nil,
+    flingRunning=false, flingThread=nil, flingConns={}, flingTargetName="",
+    flingSpeed=SaveData.fling_speed or 10000,
+    flingForce=SaveData.fling_force or 5000,
+    flingDist=SaveData.fling_dist or 2,
+    flingInterval=SaveData.fling_interval or 0.05,
 }
 
 local function notify(text, color)
@@ -648,80 +657,142 @@ local function startAutoTp()
 end
 local function stopAutoTp() S.autoTpEnabled = false S.autoTpThread = nil end
 
-local flingBusy = false
-local function fling(target)
-    if not target or target == LP or not target.Character then
+-- ==== FLING (телепорт-толчок) ====
+local function flingCleanup()
+    for _, c in ipairs(S.flingConns) do
+        pcall(function() if c and c.Disconnect then c:Disconnect() end end)
+    end
+    S.flingConns = {}
+end
+
+local function flingStop()
+    S.flingRunning = false
+    if S.flingThread then
+        pcall(task.cancel, S.flingThread)
+        S.flingThread = nil
+    end
+    flingCleanup()
+    S.flingTargetName = ""
+    local char = LP.Character
+    if char then
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.WalkSpeed = 16
+            hum.JumpPower = 50
+            hum.UseJumpPower = true
+        end
+    end
+    notify("Флинг остановлен", Color3.fromRGB(200,200,200))
+end
+
+local function flingStart(targetName)
+    if S.flingRunning then return end
+    if not targetName or targetName == "" then
         notify(T("no_target"), Color3.fromRGB(255,60,60))
         return
     end
-    if flingBusy then return end
-    flingBusy = true
 
-    local tChar = target.Character
-    local tHrp = tChar:FindFirstChild("HumanoidRootPart")
-    local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-    if not tHrp or not myHrp then flingBusy = false return end
+    local target = Players:FindFirstChild(targetName)
+    if not target then
+        notify("Игрок не найден", Color3.fromRGB(255,60,60))
+        return
+    end
 
-    notify(T("fling_run") .. ": " .. target.Name, Color3.fromRGB(255,0,150))
+    S.flingRunning = true
+    S.flingTargetName = targetName
 
-    task.spawn(function()
-        local myPos = myHrp.CFrame
-        local wasAnchored = myHrp.Anchored
-        myHrp.Anchored = true
-
-        for _, p in ipairs(tChar:GetDescendants()) do
-            if p:IsA("BasePart") then
-                pcall(function() p:SetNetworkOwner(LP) end)
-            end
+    S.flingThread = task.spawn(function()
+        local targetChar = target.Character or target.CharacterAdded:Wait()
+        local targetRoot = targetChar:WaitForChild("HumanoidRootPart", 10)
+        if not targetRoot then
+            notify("Нет персонажа цели", Color3.fromRGB(255,60,60))
+            flingStop()
+            return
         end
 
-        local bv = Instance.new("BodyVelocity")
-        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bv.Velocity = Vector3.new(0,0,0); bv.Parent = tHrp
-
-        local bav = Instance.new("BodyAngularVelocity")
-        bav.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        bav.AngularVelocity = Vector3.new(0,0,0); bav.Parent = tHrp
-
-        local t0 = tick()
-        while tick() - t0 < 2.5 do
-            if not target.Character then break end
-            local curHrp = target.Character:FindFirstChild("HumanoidRootPart")
-            if not curHrp then break end
-            local a1 = math.random() * math.pi * 2
-            local a2 = math.random() * math.pi - math.pi/2
-            local r = math.random(1, 3)
-            pcall(function()
-                myHrp.CFrame = curHrp.CFrame * CFrame.new(math.cos(a1)*math.cos(a2)*r, math.sin(a2)*r, math.sin(a1)*math.cos(a2)*r)
-                bv.Velocity = Vector3.new(math.random(-40000,40000), math.random(50000,90000), math.random(-40000,40000))
-                bav.AngularVelocity = Vector3.new(math.random(-800,800), math.random(-800,800), math.random(-800,800))
-                curHrp.AssemblyLinearVelocity = Vector3.new(math.random(-30000,30000), math.random(40000,80000), math.random(-30000,30000))
-            end)
-            pcall(function() myHrp.CFrame = myPos end)
-            task.wait()
+        local function getMyChar()
+            local c = LP.Character or LP.CharacterAdded:Wait()
+            local hrp = c:WaitForChild("HumanoidRootPart", 10)
+            local hum = c:FindFirstChildOfClass("Humanoid")
+            return c, hrp, hum
         end
 
-        if bv then pcall(function() bv:Destroy() end) end
-        if bav then pcall(function() bav:Destroy() end) end
-        task.wait(1)
-        myHrp.Anchored = wasAnchored
-        task.wait(0.2)
-        pcall(function()
-            if myHrp and myHrp.Parent then
-                myHrp.CFrame = myPos
-                myHrp.Velocity = Vector3.new(0,0,0)
+        local myChar, myRoot, myHum = getMyChar()
+        if not myRoot or not myHum then
+            notify("Ошибка персонажа", Color3.fromRGB(255,60,60))
+            flingStop()
+            return
+        end
+
+        myHum.WalkSpeed = S.flingSpeed
+        myHum.JumpPower = S.flingSpeed
+        myHum.UseJumpPower = true
+
+        table.insert(S.flingConns, LP.CharacterAdded:Connect(function(newChar)
+            myChar = newChar
+            myRoot = newChar:WaitForChild("HumanoidRootPart", 10)
+            myHum = newChar:FindFirstChildOfClass("Humanoid")
+            if myHum then
+                myHum.WalkSpeed = S.flingSpeed
+                myHum.JumpPower = S.flingSpeed
+                myHum.UseJumpPower = true
             end
-        end)
-        flingBusy = false
-        task.wait(1)
-        if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-            local y = target.Character.HumanoidRootPart.Position.Y
-            if y > 500 then notify(target.Name .. " В КОСМОСЕ!", Color3.fromRGB(255,100,200))
-            elseif y > myPos.Position.Y + 50 then notify(target.Name .. " УЛЕТЕЛ!", Color3.fromRGB(255,150,50))
-            else notify(target.Name .. " чуть откинуло", Color3.fromRGB(150,150,150)) end
+        end))
+
+        table.insert(S.flingConns, target.CharacterAdded:Connect(function(newChar)
+            targetChar = newChar
+            targetRoot = newChar:WaitForChild("HumanoidRootPart", 10)
+        end))
+
+        notify(T("fling_run") .. " → " .. targetName, Color3.fromRGB(255,0,150))
+
+        while S.flingRunning do
+            if not myRoot or not myRoot.Parent then
+                task.wait(0.1)
+                myChar, myRoot, myHum = getMyChar()
+                if myHum then
+                    myHum.WalkSpeed = S.flingSpeed
+                    myHum.JumpPower = S.flingSpeed
+                    myHum.UseJumpPower = true
+                end
+            end
+
+            if not targetRoot or not targetRoot.Parent then
+                local t = Players:FindFirstChild(targetName)
+                if t and t.Character then
+                    targetChar = t.Character
+                    targetRoot = t.Character:FindFirstChild("HumanoidRootPart")
+                end
+            end
+
+            if targetRoot and targetRoot.Parent and myRoot and myRoot.Parent then
+                local myPos = myRoot.Position
+                local targetPos = targetRoot.Position
+                local dir = myPos - targetPos
+                local flatDir = Vector3.new(dir.X, 0, dir.Z)
+
+                if flatDir.Magnitude > S.flingDist * 2 then
+                    local sideOffset = Vector3.new(S.flingDist, 0, 0)
+                    myRoot.CFrame = CFrame.new(targetPos + sideOffset, targetPos)
+                else
+                    myRoot.CFrame = CFrame.new(targetPos + Vector3.new(0, 1, 0))
+                    if flatDir.Magnitude < 0.1 then
+                        flatDir = Vector3.new(0, 0, 1)
+                    end
+                    local pushDir = flatDir.Unit
+                    myRoot.AssemblyLinearVelocity = pushDir * S.flingForce
+                    targetRoot.AssemblyLinearVelocity = pushDir * S.flingForce
+                        + Vector3.new(0, S.flingForce * 0.3, 0)
+                end
+
+                task.wait(S.flingInterval)
+            else
+                task.wait(0.1)
+            end
         end
     end)
 end
+-- ==== END FLING ====
 
 local function findCoin()
     local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
@@ -1293,6 +1364,25 @@ local function createGUI()
         l.Parent = w
     end
 
+    local function addTextBox(parent, default, placeholder)
+        local box = Instance.new("TextBox")
+        box.Size = UDim2.new(1,0,0,30)
+        box.BackgroundColor3 = Color3.fromRGB(22,22,32)
+        box.BorderSizePixel = 0
+        box.Text = tostring(default)
+        box.PlaceholderText = placeholder or ""
+        box.TextColor3 = Color3.new(1,1,1)
+        box.PlaceholderColor3 = Color3.fromRGB(120,120,140)
+        box.Font = Enum.Font.GothamMedium
+        box.TextSize = FONT_SZ
+        box.ClearTextOnFocus = false
+        box.Parent = parent
+        Instance.new("UICorner", box).CornerRadius = UDim.new(0, 7)
+        local p = Instance.new("UIPadding", box)
+        p.PaddingLeft = UDim.new(0, 12)
+        return box
+    end
+
     local tabMain     = addTab("main", IMG_MAIN)
     local tabVisual   = addTab("visual", IMG_VIS)
     local tabESP      = addTab("esp", nil, T("tab_esp"))
@@ -1569,6 +1659,7 @@ local function createGUI()
         S.autoKillEnabled=false S.autoTpEnabled=false
         S.espEnabled=false S.speed50Enabled=false S.farmEnabled=false
         stopAutoShoot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm() clearHL()
+        if S.flingRunning then flingStop() end
         if LP.Character then
             local h = LP.Character:FindFirstChildOfClass("Humanoid")
             if h then h.WalkSpeed=16 h.JumpPower=50 end
@@ -1576,6 +1667,35 @@ local function createGUI()
         notify(T("all_off"), Color3.fromRGB(255,60,60))
     end)
 
+    -- ========= PLAYERS + FLING =========
+    addLabel(tabPlayers, T("sec_fling"))
+    addLabel(tabPlayers, T("fling_speed"))
+    local flingSpeedBox = addTextBox(tabPlayers, S.flingSpeed, "10000")
+    flingSpeedBox.FocusLost:Connect(function()
+        local v = tonumber(flingSpeedBox.Text)
+        if v then S.flingSpeed = v SaveData.fling_speed = v saveSettings() end
+    end)
+    addLabel(tabPlayers, T("fling_force"))
+    local flingForceBox = addTextBox(tabPlayers, S.flingForce, "5000")
+    flingForceBox.FocusLost:Connect(function()
+        local v = tonumber(flingForceBox.Text)
+        if v then S.flingForce = v SaveData.fling_force = v saveSettings() end
+    end)
+    addLabel(tabPlayers, T("fling_dist"))
+    local flingDistBox = addTextBox(tabPlayers, S.flingDist, "2")
+    flingDistBox.FocusLost:Connect(function()
+        local v = tonumber(flingDistBox.Text)
+        if v then S.flingDist = v SaveData.fling_dist = v saveSettings() end
+    end)
+    addLabel(tabPlayers, T("fling_interval"))
+    local flingIntBox = addTextBox(tabPlayers, S.flingInterval, "0.05")
+    flingIntBox.FocusLost:Connect(function()
+        local v = tonumber(flingIntBox.Text)
+        if v then S.flingInterval = v SaveData.fling_interval = v saveSettings() end
+    end)
+    addBtn(tabPlayers, T("fling_stop"), Color3.fromRGB(180,20,100), function()
+        if S.flingRunning then flingStop() end
+    end)
     addLabel(tabPlayers, T("plist"))
     local pList = Instance.new("Frame")
     pList.Size = UDim2.new(1,0,0,380)
@@ -1671,7 +1791,20 @@ local function createGUI()
                 flB.Font = Enum.Font.GothamBold
                 flB.Parent = row
                 Instance.new("UICorner", flB).CornerRadius = UDim.new(0, 6)
-                flB.MouseButton1Click:Connect(function() fling(plr) end)
+                flB.MouseButton1Click:Connect(function()
+                    S.flingSpeed = tonumber(flingSpeedBox.Text) or S.flingSpeed
+                    S.flingForce = tonumber(flingForceBox.Text) or S.flingForce
+                    S.flingDist = tonumber(flingDistBox.Text) or S.flingDist
+                    S.flingInterval = tonumber(flingIntervalBox.Text) or S.flingInterval
+                    SaveData.fling_speed = S.flingSpeed
+                    SaveData.fling_force = S.flingForce
+                    SaveData.fling_dist = S.flingDist
+                    SaveData.fling_interval = S.flingInterval
+                    saveSettings()
+                    if S.flingRunning then flingStop() end
+                    task.wait(0.1)
+                    flingStart(plr.Name)
+                end)
 
                 rows[plr] = row
             end
@@ -1683,19 +1816,34 @@ local function createGUI()
 
     addLabel(tabSettings, T("sec_lang"))
     addBtn(tabSettings, T("lang_ru"), Color3.fromRGB(50,80,150), function()
-        LANG = "ru" SaveData.lang = "ru" saveSettings()
-        ttl.Text = T("title")
-        notify(T("saved") .. ": Русский", Color3.fromRGB(0,200,100))
+        SaveData.lang = "ru"
+        saveSettings()
+        notify("Перезапуск...", Color3.fromRGB(0,200,100))
+        task.wait(0.3)
+        if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
+        task.wait(0.3)
+        LANG = "ru"
+        showLoading()
     end)
     addBtn(tabSettings, T("lang_en"), Color3.fromRGB(50,80,150), function()
-        LANG = "en" SaveData.lang = "en" saveSettings()
-        ttl.Text = T("title")
-        notify(T("saved") .. ": English", Color3.fromRGB(0,200,100))
+        SaveData.lang = "en"
+        saveSettings()
+        notify("Restarting...", Color3.fromRGB(0,200,100))
+        task.wait(0.3)
+        if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
+        task.wait(0.3)
+        LANG = "en"
+        showLoading()
     end)
     addBtn(tabSettings, T("lang_zh"), Color3.fromRGB(50,80,150), function()
-        LANG = "zh" SaveData.lang = "zh" saveSettings()
-        ttl.Text = T("title")
-        notify(T("saved") .. ": 中文", Color3.fromRGB(0,200,100))
+        SaveData.lang = "zh"
+        saveSettings()
+        notify("重启中...", Color3.fromRGB(0,200,100))
+        task.wait(0.3)
+        if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
+        task.wait(0.3)
+        LANG = "zh"
+        showLoading()
     end)
 
     addLabel(tabSettings, T("sec_panel"))
@@ -1999,7 +2147,7 @@ local function setupInfJump()
     table.insert(S.conns, c)
 end
 
-local function showLoading()
+function showLoading()
     local parent = (gethui and gethui()) or game:GetService("CoreGui")
     local gui = Instance.new("ScreenGui")
     gui.Name = "VankaLoading_" .. tostring(math.random(1000,9999))
@@ -2093,6 +2241,7 @@ _G.VankaPanel = {
             pcall(function() if c and c.Disconnect then c:Disconnect() end end)
         end
         clearHL() stopAutoShoot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm()
+        if S.flingRunning then flingStop() end
         if S.invisibleConn then pcall(function() S.invisibleConn:Disconnect() end) end
         for _, bb in pairs(S.espBillboards) do pcall(function() bb:Destroy() end) end
         if S.gui then pcall(function() S.gui:Destroy() end) end
