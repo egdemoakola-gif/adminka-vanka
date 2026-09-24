@@ -1,5 +1,4 @@
 -- Vanka Admin Panel v33
-
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players           = game:GetService("Players")
@@ -17,7 +16,6 @@ local LANG = "ru"
 local L = {
     ru = {
         title="АДМИНКА ВАНЬКА",
-        loading="Загрузка", ready="Готово",
         tab_main="ГЛАВНАЯ", tab_visual="ВИЗУАЛ", tab_esp="ЕСП", tab_rage="РЕЙДЖ",
         tab_players="ИГРОКИ", tab_settings="НАСТРОЙКИ", tab_configs="КОНФИГИ",
         role_murderer="Мардер", role_sheriff="Шериф", role_innocent="Невиновный",
@@ -48,7 +46,6 @@ local L = {
         sec_fling="НАСТРОЙКИ ФЛИНГА", fling_speed="Скорость",
         fling_force="Сила толчка", fling_dist="Дистанция",
         fling_interval="Интервал (сек)", fling_stop="ОСТАНОВИТЬ ФЛИНГ",
-        fling_active="Флинг цели: ", fling_none="Флинг неактивен",
         sec_lang="ЯЗЫК", lang_ru="Русский", lang_en="English", lang_zh="中文",
         sec_panel="ЦВЕТ ПАНЕЛИ",
         sec_cfg_save="СОХРАНЕНИЕ", cfg_name="Имя конфига", cfg_save="Сохранить",
@@ -56,7 +53,7 @@ local L = {
         cfg_default="По умолчанию", cfg_aim="Для аима", cfg_farm="Для фарма",
         loaded="Загружено", saved="Сохранено",
         wait_gun="Жду пистолет", target="Цель", killed="Убил",
-        fling_run="Флингаю", fling_done="Отфлингован", no_target="Нет цели",
+        fling_run="Флингаю", no_target="Нет цели",
         sheriff_off="Авто-выстрел ВЫКЛ", all_off="Всё выключено",
         farm_on="Фарм ВКЛ", farm_off="Фарм ВЫКЛ", farm_full="Сумка полная", farm_none="Монет нет",
         inv_on="Невидимость ВКЛ", inv_off="Невидимость ВЫКЛ",
@@ -66,7 +63,6 @@ local L = {
     },
     en = {
         title="VANKA ADMIN",
-        loading="Loading", ready="Ready",
         tab_main="MAIN", tab_visual="VISUAL", tab_esp="ESP", tab_rage="RAGE",
         tab_players="PLAYERS", tab_settings="SETTINGS", tab_configs="CONFIGS",
         role_murderer="Murderer", role_sheriff="Sheriff", role_innocent="Innocent",
@@ -97,7 +93,6 @@ local L = {
         sec_fling="FLING SETTINGS", fling_speed="Speed",
         fling_force="Push force", fling_dist="Distance",
         fling_interval="Interval (sec)", fling_stop="STOP FLING",
-        fling_active="Fling target: ", fling_none="Fling inactive",
         sec_lang="LANGUAGE", lang_ru="Русский", lang_en="English", lang_zh="中文",
         sec_panel="PANEL COLOR",
         sec_cfg_save="SAVE", cfg_name="Config name", cfg_save="Save",
@@ -105,7 +100,7 @@ local L = {
         cfg_default="Default", cfg_aim="For aim", cfg_farm="For farm",
         loaded="Loaded", saved="Saved",
         wait_gun="Waiting for gun", target="Target", killed="Killed",
-        fling_run="Flinging", fling_done="Flinged", no_target="No target",
+        fling_run="Flinging", no_target="No target",
         sheriff_off="Auto Shoot OFF", all_off="All disabled",
         farm_on="Farm ON", farm_off="Farm OFF", farm_full="Bag full", farm_none="No coins",
         inv_on="Invisible ON", inv_off="Invisible OFF",
@@ -115,7 +110,6 @@ local L = {
     },
     zh = {
         title="VANKA 管理员",
-        loading="加载中", ready="完成",
         tab_main="主要", tab_visual="视觉", tab_esp="ESP", tab_rage="愤怒",
         tab_players="玩家", tab_settings="设置", tab_configs="配置",
         role_murderer="凶手", role_sheriff="警长", role_innocent="无辜",
@@ -146,7 +140,6 @@ local L = {
         sec_fling="甩飞设置", fling_speed="速度",
         fling_force="推力", fling_dist="距离",
         fling_interval="间隔 (秒)", fling_stop="停止甩飞",
-        fling_active="目标: ", fling_none="未激活",
         sec_lang="语言", lang_ru="Русский", lang_en="English", lang_zh="中文",
         sec_panel="面板颜色",
         sec_cfg_save="保存", cfg_name="配置名", cfg_save="保存",
@@ -154,7 +147,7 @@ local L = {
         cfg_default="默认", cfg_aim="瞄准", cfg_farm="农场",
         loaded="已加载", saved="已保存",
         wait_gun="等待枪支", target="目标", killed="击杀",
-        fling_run="甩飞", fling_done="已甩飞", no_target="无目标",
+        fling_run="甩飞", no_target="无目标",
         sheriff_off="自动射击关闭", all_off="全部关闭",
         farm_on="农场开", farm_off="农场关", farm_full="满包", farm_none="无硬币",
         inv_on="隐身开", inv_off="隐身关",
@@ -174,8 +167,7 @@ local function detectDevice()
         local screen = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(0,0)
         if screen.X >= 900 or screen.Y >= 700 then return "tablet" end
         return "mobile"
-    elseif touch and keyboard then return "tablet"
-    end
+    elseif touch and keyboard then return "tablet" end
     return "pc"
 end
 
@@ -207,9 +199,7 @@ local function serialize()
     return s
 end
 
-local function saveSettings()
-    if writefile then pcall(writefile, SAVE_FILE, serialize()) end
-end
+local function saveSettings() if writefile then pcall(writefile, SAVE_FILE, serialize()) end end
 
 local function loadSettings()
     if not readfile or not isfile then return end
@@ -313,7 +303,7 @@ local S = {
     spin=false, spinSpeed=30,
     fly=false, noclip=false, infjump=false,
     crosshair=true, fovCircle=true,
-    espEnabled=SaveData.esp, espBillboards={}, espWeaponHighlights={},
+    espEnabled=SaveData.esp, espBillboards={},
     speed50Enabled=SaveData.speed50, speedThread=nil,
     invisibleEnabled=SaveData.invisible, invisibleConn=nil,
     aimPart=SaveData.aim_part or "Head",
@@ -645,9 +635,7 @@ local function startAutoTp()
                 local tHrp = murderer.Character:FindFirstChild("HumanoidRootPart")
                 local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
                 if tHrp and myHrp then
-                    pcall(function()
-                        myHrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
-                    end)
+                    pcall(function() myHrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3) end)
                 end
             end
             task.wait(0.05)
@@ -657,7 +645,7 @@ local function startAutoTp()
 end
 local function stopAutoTp() S.autoTpEnabled = false S.autoTpThread = nil end
 
--- ==== FLING (телепорт-толчок) ====
+-- ==== FLING (телепорт-толчок, как у друга) ====
 local function flingCleanup()
     for _, c in ipairs(S.flingConns) do
         pcall(function() if c and c.Disconnect then c:Disconnect() end end)
@@ -1392,6 +1380,7 @@ local function createGUI()
     local tabConfigs  = addTab("configs", nil, T("tab_configs"))
     switchTab("main")
 
+    -- MAIN
     addLabel(tabMain, T("sec_sheriff"))
     addToggle(tabMain, T("autoshoot"), false, function(v)
         S.autoShootEnabled = v
@@ -1435,6 +1424,7 @@ local function createGUI()
         end
     end)
 
+    -- VISUAL
     addLabel(tabVisual, T("sec_cross"))
     addToggle(tabVisual, T("cross"), true, function(v) S.crosshair = v end)
     addToggle(tabVisual, T("fov"), true, function(v) S.fovCircle = v end)
@@ -1521,6 +1511,7 @@ local function createGUI()
         end
     end)
 
+    -- ESP
     addLabel(tabESP, T("sec_esp"))
     addToggle(tabESP, T("esp_main"), S.espEnabled, function(v)
         S.espEnabled = v SaveData.esp = v saveSettings()
@@ -1540,14 +1531,12 @@ local function createGUI()
     addToggle(tabESP, T("esp_rainbow"), S.espRainbow, function(v)
         S.espRainbow = v SaveData.esp_rainbow = v saveSettings()
     end)
-
     addLabel(tabESP, T("esp_preview"))
     local previewFrame = Instance.new("Frame")
     previewFrame.Size = UDim2.new(1,0,0,240)
     previewFrame.BackgroundColor3 = Color3.fromRGB(30,30,45)
     previewFrame.BorderSizePixel = 0; previewFrame.Parent = tabESP
     Instance.new("UICorner", previewFrame).CornerRadius = UDim.new(0, 10)
-
     if IMG_NOOB then
         local noobImg = Instance.new("ImageLabel")
         noobImg.Size = UDim2.new(0,130,0,130)
@@ -1556,7 +1545,6 @@ local function createGUI()
         noobImg.Image = IMG_NOOB
         noobImg.ScaleType = Enum.ScaleType.Fit
         noobImg.Parent = previewFrame
-
         local nameLbl = Instance.new("TextLabel")
         nameLbl.Name = "PrevName"
         nameLbl.Size = UDim2.new(0,180,0,18)
@@ -1569,7 +1557,6 @@ local function createGUI()
         nameLbl.Font = Enum.Font.GothamBold
         nameLbl.Parent = previewFrame
         S.previewRefs.nameLbl = nameLbl
-
         local weaponLbl = Instance.new("TextLabel")
         weaponLbl.Name = "PrevWeapon"
         weaponLbl.Size = UDim2.new(0,180,0,18)
@@ -1582,7 +1569,6 @@ local function createGUI()
         weaponLbl.Font = Enum.Font.GothamBold
         weaponLbl.Parent = previewFrame
         S.previewRefs.weaponLbl = weaponLbl
-
         local hpBg = Instance.new("Frame")
         hpBg.Name = "PrevHpBg"
         hpBg.Size = UDim2.new(0,120,0,8)
@@ -1591,7 +1577,6 @@ local function createGUI()
         hpBg.BorderSizePixel = 0
         hpBg.Parent = previewFrame
         Instance.new("UICorner", hpBg).CornerRadius = UDim.new(0, 4)
-
         local hpFill = Instance.new("Frame")
         hpFill.Size = UDim2.new(1,0,1,0)
         hpFill.BackgroundColor3 = Color3.fromRGB(0,255,0)
@@ -1599,7 +1584,6 @@ local function createGUI()
         hpFill.Parent = hpBg
         Instance.new("UICorner", hpFill).CornerRadius = UDim.new(0, 4)
         S.previewRefs.hpBg = hpBg
-
         local distLbl = Instance.new("TextLabel")
         distLbl.Name = "PrevDist"
         distLbl.Size = UDim2.new(0,180,0,16)
@@ -1612,10 +1596,10 @@ local function createGUI()
         distLbl.Font = Enum.Font.Gotham
         distLbl.Parent = previewFrame
         S.previewRefs.distLbl = distLbl
-
         updatePreview()
     end
 
+    -- RAGE
     addLabel(tabRage, T("sec_aim"))
     addToggle(tabRage, T("aimbot"), false, function(v) S.aimbot = v end)
     addToggle(tabRage, T("wallcheck"), S.wallCheck, function(v)
@@ -1667,7 +1651,7 @@ local function createGUI()
         notify(T("all_off"), Color3.fromRGB(255,60,60))
     end)
 
-    -- ========= PLAYERS + FLING =========
+    -- PLAYERS
     addLabel(tabPlayers, T("sec_fling"))
     addLabel(tabPlayers, T("fling_speed"))
     local flingSpeedBox = addTextBox(tabPlayers, S.flingSpeed, "10000")
@@ -1702,7 +1686,6 @@ local function createGUI()
     pList.BackgroundColor3 = Color3.fromRGB(16,16,24)
     pList.BorderSizePixel = 0; pList.Parent = tabPlayers
     Instance.new("UICorner", pList).CornerRadius = UDim.new(0, 10)
-
     local pScroll = Instance.new("ScrollingFrame")
     pScroll.Size = UDim2.new(1,-10,1,-10)
     pScroll.Position = UDim2.new(0,5,0,5)
@@ -1712,7 +1695,6 @@ local function createGUI()
     pScroll.ScrollBarImageColor3 = S.panelColor
     pScroll.CanvasSize = UDim2.new(0,0,0,0)
     pScroll.Parent = pList
-
     local pLay = Instance.new("UIListLayout")
     pLay.Padding = UDim.new(0, 5); pLay.Parent = pScroll
     pLay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
@@ -1795,7 +1777,7 @@ local function createGUI()
                     S.flingSpeed = tonumber(flingSpeedBox.Text) or S.flingSpeed
                     S.flingForce = tonumber(flingForceBox.Text) or S.flingForce
                     S.flingDist = tonumber(flingDistBox.Text) or S.flingDist
-                    S.flingInterval = tonumber(flingIntervalBox.Text) or S.flingInterval
+                    S.flingInterval = tonumber(flingIntBox.Text) or S.flingInterval
                     SaveData.fling_speed = S.flingSpeed
                     SaveData.fling_force = S.flingForce
                     SaveData.fling_dist = S.flingDist
@@ -1814,10 +1796,10 @@ local function createGUI()
     Players.PlayerAdded:Connect(function() task.wait(1) rebuild() end)
     Players.PlayerRemoving:Connect(function() task.wait(0.3) rebuild() end)
 
+    -- SETTINGS
     addLabel(tabSettings, T("sec_lang"))
     addBtn(tabSettings, T("lang_ru"), Color3.fromRGB(50,80,150), function()
-        SaveData.lang = "ru"
-        saveSettings()
+        SaveData.lang = "ru" saveSettings()
         notify("Перезапуск...", Color3.fromRGB(0,200,100))
         task.wait(0.3)
         if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
@@ -1826,8 +1808,7 @@ local function createGUI()
         showLoading()
     end)
     addBtn(tabSettings, T("lang_en"), Color3.fromRGB(50,80,150), function()
-        SaveData.lang = "en"
-        saveSettings()
+        SaveData.lang = "en" saveSettings()
         notify("Restarting...", Color3.fromRGB(0,200,100))
         task.wait(0.3)
         if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
@@ -1836,8 +1817,7 @@ local function createGUI()
         showLoading()
     end)
     addBtn(tabSettings, T("lang_zh"), Color3.fromRGB(50,80,150), function()
-        SaveData.lang = "zh"
-        saveSettings()
+        SaveData.lang = "zh" saveSettings()
         notify("重启中...", Color3.fromRGB(0,200,100))
         task.wait(0.3)
         if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
@@ -1853,12 +1833,10 @@ local function createGUI()
     colorHolder.BorderSizePixel = 0
     colorHolder.Parent = tabSettings
     Instance.new("UICorner", colorHolder).CornerRadius = UDim.new(0, 10)
-
     local colorGrid = Instance.new("UIGridLayout")
     colorGrid.CellSize = UDim2.new(0,48,0,48)
     colorGrid.CellPadding = UDim2.new(0,8,0,8)
     colorGrid.Parent = colorHolder
-
     local palette = {
         {255,0,100},{255,50,50},{255,150,0},{255,220,0},
         {100,255,0},{0,200,100},{0,220,220},{0,150,255},
@@ -1887,6 +1865,7 @@ local function createGUI()
         end)
     end
 
+    -- CONFIGS
     addLabel(tabConfigs, T("sec_cfg_save"))
     local nameBox = Instance.new("TextBox")
     nameBox.Size = UDim2.new(1,0,0,BTN_H)
@@ -1901,7 +1880,6 @@ local function createGUI()
     Instance.new("UICorner", nameBox).CornerRadius = UDim.new(0, 7)
     local pad = Instance.new("UIPadding", nameBox)
     pad.PaddingLeft = UDim.new(0, 12)
-
     addBtn(tabConfigs, T("cfg_save"), Color3.fromRGB(50,120,80), function()
         if not writefile or nameBox.Text == "" then return end
         if makefolder then pcall(makefolder, "vanka_configs") end
@@ -1924,42 +1902,29 @@ local function createGUI()
         end
     end)
     addLabel(tabConfigs, T("cfg_presets"))
-    addBtn(tabConfigs, T("cfg_default"), Color3.fromRGB(60,60,90), function()
-        nameBox.Text = "default"
-    end)
-    addBtn(tabConfigs, T("cfg_aim"), Color3.fromRGB(60,90,60), function()
-        nameBox.Text = "aim"
-    end)
-    addBtn(tabConfigs, T("cfg_farm"), Color3.fromRGB(90,90,60), function()
-        nameBox.Text = "farm"
-    end)
+    addBtn(tabConfigs, T("cfg_default"), Color3.fromRGB(60,60,90), function() nameBox.Text = "default" end)
+    addBtn(tabConfigs, T("cfg_aim"), Color3.fromRGB(60,90,60), function() nameBox.Text = "aim" end)
+    addBtn(tabConfigs, T("cfg_farm"), Color3.fromRGB(90,90,60), function() nameBox.Text = "farm" end)
 
     closeB.MouseButton1Click:Connect(function()
-        main.Visible = false
-        openB.Visible = true
+        main.Visible = false; openB.Visible = true
     end)
     minB.MouseButton1Click:Connect(function()
-        main.Visible = false
-        openB.Visible = true
+        main.Visible = false; openB.Visible = true
     end)
     openB.MouseButton1Click:Connect(function()
-        main.Visible = true
-        openB.Visible = false
+        main.Visible = true; openB.Visible = false
     end)
-
     UIS.InputBegan:Connect(function(input, gp)
         if gp then return end
         if input.KeyCode == Enum.KeyCode.RightShift then
             if main.Visible then
-                main.Visible = false
-                openB.Visible = true
+                main.Visible = false; openB.Visible = true
             else
-                main.Visible = true
-                openB.Visible = false
+                main.Visible = true; openB.Visible = false
             end
         end
     end)
-
     return gui
 end
 
@@ -1967,9 +1932,7 @@ local crossH, crossV, crossDot, crossCircle, crossImage, fovCircle
 
 local function updateCrosshair()
     if not crossH then return end
-    crossH.Visible = false
-    crossV.Visible = false
-    crossDot.Visible = false
+    crossH.Visible = false; crossV.Visible = false; crossDot.Visible = false
     if crossCircle then crossCircle.Visible = false end
     if crossImage then crossImage.Visible = false end
     if S.crossImage and S.crosshair then
@@ -2001,53 +1964,33 @@ _G.VankaUpdateCross = updateCrosshair
 
 local function createOverlays()
     crossH = Instance.new("Frame")
-    crossH.Size = UDim2.new(0,20,0,2)
-    crossH.Position = UDim2.new(0.5,-10,0.5,-1)
-    crossH.BackgroundColor3 = S.crossColor
-    crossH.BorderSizePixel = 0
-    crossH.Parent = S.gui
+    crossH.Size = UDim2.new(0,20,0,2); crossH.Position = UDim2.new(0.5,-10,0.5,-1)
+    crossH.BackgroundColor3 = S.crossColor; crossH.BorderSizePixel = 0; crossH.Parent = S.gui
 
     crossV = Instance.new("Frame")
-    crossV.Size = UDim2.new(0,2,0,20)
-    crossV.Position = UDim2.new(0.5,-1,0.5,-10)
-    crossV.BackgroundColor3 = S.crossColor
-    crossV.BorderSizePixel = 0
-    crossV.Parent = S.gui
+    crossV.Size = UDim2.new(0,2,0,20); crossV.Position = UDim2.new(0.5,-1,0.5,-10)
+    crossV.BackgroundColor3 = S.crossColor; crossV.BorderSizePixel = 0; crossV.Parent = S.gui
 
     crossDot = Instance.new("Frame")
-    crossDot.Size = UDim2.new(0,5,0,5)
-    crossDot.Position = UDim2.new(0.5,-2.5,0.5,-2.5)
-    crossDot.BackgroundColor3 = S.crossColor
-    crossDot.BorderSizePixel = 0
-    crossDot.Visible = false
-    crossDot.Parent = S.gui
+    crossDot.Size = UDim2.new(0,5,0,5); crossDot.Position = UDim2.new(0.5,-2.5,0.5,-2.5)
+    crossDot.BackgroundColor3 = S.crossColor; crossDot.BorderSizePixel = 0
+    crossDot.Visible = false; crossDot.Parent = S.gui
     Instance.new("UICorner", crossDot).CornerRadius = UDim.new(1, 0)
 
     crossCircle = Instance.new("Frame")
-    crossCircle.Size = UDim2.new(0,30,0,30)
-    crossCircle.Position = UDim2.new(0.5,-15,0.5,-15)
-    crossCircle.BackgroundTransparency = 1
-    crossCircle.Visible = false
-    crossCircle.Parent = S.gui
+    crossCircle.Size = UDim2.new(0,30,0,30); crossCircle.Position = UDim2.new(0.5,-15,0.5,-15)
+    crossCircle.BackgroundTransparency = 1; crossCircle.Visible = false; crossCircle.Parent = S.gui
     Instance.new("UICorner", crossCircle).CornerRadius = UDim.new(1, 0)
     local ccStroke = Instance.new("UIStroke")
-    ccStroke.Color = S.crossColor
-    ccStroke.Thickness = 2
-    ccStroke.Parent = crossCircle
+    ccStroke.Color = S.crossColor; ccStroke.Thickness = 2; ccStroke.Parent = crossCircle
 
     fovCircle = Instance.new("Frame")
     fovCircle.AnchorPoint = Vector2.new(0.5,0.5)
-    fovCircle.Size = UDim2.new(0,400,0,400)
-    fovCircle.Position = UDim2.new(0.5,0,0.5,0)
-    fovCircle.BackgroundTransparency = 1
-    fovCircle.Visible = false
-    fovCircle.Parent = S.gui
+    fovCircle.Size = UDim2.new(0,400,0,400); fovCircle.Position = UDim2.new(0.5,0,0.5,0)
+    fovCircle.BackgroundTransparency = 1; fovCircle.Visible = false; fovCircle.Parent = S.gui
     Instance.new("UICorner", fovCircle).CornerRadius = UDim.new(1, 0)
     local fs = Instance.new("UIStroke")
-    fs.Color = S.panelColor
-    fs.Thickness = 1.5
-    fs.Transparency = 0.35
-    fs.Parent = fovCircle
+    fs.Color = S.panelColor; fs.Thickness = 1.5; fs.Transparency = 0.35; fs.Parent = fovCircle
 
     updateCrosshair()
 end
@@ -2077,9 +2020,7 @@ local function mainLoop()
                             local cx = Cam.ViewportSize.X / 2
                             local cy = Cam.ViewportSize.Y / 2
                             local d = math.sqrt((sp.X-cx)^2 + (sp.Y-cy)^2)
-                            if d < S.aimbotFOV and d < dist then
-                                dist = d cl = plr
-                            end
+                            if d < S.aimbotFOV and d < dist then dist = d cl = plr end
                         end
                     end
                 end
@@ -2087,14 +2028,9 @@ local function mainLoop()
             if cl and cl.Character and cl.Character:FindFirstChild("Head") then
                 S.aimT = cl
                 local newCF = CFrame.new(Cam.CFrame.Position, cl.Character.Head.Position)
-                if S.hardAim then
-                    Cam.CFrame = newCF
-                else
-                    Cam.CFrame = Cam.CFrame:Lerp(newCF, 1 - S.aimSmooth)
-                end
-            else
-                S.aimT = nil
-            end
+                if S.hardAim then Cam.CFrame = newCF
+                else Cam.CFrame = Cam.CFrame:Lerp(newCF, 1 - S.aimSmooth) end
+            else S.aimT = nil end
         end
 
         if S.spin and LP.Character then
@@ -2118,19 +2054,14 @@ local function mainLoop()
                 if UIS:IsKeyDown(Enum.KeyCode.D) then d = d + Cam.CFrame.RightVector end
                 if UIS:IsKeyDown(Enum.KeyCode.Space) then d = d + Vector3.new(0,1,0) end
                 if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then d = d - Vector3.new(0,1,0) end
-                if d.Magnitude > 0 then
-                    hrp.Velocity = d.Unit * 60
-                else
-                    hrp.Velocity = Vector3.new(0,0,0)
-                end
+                if d.Magnitude > 0 then hrp.Velocity = d.Unit * 60
+                else hrp.Velocity = Vector3.new(0,0,0) end
             end
         end
 
         if S.noclip and LP.Character then
             for _, p in ipairs(LP.Character:GetDescendants()) do
-                if p:IsA("BasePart") and p.CanCollide then
-                    p.CanCollide = false
-                end
+                if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end
             end
         end
     end)
@@ -2166,52 +2097,32 @@ function showLoading()
 
     if LOGO then
         local li = Instance.new("ImageLabel")
-        li.Size = UDim2.new(0,160,0,160)
-        li.Position = UDim2.new(0.5,-80,0.5,-160)
-        li.BackgroundTransparency = 1
-        li.Image = LOGO
-        li.ScaleType = Enum.ScaleType.Fit
-        li.ZIndex = 501
-        li.Parent = loadF
+        li.Size = UDim2.new(0,160,0,160); li.Position = UDim2.new(0.5,-80,0.5,-160)
+        li.BackgroundTransparency = 1; li.Image = LOGO
+        li.ScaleType = Enum.ScaleType.Fit; li.ZIndex = 501; li.Parent = loadF
     end
 
     local lt = Instance.new("TextLabel")
-    lt.Size = UDim2.new(1,0,0,40)
-    lt.Position = UDim2.new(0,0,0.5,20)
-    lt.BackgroundTransparency = 1
-    lt.Text = "VANKA ADMIN"
-    lt.TextColor3 = Color3.new(1,1,1)
-    lt.TextSize = 28
-    lt.Font = Enum.Font.GothamBold
-    lt.ZIndex = 501
-    lt.Parent = loadF
+    lt.Size = UDim2.new(1,0,0,40); lt.Position = UDim2.new(0,0,0.5,20)
+    lt.BackgroundTransparency = 1; lt.Text = "VANKA ADMIN"
+    lt.TextColor3 = Color3.new(1,1,1); lt.TextSize = 28
+    lt.Font = Enum.Font.GothamBold; lt.ZIndex = 501; lt.Parent = loadF
 
     local ls = Instance.new("TextLabel")
-    ls.Size = UDim2.new(1,0,0,22)
-    ls.Position = UDim2.new(0,0,0.5,65)
-    ls.BackgroundTransparency = 1
-    ls.Text = "0%"
-    ls.TextColor3 = Color3.fromRGB(180,180,210)
-    ls.TextSize = 15
-    ls.Font = Enum.Font.GothamMedium
-    ls.ZIndex = 501
-    ls.Parent = loadF
+    ls.Size = UDim2.new(1,0,0,22); ls.Position = UDim2.new(0,0,0.5,65)
+    ls.BackgroundTransparency = 1; ls.Text = "0%"
+    ls.TextColor3 = Color3.fromRGB(180,180,210); ls.TextSize = 15
+    ls.Font = Enum.Font.GothamMedium; ls.ZIndex = 501; ls.Parent = loadF
 
     local bb = Instance.new("Frame")
-    bb.Size = UDim2.new(0,360,0,12)
-    bb.Position = UDim2.new(0.5,-180,0.5,130)
-    bb.BackgroundColor3 = Color3.fromRGB(28,28,40)
-    bb.BorderSizePixel = 0
-    bb.ZIndex = 501
-    bb.Parent = loadF
+    bb.Size = UDim2.new(0,360,0,12); bb.Position = UDim2.new(0.5,-180,0.5,130)
+    bb.BackgroundColor3 = Color3.fromRGB(28,28,40); bb.BorderSizePixel = 0
+    bb.ZIndex = 501; bb.Parent = loadF
     Instance.new("UICorner", bb).CornerRadius = UDim.new(1,0)
 
     local bf = Instance.new("Frame")
-    bf.Size = UDim2.new(0,0,1,0)
-    bf.BackgroundColor3 = S.panelColor
-    bf.BorderSizePixel = 0
-    bf.ZIndex = 502
-    bf.Parent = bb
+    bf.Size = UDim2.new(0,0,1,0); bf.BackgroundColor3 = S.panelColor
+    bf.BorderSizePixel = 0; bf.ZIndex = 502; bf.Parent = bb
     Instance.new("UICorner", bf).CornerRadius = UDim.new(1,0)
 
     task.spawn(function()
@@ -2221,14 +2132,8 @@ function showLoading()
             task.wait(0.06)
         end
         task.wait(0.4)
-        loadF:Destroy()
-        gui:Destroy()
-        S.gui = nil
-
-        createGUI()
-        createOverlays()
-        mainLoop()
-        setupInfJump()
+        loadF:Destroy(); gui:Destroy(); S.gui = nil
+        createGUI(); createOverlays(); mainLoop(); setupInfJump()
         if S.speed50Enabled then startSpeed50Loop() end
         if S.farmEnabled then startFarm() end
         task.delay(0.5, function() notify(T("loaded") .. " [" .. detectedDevice .. "]", Color3.fromRGB(0,200,100)) end)
