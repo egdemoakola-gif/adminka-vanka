@@ -60,6 +60,7 @@ local L = {
         cross_loaded="Прицел загружен", cross_notfound="Файл не найден",
         cfg_saved="Конфиг сохранён", cfg_loaded="Конфиг загружен", cfg_notfound="Не найден",
         preview_name="Игрок123", preview_dist="15м",
+        lang_changed="Язык изменён. Перезапуск...",
     },
     en = {
         title="VANKA ADMIN",
@@ -107,6 +108,7 @@ local L = {
         cross_loaded="Crosshair loaded", cross_notfound="File not found",
         cfg_saved="Config saved", cfg_loaded="Config loaded", cfg_notfound="Not found",
         preview_name="Player123", preview_dist="15m",
+        lang_changed="Language changed. Restarting...",
     },
     zh = {
         title="VANKA 管理员",
@@ -154,6 +156,7 @@ local L = {
         cross_loaded="准星加载", cross_notfound="文件未找到",
         cfg_saved="已保存", cfg_loaded="已加载", cfg_notfound="未找到",
         preview_name="玩家123", preview_dist="15米",
+        lang_changed="语言已更改。重启中...",
     }
 }
 local function T(k) return L[LANG][k] or k end
@@ -645,7 +648,7 @@ local function startAutoTp()
 end
 local function stopAutoTp() S.autoTpEnabled = false S.autoTpThread = nil end
 
--- ==== FLING (телепорт-толчок, как у друга) ====
+-- ==== FLING (без проверки вылета) ====
 local function flingCleanup()
     for _, c in ipairs(S.flingConns) do
         pcall(function() if c and c.Disconnect then c:Disconnect() end end)
@@ -653,7 +656,7 @@ local function flingCleanup()
     S.flingConns = {}
 end
 
-local function flingStop()
+local function flingStop(silent)
     S.flingRunning = false
     if S.flingThread then
         pcall(task.cancel, S.flingThread)
@@ -670,7 +673,9 @@ local function flingStop()
             hum.UseJumpPower = true
         end
     end
-    notify("Флинг остановлен", Color3.fromRGB(200,200,200))
+    if not silent then
+        notify("Флинг остановлен", Color3.fromRGB(200,200,200))
+    end
 end
 
 local function flingStart(targetName)
@@ -694,7 +699,7 @@ local function flingStart(targetName)
         local targetRoot = targetChar:WaitForChild("HumanoidRootPart", 10)
         if not targetRoot then
             notify("Нет персонажа цели", Color3.fromRGB(255,60,60))
-            flingStop()
+            flingStop(true)
             return
         end
 
@@ -708,7 +713,7 @@ local function flingStart(targetName)
         local myChar, myRoot, myHum = getMyChar()
         if not myRoot or not myHum then
             notify("Ошибка персонажа", Color3.fromRGB(255,60,60))
-            flingStop()
+            flingStop(true)
             return
         end
 
@@ -820,19 +825,42 @@ local function isBagFull()
     return false
 end
 
+-- ==== FARM с авто-noclip и полётом на уровне монет ====
 local function startFarm()
     if S.farmThread then return end
     S.farmThread = task.spawn(function()
         notify(T("farm_on"), Color3.fromRGB(0,200,100))
+        local savedNoclip = S.noclip
+        S.noclip = true  -- включаем noclip на время фарма
+
         while S.farmEnabled do
-            if isBagFull() then notify(T("farm_full"), Color3.fromRGB(255,200,0)); S.farmEnabled=false break end
+            if isBagFull() then
+                notify(T("farm_full"), Color3.fromRGB(255,200,0))
+                S.farmEnabled = false
+                break
+            end
+
             local coin = findCoin()
-            if not coin then notify(T("farm_none"), Color3.fromRGB(150,150,150)); task.wait(2); if not S.farmEnabled then break end; continue end
-            local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+            if not coin then
+                notify(T("farm_none"), Color3.fromRGB(150,150,150))
+                task.wait(2)
+                if not S.farmEnabled then break end
+                continue
+            end
+
+            local myChar = LP.Character
+            local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
             if not myHrp then task.wait(0.5) continue end
+
             local targetCoin = coin.obj
             local targetPart = coin.part
-            pcall(function() myHrp.CFrame = CFrame.new(targetPart.Position + Vector3.new(0,1,0)) end)
+
+            -- Летим точно на уровень монеты (Y монеты + 1), не вверх
+            pcall(function()
+                myHrp.CFrame = CFrame.new(targetPart.Position.X, targetPart.Position.Y + 1, targetPart.Position.Z)
+                myHrp.AssemblyLinearVelocity = Vector3.zero
+            end)
+
             local t0 = tick()
             while tick() - t0 < 1.5 do
                 if not targetCoin or not targetCoin.Parent then break end
@@ -842,14 +870,33 @@ local function startFarm()
                     if plr.Backpack and targetCoin:IsDescendantOf(plr.Backpack) then used = true break end
                 end
                 if used then break end
-                if targetPart and targetPart.Parent then
-                    pcall(function() myHrp.CFrame = CFrame.new(targetPart.Position + Vector3.new(0,1,0)) end)
+
+                if targetPart and targetPart.Parent and myHrp and myHrp.Parent then
+                    pcall(function()
+                        myHrp.CFrame = CFrame.new(targetPart.Position.X, targetPart.Position.Y + 1, targetPart.Position.Z)
+                        myHrp.AssemblyLinearVelocity = Vector3.zero
+                    end)
                 end
-                if isBagFull() then notify(T("farm_full"), Color3.fromRGB(255,200,0)); S.farmEnabled=false break end
+
+                -- Постоянный noclip во время фарма
+                if myChar then
+                    for _, p in ipairs(myChar:GetDescendants()) do
+                        if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end
+                    end
+                end
+
+                if isBagFull() then
+                    notify(T("farm_full"), Color3.fromRGB(255,200,0))
+                    S.farmEnabled = false
+                    break
+                end
                 task.wait()
             end
             task.wait(0.05)
         end
+
+        -- Возвращаем noclip как было до фарма
+        S.noclip = savedNoclip
         notify(T("farm_off"), Color3.fromRGB(150,150,150))
         S.farmThread = nil
     end)
@@ -1798,32 +1845,31 @@ local function createGUI()
 
     -- SETTINGS
     addLabel(tabSettings, T("sec_lang"))
-    addBtn(tabSettings, T("lang_ru"), Color3.fromRGB(50,80,150), function()
-        SaveData.lang = "ru" saveSettings()
-        notify("Перезапуск...", Color3.fromRGB(0,200,100))
+
+    -- Функция смены языка с полным перезапуском панели
+    local function changeLang(newLang)
+        SaveData.lang = newLang
+        saveSettings()
+        LANG = newLang
+        notify(T("lang_changed"), Color3.fromRGB(0,200,100))
+        task.wait(0.4)
+        -- Полностью уничтожаем текущую панель
+        if _G.VankaPanel and _G.VankaPanel.Destroy then
+            pcall(_G.VankaPanel.Destroy)
+        end
         task.wait(0.3)
-        if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
-        task.wait(0.3)
-        LANG = "ru"
+        -- Запускаем заново — панель создастся заново с новым языком
         showLoading()
+    end
+
+    addBtn(tabSettings, T("lang_ru"), Color3.fromRGB(50,80,150), function()
+        changeLang("ru")
     end)
     addBtn(tabSettings, T("lang_en"), Color3.fromRGB(50,80,150), function()
-        SaveData.lang = "en" saveSettings()
-        notify("Restarting...", Color3.fromRGB(0,200,100))
-        task.wait(0.3)
-        if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
-        task.wait(0.3)
-        LANG = "en"
-        showLoading()
+        changeLang("en")
     end)
     addBtn(tabSettings, T("lang_zh"), Color3.fromRGB(50,80,150), function()
-        SaveData.lang = "zh" saveSettings()
-        notify("重启中...", Color3.fromRGB(0,200,100))
-        task.wait(0.3)
-        if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
-        task.wait(0.3)
-        LANG = "zh"
-        showLoading()
+        changeLang("zh")
     end)
 
     addLabel(tabSettings, T("sec_panel"))
@@ -1966,24 +2012,20 @@ local function createOverlays()
     crossH = Instance.new("Frame")
     crossH.Size = UDim2.new(0,20,0,2); crossH.Position = UDim2.new(0.5,-10,0.5,-1)
     crossH.BackgroundColor3 = S.crossColor; crossH.BorderSizePixel = 0; crossH.Parent = S.gui
-
     crossV = Instance.new("Frame")
     crossV.Size = UDim2.new(0,2,0,20); crossV.Position = UDim2.new(0.5,-1,0.5,-10)
     crossV.BackgroundColor3 = S.crossColor; crossV.BorderSizePixel = 0; crossV.Parent = S.gui
-
     crossDot = Instance.new("Frame")
     crossDot.Size = UDim2.new(0,5,0,5); crossDot.Position = UDim2.new(0.5,-2.5,0.5,-2.5)
     crossDot.BackgroundColor3 = S.crossColor; crossDot.BorderSizePixel = 0
     crossDot.Visible = false; crossDot.Parent = S.gui
     Instance.new("UICorner", crossDot).CornerRadius = UDim.new(1, 0)
-
     crossCircle = Instance.new("Frame")
     crossCircle.Size = UDim2.new(0,30,0,30); crossCircle.Position = UDim2.new(0.5,-15,0.5,-15)
     crossCircle.BackgroundTransparency = 1; crossCircle.Visible = false; crossCircle.Parent = S.gui
     Instance.new("UICorner", crossCircle).CornerRadius = UDim.new(1, 0)
     local ccStroke = Instance.new("UIStroke")
     ccStroke.Color = S.crossColor; ccStroke.Thickness = 2; ccStroke.Parent = crossCircle
-
     fovCircle = Instance.new("Frame")
     fovCircle.AnchorPoint = Vector2.new(0.5,0.5)
     fovCircle.Size = UDim2.new(0,400,0,400); fovCircle.Position = UDim2.new(0.5,0,0.5,0)
@@ -1991,7 +2033,6 @@ local function createOverlays()
     Instance.new("UICorner", fovCircle).CornerRadius = UDim.new(1, 0)
     local fs = Instance.new("UIStroke")
     fs.Color = S.panelColor; fs.Thickness = 1.5; fs.Transparency = 0.35; fs.Parent = fovCircle
-
     updateCrosshair()
 end
 
@@ -1999,7 +2040,6 @@ local function mainLoop()
     local conn = RunService.RenderStepped:Connect(function(dt)
         if not S.gui then return end
         updateCrosshair()
-
         if fovCircle then
             if S.aimbot and S.fovCircle then
                 fovCircle.Visible = true
@@ -2008,7 +2048,6 @@ local function mainLoop()
                 fovCircle.Visible = false
             end
         end
-
         if S.aimbot then
             local cl, dist = nil, S.aimbotFOV * 3
             for _, plr in ipairs(Players:GetPlayers()) do
@@ -2032,18 +2071,15 @@ local function mainLoop()
                 else Cam.CFrame = Cam.CFrame:Lerp(newCF, 1 - S.aimSmooth) end
             else S.aimT = nil end
         end
-
         if S.spin and LP.Character then
             local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
                 hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(S.spinSpeed * dt * 60), 0)
             end
         end
-
         if S.roleHighlight then refreshHL() end
         if S.espEnabled then updateESP() end
         if S.invisibleEnabled then applyInvisible() end
-
         if S.fly and LP.Character then
             local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
@@ -2058,7 +2094,6 @@ local function mainLoop()
                 else hrp.Velocity = Vector3.new(0,0,0) end
             end
         end
-
         if S.noclip and LP.Character then
             for _, p in ipairs(LP.Character:GetDescendants()) do
                 if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end
@@ -2087,44 +2122,37 @@ function showLoading()
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     gui.Parent = parent
     S.gui = gui
-
     local loadF = Instance.new("Frame")
     loadF.Size = UDim2.new(1,0,1,0)
     loadF.BackgroundColor3 = Color3.fromRGB(6,6,12)
     loadF.BorderSizePixel = 0
     loadF.ZIndex = 500
     loadF.Parent = gui
-
     if LOGO then
         local li = Instance.new("ImageLabel")
         li.Size = UDim2.new(0,160,0,160); li.Position = UDim2.new(0.5,-80,0.5,-160)
         li.BackgroundTransparency = 1; li.Image = LOGO
         li.ScaleType = Enum.ScaleType.Fit; li.ZIndex = 501; li.Parent = loadF
     end
-
     local lt = Instance.new("TextLabel")
     lt.Size = UDim2.new(1,0,0,40); lt.Position = UDim2.new(0,0,0.5,20)
     lt.BackgroundTransparency = 1; lt.Text = "VANKA ADMIN"
     lt.TextColor3 = Color3.new(1,1,1); lt.TextSize = 28
     lt.Font = Enum.Font.GothamBold; lt.ZIndex = 501; lt.Parent = loadF
-
     local ls = Instance.new("TextLabel")
     ls.Size = UDim2.new(1,0,0,22); ls.Position = UDim2.new(0,0,0.5,65)
     ls.BackgroundTransparency = 1; ls.Text = "0%"
     ls.TextColor3 = Color3.fromRGB(180,180,210); ls.TextSize = 15
     ls.Font = Enum.Font.GothamMedium; ls.ZIndex = 501; ls.Parent = loadF
-
     local bb = Instance.new("Frame")
     bb.Size = UDim2.new(0,360,0,12); bb.Position = UDim2.new(0.5,-180,0.5,130)
     bb.BackgroundColor3 = Color3.fromRGB(28,28,40); bb.BorderSizePixel = 0
     bb.ZIndex = 501; bb.Parent = loadF
     Instance.new("UICorner", bb).CornerRadius = UDim.new(1,0)
-
     local bf = Instance.new("Frame")
     bf.Size = UDim2.new(0,0,1,0); bf.BackgroundColor3 = S.panelColor
     bf.BorderSizePixel = 0; bf.ZIndex = 502; bf.Parent = bb
     Instance.new("UICorner", bf).CornerRadius = UDim.new(1,0)
-
     task.spawn(function()
         for i = 1, 100, 5 do
             ls.Text = i .. "%"
