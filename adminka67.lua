@@ -1,4 +1,4 @@
--- Vanka Admin Panel v33
+-- Vanka Admin Panel v34
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players           = game:GetService("Players")
@@ -62,6 +62,8 @@ local L = {
         preview_name="Игрок123", preview_dist="15м",
         lang_changed="Язык изменён. Перезапуск...",
         size_saved="Размер панели сохранён",
+        sec_lines="ПОЛОСЫ", lines="Линии к игрокам",
+        sec_hitbox="ХИТБОКС", hitbox="Хитбоксы (показ)",
     },
     en = {
         title="VANKA ADMIN",
@@ -111,6 +113,8 @@ local L = {
         preview_name="Player123", preview_dist="15m",
         lang_changed="Language changed. Restarting...",
         size_saved="Panel size saved",
+        sec_lines="LINES", lines="Lines to players",
+        sec_hitbox="HITBOX", hitbox="Show hitboxes",
     },
     zh = {
         title="VANKA 管理员",
@@ -160,6 +164,8 @@ local L = {
         preview_name="玩家123", preview_dist="15米",
         lang_changed="语言已更改。重启中...",
         size_saved="面板尺寸已保存",
+        sec_lines="线", lines="到玩家的线",
+        sec_hitbox="碰撞箱", hitbox="显示碰撞箱",
     }
 }
 local function T(k) return L[LANG][k] or k end
@@ -177,7 +183,7 @@ local function detectDevice()
     return "pc"
 end
 
-local SAVE_FILE = "vanka_settings_v33.txt"
+local SAVE_FILE = "vanka_settings_v34.txt"
 local SaveData = {
     lang="ru", device="",
     panel_w=540, panel_h=660, panel_x=20, panel_y=0,
@@ -187,11 +193,24 @@ local SaveData = {
     speed50=false, farm=false, invisible=false,
     aim_part="Head", aim_smooth=0.35, wallcheck=false, custom_cross="",
     fling_speed=10000, fling_force=5000, fling_dist=2, fling_interval=0.05,
+    autoshoot=false, autokill=false, autotp=false, pickup=false, roles=false,
+    cross=true, fov=true, hardaim=true, fly=false, noclip=false, infjump=false,
+    fullbright=false, aimbot=false, spin=false,
+    hitbox=false, lines=false,
 }
 
 local function serialize()
     local s = ""
-    local keys = {"lang","device","panel_w","panel_h","panel_x","panel_y","esp","esp_health","esp_name","esp_dist","esp_weapon","esp_rainbow","cross_style","speed50","farm","invisible","aim_part","aim_smooth","wallcheck","custom_cross","fling_speed","fling_force","fling_dist","fling_interval"}
+    local keys = {
+        "lang","device","panel_w","panel_h","panel_x","panel_y",
+        "esp","esp_health","esp_name","esp_dist","esp_weapon","esp_rainbow",
+        "cross_style","speed50","farm","invisible",
+        "aim_part","aim_smooth","wallcheck","custom_cross",
+        "fling_speed","fling_force","fling_dist","fling_interval",
+        "autoshoot","autokill","autotp","pickup","roles",
+        "cross","fov","hardaim","fly","noclip","infjump",
+        "fullbright","aimbot","spin","hitbox","lines",
+    }
     for _, k in ipairs(keys) do
         local v = SaveData[k]
         if type(v) == "boolean" then s = s .. k .. "=" .. tostring(v) .. "\n"
@@ -229,6 +248,22 @@ local function loadSettings()
             elseif k == "esp_dist" then SaveData.esp_dist = (v == "true")
             elseif k == "esp_weapon" then SaveData.esp_weapon = (v == "true")
             elseif k == "esp_rainbow" then SaveData.esp_rainbow = (v == "true")
+            elseif k == "autoshoot" then SaveData.autoshoot = (v == "true")
+            elseif k == "autokill" then SaveData.autokill = (v == "true")
+            elseif k == "autotp" then SaveData.autotp = (v == "true")
+            elseif k == "pickup" then SaveData.pickup = (v == "true")
+            elseif k == "roles" then SaveData.roles = (v == "true")
+            elseif k == "cross" then SaveData.cross = (v == "true")
+            elseif k == "fov" then SaveData.fov = (v == "true")
+            elseif k == "hardaim" then SaveData.hardaim = (v == "true")
+            elseif k == "fly" then SaveData.fly = (v == "true")
+            elseif k == "noclip" then SaveData.noclip = (v == "true")
+            elseif k == "infjump" then SaveData.infjump = (v == "true")
+            elseif k == "fullbright" then SaveData.fullbright = (v == "true")
+            elseif k == "aimbot" then SaveData.aimbot = (v == "true")
+            elseif k == "spin" then SaveData.spin = (v == "true")
+            elseif k == "hitbox" then SaveData.hitbox = (v == "true")
+            elseif k == "lines" then SaveData.lines = (v == "true")
             elseif k == "speed50" then SaveData.speed50 = (v == "true")
             elseif k == "farm" then SaveData.farm = (v == "true")
             elseif k == "invisible" then SaveData.invisible = (v == "true")
@@ -304,16 +339,16 @@ local FONT_SZ = isMobile and 11 or 12
 local HEADER_H = isMobile and 50 or 54
 
 local S = {
-    roleHighlight=false, roleHL={},
-    aimbot=false, aimbotFOV=200, aimT=nil, hardAim=true,
-    autoShootEnabled=false, autoShootThread=nil,
-    autoKillEnabled=false, autoKillThread=nil, autoKillList={}, autoKillLoopThread=nil,
-    autoTpEnabled=false, autoTpThread=nil,
-    autoPickup=false, sheriffThread=nil, lastSheriffPos=nil, lastSheriff=nil,
+    roleHighlight=SaveData.roles, roleHL={},
+    aimbot=SaveData.aimbot, aimbotFOV=200, aimT=nil, hardAim=SaveData.hardaim,
+    autoShootEnabled=SaveData.autoshoot, autoShootThread=nil,
+    autoKillEnabled=SaveData.autokill, autoKillThread=nil, autoKillList={}, autoKillLoopThread=nil,
+    autoTpEnabled=SaveData.autotp, autoTpThread=nil,
+    autoPickup=SaveData.pickup, sheriffThread=nil, lastSheriffPos=nil, lastSheriff=nil,
     farmEnabled=SaveData.farm, farmThread=nil,
-    spin=false, spinSpeed=30,
-    fly=false, noclip=false, infjump=false,
-    crosshair=true, fovCircle=true,
+    spin=SaveData.spin, spinSpeed=30,
+    fly=SaveData.fly, noclip=SaveData.noclip, infjump=SaveData.infjump,
+    crosshair=SaveData.cross, fovCircle=SaveData.fov,
     espEnabled=SaveData.esp, espBillboards={},
     speed50Enabled=SaveData.speed50, speedThread=nil,
     invisibleEnabled=SaveData.invisible, invisibleConn=nil,
@@ -321,7 +356,7 @@ local S = {
     aimSmooth=SaveData.aim_smooth or 0.35,
     wallCheck=SaveData.wallcheck or false,
     conns={}, gui=nil, panel=nil,
-    fullbright=false, oldLighting=nil,
+    fullbright=SaveData.fullbright, oldLighting=nil,
     crossStyle=SaveData.cross_style or 1,
     crossColor=Color3.fromRGB(SaveData.cross_color[1], SaveData.cross_color[2], SaveData.cross_color[3]),
     panelColor=Color3.fromRGB(SaveData.panel_color[1], SaveData.panel_color[2], SaveData.panel_color[3]),
@@ -336,6 +371,8 @@ local S = {
     flingForce=SaveData.fling_force or 5000,
     flingDist=SaveData.fling_dist or 2,
     flingInterval=SaveData.fling_interval or 0.05,
+    hitbox=SaveData.hitbox, lines=SaveData.lines,
+    espLines={}, linesHolder=nil,
 }
 
 local function notify(text, color)
@@ -1162,7 +1199,6 @@ local function createGUI()
     Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
     S.panel = main
 
-    -- ═══ РУЧКА РЕСАЙЗА ═══
     local resizeHandle = Instance.new("TextButton")
     resizeHandle.Name = "ResizeHandle"
     resizeHandle.Size = UDim2.new(0, 26, 0, 26)
@@ -1471,17 +1507,20 @@ local function createGUI()
 
     -- MAIN
     addLabel(tabMain, T("sec_sheriff"))
-    addToggle(tabMain, T("autoshoot"), false, function(v)
+    addToggle(tabMain, T("autoshoot"), SaveData.autoshoot, function(v)
         S.autoShootEnabled = v
+        SaveData.autoshoot = v saveSettings()
         if v then startAutoShoot() else stopAutoShoot() end
     end)
     addLabel(tabMain, T("sec_autokill"))
-    addToggle(tabMain, T("autokill"), false, function(v)
+    addToggle(tabMain, T("autokill"), SaveData.autokill, function(v)
         S.autoKillEnabled = v
+        SaveData.autokill = v saveSettings()
         if v then startAutoKillLoop() else stopAutoKillLoop() end
     end)
-    addToggle(tabMain, T("autoTpMurderer"), false, function(v)
+    addToggle(tabMain, T("autoTpMurderer"), SaveData.autotp, function(v)
         S.autoTpEnabled = v
+        SaveData.autotp = v saveSettings()
         if v then startAutoTp() else stopAutoTp() end
     end)
     addLabel(tabMain, T("sec_farm"))
@@ -1490,13 +1529,15 @@ local function createGUI()
         if v then startFarm() else stopFarm() end
     end)
     addLabel(tabMain, T("sec_pickup"))
-    addToggle(tabMain, T("pickup"), false, function(v)
+    addToggle(tabMain, T("pickup"), SaveData.pickup, function(v)
         S.autoPickup = v
+        SaveData.pickup = v saveSettings()
         if v then startAutoPickup() else stopAutoPickup() end
     end)
     addLabel(tabMain, T("sec_roles"))
-    addToggle(tabMain, T("roles"), false, function(v)
+    addToggle(tabMain, T("roles"), SaveData.roles, function(v)
         S.roleHighlight = v
+        SaveData.roles = v saveSettings()
         if v then refreshHL() else clearHL() end
     end)
     addToggle(tabMain, T("invisible"), S.invisibleEnabled, function(v) setInvisible(v) end)
@@ -1515,9 +1556,15 @@ local function createGUI()
 
     -- VISUAL
     addLabel(tabVisual, T("sec_cross"))
-    addToggle(tabVisual, T("cross"), true, function(v) S.crosshair = v end)
-    addToggle(tabVisual, T("fov"), true, function(v) S.fovCircle = v end)
-    addToggle(tabVisual, T("hardaim"), true, function(v) S.hardAim = v end)
+    addToggle(tabVisual, T("cross"), SaveData.cross, function(v)
+        S.crosshair = v SaveData.cross = v saveSettings()
+    end)
+    addToggle(tabVisual, T("fov"), SaveData.fov, function(v)
+        S.fovCircle = v SaveData.fov = v saveSettings()
+    end)
+    addToggle(tabVisual, T("hardaim"), SaveData.hardaim, function(v)
+        S.hardAim = v SaveData.hardaim = v saveSettings()
+    end)
     addLabel(tabVisual, T("sec_cross_style"))
     addBtn(tabVisual, T("cross_1"), Color3.fromRGB(60,60,90), function()
         S.crossStyle=1 SaveData.cross_style=1 saveSettings()
@@ -1556,9 +1603,15 @@ local function createGUI()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
     addLabel(tabVisual, T("sec_move"))
-    addToggle(tabVisual, T("fly"), false, function(v) S.fly = v end)
-    addToggle(tabVisual, T("noclip"), false, function(v) S.noclip = v end)
-    addToggle(tabVisual, T("infjump"), false, function(v) S.infjump = v end)
+    addToggle(tabVisual, T("fly"), SaveData.fly, function(v)
+        S.fly = v SaveData.fly = v saveSettings()
+    end)
+    addToggle(tabVisual, T("noclip"), SaveData.noclip, function(v)
+        S.noclip = v SaveData.noclip = v saveSettings()
+    end)
+    addToggle(tabVisual, T("infjump"), SaveData.infjump, function(v)
+        S.infjump = v SaveData.infjump = v saveSettings()
+    end)
     addToggle(tabVisual, T("speed"), S.speed50Enabled, function(v)
         S.speed50Enabled = v SaveData.speed50 = v saveSettings()
         if v then
@@ -1575,7 +1628,8 @@ local function createGUI()
         end
     end)
     addLabel(tabVisual, T("sec_vis"))
-    addToggle(tabVisual, T("fullbright"), false, function(v)
+    addToggle(tabVisual, T("fullbright"), SaveData.fullbright, function(v)
+        S.fullbright = v SaveData.fullbright = v saveSettings()
         if v then
             if not S.oldLighting then
                 S.oldLighting = {
@@ -1620,6 +1674,17 @@ local function createGUI()
     addToggle(tabESP, T("esp_rainbow"), S.espRainbow, function(v)
         S.espRainbow = v SaveData.esp_rainbow = v saveSettings()
     end)
+
+    addLabel(tabESP, T("sec_hitbox"))
+    addToggle(tabESP, T("hitbox"), SaveData.hitbox, function(v)
+        S.hitbox = v SaveData.hitbox = v saveSettings()
+        if S.previewRefs.hitbox then S.previewRefs.hitbox.Visible = v end
+    end)
+    addLabel(tabESP, T("sec_lines"))
+    addToggle(tabESP, T("lines"), SaveData.lines, function(v)
+        S.lines = v SaveData.lines = v saveSettings()
+    end)
+
     addLabel(tabESP, T("esp_preview"))
     local previewFrame = Instance.new("Frame")
     previewFrame.Size = UDim2.new(1,0,0,240)
@@ -1634,6 +1699,39 @@ local function createGUI()
         noobImg.Image = IMG_NOOB
         noobImg.ScaleType = Enum.ScaleType.Fit
         noobImg.Parent = previewFrame
+        local noobStroke = Instance.new("UIStroke")
+        noobStroke.Color = S.panelColor
+        noobStroke.Thickness = 2
+        noobStroke.Transparency = 0.3
+        noobStroke.Parent = noobImg
+        S.previewRefs.noob = noobImg
+        S.previewRefs.noobStroke = noobStroke
+
+        local hbFrame = Instance.new("Frame")
+        hbFrame.Name = "PrevHitbox"
+        hbFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+        hbFrame.Size = UDim2.new(0, 90, 0, 100)
+        hbFrame.Position = UDim2.new(0.5, 0, 0.5, 15)
+        hbFrame.BackgroundTransparency = 1
+        hbFrame.BorderSizePixel = 0
+        hbFrame.Visible = SaveData.hitbox
+        hbFrame.ZIndex = 5
+        hbFrame.Parent = previewFrame
+        local hbStroke = Instance.new("UIStroke")
+        hbStroke.Color = Color3.fromRGB(255, 50, 50)
+        hbStroke.Thickness = 2
+        hbStroke.Parent = hbFrame
+        local hbLabel = Instance.new("TextLabel")
+        hbLabel.Size = UDim2.new(0, 60, 0, 14)
+        hbLabel.Position = UDim2.new(0.5, -30, -0.15, 0)
+        hbLabel.BackgroundTransparency = 1
+        hbLabel.Text = "HITBOX"
+        hbLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+        hbLabel.TextSize = 10
+        hbLabel.Font = Enum.Font.GothamBold
+        hbLabel.Parent = hbFrame
+        S.previewRefs.hitbox = hbFrame
+
         local nameLbl = Instance.new("TextLabel")
         nameLbl.Name = "PrevName"
         nameLbl.Size = UDim2.new(0,180,0,18)
@@ -1690,7 +1788,9 @@ local function createGUI()
 
     -- RAGE
     addLabel(tabRage, T("sec_aim"))
-    addToggle(tabRage, T("aimbot"), false, function(v) S.aimbot = v end)
+    addToggle(tabRage, T("aimbot"), SaveData.aimbot, function(v)
+        S.aimbot = v SaveData.aimbot = v saveSettings()
+    end)
     addToggle(tabRage, T("wallcheck"), S.wallCheck, function(v)
         S.wallCheck = v SaveData.wallcheck = v saveSettings()
     end)
@@ -1721,7 +1821,9 @@ local function createGUI()
         end
     end)
     addLabel(tabRage, T("sec_spin"))
-    addToggle(tabRage, T("spin"), false, function(v) S.spin = v end)
+    addToggle(tabRage, T("spin"), SaveData.spin, function(v)
+        S.spin = v SaveData.spin = v saveSettings()
+    end)
     addLabel(tabRage, T("sec_util"))
     addBtn(tabRage, T("respawn"), Color3.fromRGB(100,60,150), function()
         if LP.Character then LP.Character:BreakJoints() end
@@ -1731,6 +1833,13 @@ local function createGUI()
         S.spin=false S.autoPickup=false S.autoShootEnabled=false
         S.autoKillEnabled=false S.autoTpEnabled=false
         S.espEnabled=false S.speed50Enabled=false S.farmEnabled=false
+        S.hitbox=false S.lines=false
+        SaveData.aimbot=false SaveData.roles=false SaveData.fly=false
+        SaveData.noclip=false SaveData.infjump=false SaveData.spin=false
+        SaveData.pickup=false SaveData.autoshoot=false SaveData.autokill=false
+        SaveData.autotp=false SaveData.esp=false SaveData.speed50=false
+        SaveData.farm=false SaveData.hitbox=false SaveData.lines=false
+        saveSettings()
         stopAutoShoot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm() clearHL()
         if S.flingRunning then flingStop() end
         if LP.Character then
@@ -2129,6 +2238,71 @@ local function mainLoop()
         end
         if S.roleHighlight then refreshHL() end
         if S.espEnabled then updateESP() end
+
+        if S.previewRefs.noob and S.previewRefs.noob.Parent then
+            if S.espRainbow then
+                local hue = (tick() * 0.5) % 1
+                local c = Color3.fromHSV(hue, 1, 1)
+                S.previewRefs.noob.ImageColor3 = c
+                if S.previewRefs.noobStroke then S.previewRefs.noobStroke.Color = c end
+            else
+                S.previewRefs.noob.ImageColor3 = Color3.new(1,1,1)
+                if S.previewRefs.noobStroke then S.previewRefs.noobStroke.Color = S.panelColor end
+            end
+        end
+
+        if S.lines then
+            if not S.linesHolder then
+                S.linesHolder = Instance.new("Frame")
+                S.linesHolder.Size = UDim2.new(1,0,1,0)
+                S.linesHolder.BackgroundTransparency = 1
+                S.linesHolder.ZIndex = 1
+                S.linesHolder.Parent = S.gui
+            end
+            local vp = Cam.ViewportSize
+            local bottomCenter = Vector2.new(vp.X/2, vp.Y)
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= LP and plr.Character then
+                    local head = plr.Character:FindFirstChild("Head")
+                    if head then
+                        local sp, on = Cam:WorldToViewportPoint(head.Position)
+                        local line = S.espLines[plr]
+                        if on then
+                            if not line then
+                                line = Instance.new("Frame")
+                                line.BorderSizePixel = 0
+                                line.AnchorPoint = Vector2.new(0, 0.5)
+                                line.ZIndex = 3
+                                line.Parent = S.linesHolder
+                                S.espLines[plr] = line
+                            end
+                            line.Visible = true
+                            line.BackgroundColor3 = roleColor(plr)
+                            local target = Vector2.new(sp.X, sp.Y)
+                            local delta = target - bottomCenter
+                            local len = delta.Magnitude
+                            local angle = math.deg(math.atan2(delta.Y, delta.X))
+                            line.Size = UDim2.new(0, len, 0, 2)
+                            line.Position = UDim2.new(0, bottomCenter.X, 0, bottomCenter.Y)
+                            line.Rotation = angle
+                        else
+                            if line then line.Visible = false end
+                        end
+                    end
+                end
+            end
+            for plr, line in pairs(S.espLines) do
+                if not plr.Parent or not plr.Character then
+                    line:Destroy()
+                    S.espLines[plr] = nil
+                end
+            end
+        else
+            for plr, line in pairs(S.espLines) do line:Destroy() end
+            S.espLines = {}
+            if S.linesHolder then S.linesHolder:Destroy() S.linesHolder = nil end
+        end
+
         if S.invisibleEnabled then applyInvisible() end
         if S.fly and LP.Character then
             local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
@@ -2180,9 +2354,17 @@ function showLoading()
     loadF.Parent = gui
     if LOGO then
         local li = Instance.new("ImageLabel")
-        li.Size = UDim2.new(0,160,0,160); li.Position = UDim2.new(0.5,-80,0.5,-160)
+        li.AnchorPoint = Vector2.new(0.5, 0.5)
+        li.Size = UDim2.new(0,160,0,160)
+        li.Position = UDim2.new(0.5, 0, 0.5, -80)
         li.BackgroundTransparency = 1; li.Image = LOGO
         li.ScaleType = Enum.ScaleType.Fit; li.ZIndex = 501; li.Parent = loadF
+        task.spawn(function()
+            while li and li.Parent do
+                li.Rotation = (li.Rotation + 4) % 360
+                task.wait(0.02)
+            end
+        end)
     end
     local lt = Instance.new("TextLabel")
     lt.Size = UDim2.new(1,0,0,40); lt.Position = UDim2.new(0,0,0.5,20)
@@ -2214,6 +2396,18 @@ function showLoading()
         createGUI(); createOverlays(); mainLoop(); setupInfJump()
         if S.speed50Enabled then startSpeed50Loop() end
         if S.farmEnabled then startFarm() end
+        if S.autoShootEnabled then startAutoShoot() end
+        if S.autoKillEnabled then startAutoKillLoop() end
+        if S.autoTpEnabled then startAutoTp() end
+        if S.autoPickup then startAutoPickup() end
+        if S.roleHighlight then refreshHL() end
+        if S.invisibleEnabled then setInvisible(true) end
+        if S.fullbright then
+            S.oldLighting = {Brightness=Lighting.Brightness,ClockTime=Lighting.ClockTime,Ambient=Lighting.Ambient,OutdoorAmbient=Lighting.OutdoorAmbient}
+            Lighting.Brightness = 2 Lighting.ClockTime = 14
+            Lighting.Ambient = Color3.fromRGB(180,180,180)
+            Lighting.OutdoorAmbient = Color3.fromRGB(180,180,180)
+        end
         task.delay(0.5, function() notify(T("loaded") .. " [" .. detectedDevice .. "]", Color3.fromRGB(0,200,100)) end)
     end)
 end
@@ -2227,6 +2421,8 @@ _G.VankaPanel = {
         if S.flingRunning then flingStop() end
         if S.invisibleConn then pcall(function() S.invisibleConn:Disconnect() end) end
         for _, bb in pairs(S.espBillboards) do pcall(function() bb:Destroy() end) end
+        for _, line in pairs(S.espLines) do pcall(function() line:Destroy() end) end
+        if S.linesHolder then pcall(function() S.linesHolder:Destroy() end) end
         if S.gui then pcall(function() S.gui:Destroy() end) end
         _G.VankaPanel = nil
     end
