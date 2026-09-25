@@ -1,4 +1,4 @@
--- Vanka Admin Panel v34
+-- Vanka Admin Panel v35
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players = game:GetService("Players")
@@ -174,32 +174,20 @@ local function detectDevice()
     return "pc"
 end
 
-local SAVE_FILE = "vanka_settings_v34.txt"
+local SAVE_FILE = "vanka_settings_v35.txt"
 local SaveData = {
     lang="ru", device="",
     panel_w=540, panel_h=660, panel_x=20, panel_y=0,
-    -- ESP
     esp=false, esp_health=true, esp_name=true, esp_dist=true, esp_weapon=true, esp_rainbow=false,
     esp_color_killer={255,60,60}, esp_color_sheriff={60,150,255}, esp_color_innocent={60,220,100},
-    -- Crosshair
     cross_style=1, cross_color={255,0,100}, panel_color={255,0,100},
     crosshair=true, fovCircle=true, hardAim=true,
-    -- Movement
     speed50=false, fly=false, noclip=false, infjump=false,
-    -- Main toggles
     farm=false, invisible=false, roleHighlight=false,
     autoShootEnabled=false, autoKillEnabled=false, autoTpEnabled=false, autoPickup=false,
-    -- Aim
     aimbot=false, aim_part="Head", aim_smooth=0.35, wallcheck=false,
-    -- Spin
-    spin=false,
-    -- Fullbright
-    fullbright=false,
-    -- Custom
-    custom_cross="",
-    -- Fling
+    spin=false, fullbright=false, custom_cross="",
     fling_speed=10000, fling_force=5000, fling_dist=2, fling_interval=0.05,
-    -- Hitbar
     hitbarEnabled=false, hitbar_color={255,0,100},
 }
 
@@ -248,7 +236,7 @@ local function loadSettings()
             elseif k == "speed50" then SaveData.speed50 = (v == "true")
             elseif k == "fly" then SaveData.fly = (v == "true")
             elseif k == "noclip" then SaveData.noclip = (v == "true")
-            elseif k == "infjump" then SaveData.inf_jump = (v == "true")
+            elseif k == "infjump" then SaveData.infjump = (v == "true")
             elseif k == "farm" then SaveData.farm = (v == "true")
             elseif k == "invisible" then SaveData.invisible = (v == "true")
             elseif k == "roleHighlight" then SaveData.roleHighlight = (v == "true")
@@ -376,6 +364,8 @@ local S = {
     hitbarFrame=nil,
     rainbowConn=nil,
     noobImg=nil,
+    openBtn=nil,
+    mainFrame=nil,
 }
 
 local function notify(text, color)
@@ -685,7 +675,6 @@ local function startAutoTp()
 end
 local function stopAutoTp() S.autoTpEnabled = false S.autoTpThread = nil end
 
--- FLING
 local function flingCleanup()
     for _, c in ipairs(S.flingConns) do
         pcall(function() if c and c.Disconnect then c:Disconnect() end end)
@@ -1061,7 +1050,6 @@ local function updatePreview()
     if refs.weaponLbl then refs.weaponLbl.Visible = S.espWeapon end
 end
 
--- Hitbar
 local function createHitbar()
     if not S.hitbarEnabled then
         if S.hitbarFrame then S.hitbarFrame:Destroy() S.hitbarFrame = nil end
@@ -1121,6 +1109,8 @@ local function createGUI()
 
     local main = Instance.new("Frame")
     main.Name = "MainFrame"
+    PANEL_W = SaveData.panel_w or 540
+    PANEL_H = SaveData.panel_h or 660
     main.Size = UDim2.new(0, PANEL_W, 0, PANEL_H)
     main.Position = UDim2.new(0, PANEL_X, 0.5, -(PANEL_H/2) + PANEL_Y)
     main.BackgroundColor3 = Color3.fromRGB(11, 11, 18)
@@ -1130,6 +1120,7 @@ local function createGUI()
     main.Parent = gui
     Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
     S.panel = main
+    S.mainFrame = main
 
     local mstk = Instance.new("UIStroke")
     mstk.Name = "MainStroke"
@@ -1137,56 +1128,56 @@ local function createGUI()
     mstk.Thickness = 2
     mstk.Parent = main
 
-    -- Resize handle
+    -- ═══ РУЧКА РЕСАЙЗА ═══
     local resizeHandle = Instance.new("TextButton")
-    resizeHandle.Size = UDim2.new(0, 18, 0, 18)
-    resizeHandle.Position = UDim2.new(1, -22, 1, -22)
+    resizeHandle.Name = "ResizeHandle"
+    resizeHandle.Size = UDim2.new(0, 30, 0, 30)
+    resizeHandle.Position = UDim2.new(1, -34, 1, -34)
     resizeHandle.BackgroundColor3 = S.panelColor
+    resizeHandle.BackgroundTransparency = 0.2
     resizeHandle.Text = "◢"
     resizeHandle.TextColor3 = Color3.new(1,1,1)
-    resizeHandle.TextSize = 12
+    resizeHandle.TextSize = 20
     resizeHandle.Font = Enum.Font.GothamBold
     resizeHandle.AutoButtonColor = false
+    resizeHandle.ZIndex = 15
     resizeHandle.Parent = main
-    Instance.new("UICorner", resizeHandle).CornerRadius = UDim.new(0, 5)
+    Instance.new("UICorner", resizeHandle).CornerRadius = UDim.new(0, 8)
 
-    -- Resize drag logic
+    local resizeStroke = Instance.new("UIStroke")
+    resizeStroke.Color = Color3.new(1,1,1)
+    resizeStroke.Thickness = 1.5
+    resizeStroke.Transparency = 0.5
+    resizeStroke.Parent = resizeHandle
+
     local resizing = false
-    local resizeStart
-    local startSize
+    local resizeStartMouse
+    local resizeStartSize
+
     resizeHandle.MouseButton1Down:Connect(function()
         resizing = true
-        resizeStart = UIS:GetMouseLocation()
-        startSize = main.AbsoluteSize
+        resizeStartMouse = UIS:GetMouseLocation()
+        resizeStartSize = main.AbsoluteSize
+        resizeHandle.BackgroundTransparency = 0.05
     end)
+
     UIS.InputChanged:Connect(function(input)
         if resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = UIS:GetMouseLocation() - resizeStart
-            local newW = math.max(320, startSize.X + delta.X)
-            local newH = math.max(400, startSize.Y + delta.Y)
+            local delta = UIS:GetMouseLocation() - resizeStartMouse
+            local newW = math.clamp(resizeStartSize.X + delta.X, 400, 1400)
+            local newH = math.clamp(resizeStartSize.Y + delta.Y, 450, 1400)
             main.Size = UDim2.new(0, newW, 0, newH)
-            S.panelW = newW
-            S.panelH = newH
         end
     end)
+
     UIS.InputEnded:Connect(function(input)
-        if resizing and input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and resizing then
             resizing = false
+            resizeHandle.BackgroundTransparency = 0.2
             SaveData.panel_w = main.AbsoluteSize.X
             SaveData.panel_h = main.AbsoluteSize.Y
             saveSettings()
-            notify("Размер сохранён: " .. math.floor(main.AbsoluteSize.X) .. "x" .. math.floor(main.AbsoluteSize.Y), Color3.fromRGB(0,200,100))
-        end
-    end)
-
-    -- Save position
-    main:GetPropertyChangedSignal("Position"):Connect(function()
-        if not resizing then
-            local p = main.Position
-            if p.X.Offset ~= 0 then
-                SaveData.panel_x = p.X.Offset
-                SaveData.panel_y = p.Y.Offset
-            end
+            notify(T("resizing") .. ": " .. math.floor(main.AbsoluteSize.X) .. " x " .. math.floor(main.AbsoluteSize.Y), Color3.fromRGB(0,200,100))
         end
     end)
 
@@ -1228,27 +1219,82 @@ local function createGUI()
     ttl.TextXAlignment = Enum.TextXAlignment.Left
     ttl.Parent = top
 
+    -- ═══ КНОПКА МИНУС ═══
     local minB = Instance.new("TextButton")
-    minB.Size = UDim2.new(0,30,0,30); minB.Position = UDim2.new(1,-72,0.5,-15)
-    minB.BackgroundColor3 = Color3.fromRGB(55,55,70); minB.Text = "−"
-    minB.TextColor3 = Color3.new(1,1,1); minB.TextSize = 18
-    minB.Font = Enum.Font.GothamBold; minB.Parent = top
+    minB.Size = UDim2.new(0,36,0,36)
+    minB.Position = UDim2.new(1,-88,0.5,-18)
+    minB.BackgroundColor3 = Color3.fromRGB(55,55,70)
+    minB.Text = "−"
+    minB.TextColor3 = Color3.new(1,1,1)
+    minB.TextSize = 22
+    minB.Font = Enum.Font.GothamBold
+    minB.AutoButtonColor = true
+    minB.ZIndex = 10
+    minB.Parent = top
     Instance.new("UICorner", minB).CornerRadius = UDim.new(0, 8)
 
+    -- ═══ КНОПКА ЗАКРЫТИЯ ═══
     local closeB = Instance.new("TextButton")
-    closeB.Size = UDim2.new(0,30,0,30); closeB.Position = UDim2.new(1,-38,0.5,-15)
-    closeB.BackgroundColor3 = Color3.fromRGB(255,55,75); closeB.Text = "×"
-    closeB.TextColor3 = Color3.new(1,1,1); closeB.TextSize = 18
-    closeB.Font = Enum.Font.GothamBold; closeB.Parent = top
+    closeB.Size = UDim2.new(0,36,0,36)
+    closeB.Position = UDim2.new(1,-46,0.5,-18)
+    closeB.BackgroundColor3 = Color3.fromRGB(255,55,75)
+    closeB.Text = "✕"
+    closeB.TextColor3 = Color3.new(1,1,1)
+    closeB.TextSize = 22
+    closeB.Font = Enum.Font.GothamBold
+    closeB.AutoButtonColor = true
+    closeB.ZIndex = 10
+    closeB.Parent = top
     Instance.new("UICorner", closeB).CornerRadius = UDim.new(0, 8)
 
+    -- ═══ КНОПКА-ЛОГОТИП (открывашка) ═══
     local openB = Instance.new("TextButton")
-    openB.Size = UDim2.new(0,55,0,55); openB.Position = UDim2.new(0,15,0.5,-27)
-    openB.BackgroundColor3 = S.panelColor; openB.Text = "V"
-    openB.TextColor3 = Color3.new(1,1,1); openB.TextSize = 22
-    openB.Font = Enum.Font.GothamBold
-    openB.Visible = false; openB.Parent = gui
-    Instance.new("UICorner", openB).CornerRadius = UDim.new(0, 28)
+    openB.Name = "OpenBtn"
+    openB.Size = UDim2.new(0,60,0,60)
+    openB.Position = UDim2.new(0,15,0.5,-30)
+    openB.BackgroundColor3 = S.panelColor
+    openB.Text = ""
+    openB.AutoButtonColor = false
+    openB.Visible = false
+    openB.ZIndex = 5
+    openB.Parent = gui
+    Instance.new("UICorner", openB).CornerRadius = UDim.new(0, 30)
+    S.openBtn = openB
+
+    local openStroke = Instance.new("UIStroke")
+    openStroke.Color = S.panelColor
+    openStroke.Thickness = 2
+    openStroke.Transparency = 0.3
+    openStroke.Parent = openB
+
+    if LOGO then
+        local oi = Instance.new("ImageLabel")
+        oi.Size = UDim2.new(0,44,0,44)
+        oi.Position = UDim2.new(0.5,-22,0.5,-22)
+        oi.BackgroundTransparency = 1
+        oi.Image = LOGO
+        oi.ScaleType = Enum.ScaleType.Fit
+        oi.Parent = openB
+    else
+        local oi = Instance.new("TextLabel")
+        oi.Size = UDim2.new(1,0,1,0)
+        oi.BackgroundTransparency = 1
+        oi.Text = "V"
+        oi.TextColor3 = Color3.new(1,1,1)
+        oi.TextSize = 28
+        oi.Font = Enum.Font.GothamBold
+        oi.Parent = openB
+    end
+
+    task.spawn(function()
+        while openB.Parent do
+            TweenService:Create(openStroke, TweenInfo.new(1.5), {Transparency = 0.7}):Play()
+            task.wait(1.5)
+            if not openB.Parent then break end
+            TweenService:Create(openStroke, TweenInfo.new(1.5), {Transparency = 0.2}):Play()
+            task.wait(1.5)
+        end
+    end)
 
     local tabBar = Instance.new("Frame")
     tabBar.Size = UDim2.new(1,-20,0,42)
@@ -1417,8 +1463,7 @@ local function createGUI()
 
     -- MAIN
     addLabel(tabMain, T("sec_sheriff"))
-    local autoshootToggle
-    autoshootToggle = addToggle(tabMain, T("autoshoot"), SaveData.autoShootEnabled, function(v)
+    addToggle(tabMain, T("autoshoot"), SaveData.autoShootEnabled, function(v)
         S.autoShootEnabled = v
         SaveData.autoShootEnabled = v
         saveSettings()
@@ -1863,17 +1908,19 @@ local function createGUI()
     addBtn(tabConfigs, T("cfg_aim"), Color3.fromRGB(60,90,60), function() nameBox.Text = "aim" end)
     addBtn(tabConfigs, T("cfg_farm"), Color3.fromRGB(90,90,60), function() nameBox.Text = "farm" end)
 
+    -- ═══ ОБРАБОТЧИКИ КНОПОК ═══
     closeB.MouseButton1Click:Connect(function()
-        SaveData.panel_x = main.Position.X.Offset
-        SaveData.panel_y = main.Position.Y.Offset
-        saveSettings()
-        main.Visible = false; openB.Visible = true
+        main.Visible = false
+        openB.Visible = true
+        pcall(saveSettings)
     end)
     minB.MouseButton1Click:Connect(function()
-        main.Visible = false; openB.Visible = true
+        main.Visible = false
+        openB.Visible = true
     end)
     openB.MouseButton1Click:Connect(function()
-        main.Visible = true; openB.Visible = false
+        main.Visible = true
+        openB.Visible = false
     end)
     UIS.InputBegan:Connect(function(input, gp)
         if gp then return end
@@ -2143,18 +2190,9 @@ function showLoading()
         if S.farmEnabled then startFarm() end
         task.delay(0.5, function()
             notify(T("loaded") .. " [" .. detectedDevice .. "]", Color3.fromRGB(0,200,100))
-            if SaveData.autoShootEnabled then
-                S.autoShootEnabled = true
-                startAutoShoot()
-            end
-            if SaveData.autoKillEnabled then
-                S.autoKillEnabled = true
-                startAutoKillLoop()
-            end
-            if SaveData.autoTpEnabled then
-                S.autoTpEnabled = true
-                startAutoTp()
-            end
+            if SaveData.autoShootEnabled then S.autoShootEnabled = true startAutoShoot() end
+            if SaveData.autoKillEnabled then S.autoKillEnabled = true startAutoKillLoop() end
+            if SaveData.autoTpEnabled then S.autoTpEnabled = true startAutoTp() end
             if SaveData.invisible then setInvisible(true) end
             if SaveData.roleHighlight then refreshHL() end
         end)
