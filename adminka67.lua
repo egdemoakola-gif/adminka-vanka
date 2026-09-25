@@ -1,4 +1,4 @@
--- Vanka Admin Panel v35
+-- Vanka Admin Panel v36
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players           = game:GetService("Players")
@@ -41,7 +41,7 @@ local L = {
         sec_smooth="Плавность", smooth_slow="Плавно", smooth_mid="Средне", smooth_fast="Резко",
         kill_aim="Убить цель аима",
         sec_spin="СПИНБОТ", spin="Спинбот",
-        sec_antiaim="АНТИ-АИМ", antiaim="Отворот от прицела",
+        sec_antiaim="АНТИ-АИМ", antiaim="Отворот от прицела (по ролям)",
         sec_util="УТИЛИТЫ", respawn="Респавн", disable_all="ВЫКЛЮЧИТЬ ВСЁ",
         plist="СПИСОК ИГРОКОВ", tp="ТП", fling="ФЛИНГ",
         sec_fling="НАСТРОЙКИ ФЛИНГА", fling_speed="Скорость",
@@ -94,7 +94,7 @@ local L = {
         sec_smooth="Smoothness", smooth_slow="Slow", smooth_mid="Medium", smooth_fast="Fast",
         kill_aim="Kill aim target",
         sec_spin="SPINBOT", spin="Spinbot",
-        sec_antiaim="ANTI-AIM", antiaim="Turn away from aim",
+        sec_antiaim="ANTI-AIM", antiaim="Turn away from aim (by role)",
         sec_util="UTILITIES", respawn="Respawn", disable_all="TURN OFF ALL",
         plist="PLAYERS LIST", tp="TP", fling="FLING",
         sec_fling="FLING SETTINGS", fling_speed="Speed",
@@ -147,7 +147,7 @@ local L = {
         sec_smooth="平滑", smooth_slow="慢", smooth_mid="中", smooth_fast="快",
         kill_aim="击杀瞄准目标",
         sec_spin="旋转", spin="旋转机器人",
-        sec_antiaim="防瞄准", antiaim="转开瞄准",
+        sec_antiaim="防瞄准", antiaim="转开瞄准 (按角色)",
         sec_util="工具", respawn="重生", disable_all="关闭所有",
         plist="玩家列表", tp="传送", fling="甩飞",
         sec_fling="甩飞设置", fling_speed="速度",
@@ -189,7 +189,7 @@ local function detectDevice()
     return "pc"
 end
 
-local SAVE_FILE = "vanka_settings_v35.txt"
+local SAVE_FILE = "vanka_settings_v36.txt"
 local SaveData = {
     lang="ru", device="",
     panel_w=540, panel_h=660, panel_x=20, panel_y=0,
@@ -2361,26 +2361,35 @@ local function mainLoop()
             if S.linesHolder then S.linesHolder:Destroy() S.linesHolder = nil end
         end
 
-        -- АНТИ-АИМ
+        -- АНТИ-АИМ (УМНЫЙ, ПО РОЛЯМ)
         if S.antiAim and LP.Character then
             local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
             local myHum = LP.Character:FindFirstChildOfClass("Humanoid")
             if myHrp and myHum and myHum.Health > 0 then
+                -- определяем кто я и на кого реагировать
+                local myRole = getRole(LP)
+                -- если я Мардер → реагирую только на Шерифа
+                -- если я Шериф или Невиновный → реагирую только на Мардера
+                local threatRole = "Murderer"
+                if myRole == "Murderer" then threatRole = "Sheriff" end
+
                 local danger = false
                 local threatPos = nil
                 for _, plr in ipairs(Players:GetPlayers()) do
                     if plr ~= LP and plr.Character then
-                        local tHead = plr.Character:FindFirstChild("Head")
-                        local tHum = plr.Character:FindFirstChildOfClass("Humanoid")
-                        if tHead and tHum and tHum.Health > 0 then
-                            local toMe = (myHrp.Position - tHead.Position)
-                            if toMe.Magnitude > 0.1 then
-                                toMe = toMe.Unit
-                                local look = tHead.CFrame.LookVector
-                                if look:Dot(toMe) > 0.85 then
-                                    danger = true
-                                    threatPos = tHead.Position
-                                    break
+                        if getRole(plr) == threatRole then
+                            local tHead = plr.Character:FindFirstChild("Head")
+                            local tHum = plr.Character:FindFirstChildOfClass("Humanoid")
+                            if tHead and tHum and tHum.Health > 0 then
+                                local toMe = (myHrp.Position - tHead.Position)
+                                if toMe.Magnitude > 0.1 then
+                                    toMe = toMe.Unit
+                                    local look = tHead.CFrame.LookVector
+                                    if look:Dot(toMe) > 0.85 then
+                                        danger = true
+                                        threatPos = tHead.Position
+                                        break
+                                    end
                                 end
                             end
                         end
