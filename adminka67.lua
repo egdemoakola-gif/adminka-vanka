@@ -5,10 +5,12 @@ local Players           = game:GetService("Players")
 local RunService        = game:GetService("RunService")
 local UIS               = game:GetService("UserInputService")
 local TweenService      = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Lighting          = game:GetService("Lighting")
 
 local LP    = Players.LocalPlayer
 local Cam   = workspace.CurrentCamera
+local Mouse = LP:GetMouse()
 
 local LANG = "ru"
 local L = {
@@ -202,7 +204,7 @@ local SaveData = {
     cross_style=1, cross_color={255,0,100}, panel_color={255,0,100},
     speed50=false, farm=false, invisible=false,
     aim_part="Head", aim_smooth=0.35, wallcheck=false, custom_cross="",
-    fling_speed=10000, fling_force=5000, fling_dist=2, fling_interval=0.1,
+    fling_speed=10000, fling_force=5000, fling_dist=2, fling_interval=0.05,
     autoshoot=false, autokill=false, autotp=false, pickup=false, roles=false,
     cross=true, fov=true, hardaim=true, fly=false, noclip=false, infjump=false,
     fullbright=false, aimbot=false, spin=false,
@@ -287,7 +289,7 @@ local function loadSettings()
             elseif k == "fling_speed" then SaveData.fling_speed = tonumber(v) or 10000
             elseif k == "fling_force" then SaveData.fling_force = tonumber(v) or 5000
             elseif k == "fling_dist" then SaveData.fling_dist = tonumber(v) or 2
-            elseif k == "fling_interval" then SaveData.fling_interval = tonumber(v) or 0.1
+            elseif k == "fling_interval" then SaveData.fling_interval = tonumber(v) or 0.05
             elseif k == "cross_color" then
                 local r,g,b = string.match(v, "(%d+),(%d+),(%d+)")
                 if r then SaveData.cross_color = {tonumber(r),tonumber(g),tonumber(b)} end
@@ -382,7 +384,7 @@ local S = {
     flingSpeed=SaveData.fling_speed or 10000,
     flingForce=SaveData.fling_force or 5000,
     flingDist=SaveData.fling_dist or 2,
-    flingInterval=SaveData.fling_interval or 0.1,
+    flingInterval=SaveData.fling_interval or 0.05,
     hitbox=SaveData.hitbox, lines=SaveData.lines,
     espLines={}, linesHolder=nil,
     antiAim=SaveData.antiaim or false,
@@ -736,15 +738,15 @@ end
 
 local function flingStop(silent)
     S.flingRunning = false
-    -- 🎥 вернуть камеру на себя
+    -- вернуть камеру на себя
     if S.flingCamConn then
         pcall(function() S.flingCamConn:Disconnect() end)
         S.flingCamConn = nil
     end
     Cam.CameraType = Enum.CameraType.Custom
     if LP.Character then
-        local hum = LP.Character:FindFirstChildOfClass("Humanoid")
-        if hum then Cam.CameraSubject = hum end
+        local h = LP.Character:FindFirstChildOfClass("Humanoid")
+        if h then Cam.CameraSubject = h end
     end
     if S.flingThread then
         pcall(task.cancel, S.flingThread)
@@ -761,17 +763,21 @@ local function flingStop(silent)
             hum.UseJumpPower = true
         end
     end
-    if not silent then notify("Флинг остановлен", Color3.fromRGB(200,200,200)) end
+    if not silent then
+        notify("Флинг остановлен", Color3.fromRGB(200,200,200))
+    end
 end
 
 local function flingStart(targetName)
     if S.flingRunning then return end
     if not targetName or targetName == "" then
-        notify(T("no_target"), Color3.fromRGB(255,60,60)); return
+        notify(T("no_target"), Color3.fromRGB(255,60,60))
+        return
     end
     local target = Players:FindFirstChild(targetName)
     if not target then
-        notify("Игрок не найден", Color3.fromRGB(255,60,60)); return
+        notify("Игрок не найден", Color3.fromRGB(255,60,60))
+        return
     end
     S.flingRunning = true
     S.flingTargetName = targetName
@@ -780,7 +786,8 @@ local function flingStart(targetName)
         local targetRoot = targetChar:WaitForChild("HumanoidRootPart", 10)
         if not targetRoot then
             notify("Нет персонажа цели", Color3.fromRGB(255,60,60))
-            flingStop(true); return
+            flingStop(true)
+            return
         end
         local function getMyChar()
             local c = LP.Character or LP.CharacterAdded:Wait()
@@ -791,13 +798,14 @@ local function flingStart(targetName)
         local myChar, myRoot, myHum = getMyChar()
         if not myRoot or not myHum then
             notify("Ошибка персонажа", Color3.fromRGB(255,60,60))
-            flingStop(true); return
+            flingStop(true)
+            return
         end
         myHum.WalkSpeed = S.flingSpeed
         myHum.JumpPower = S.flingSpeed
         myHum.UseJumpPower = true
 
-        -- 🎥 КАМЕРА НА ЦЕЛЬ (смотрим за игроком от 3 лица)
+        -- камера смотрит за целью (3 лицо, сзади-сверху)
         Cam.CameraType = Enum.CameraType.Scriptable
         if S.flingCamConn then pcall(function() S.flingCamConn:Disconnect() end) end
         S.flingCamConn = RunService.RenderStepped:Connect(function(dt)
@@ -806,7 +814,6 @@ local function flingStart(targetName)
             if not t or not t.Character then return end
             local tHrp = t.Character:FindFirstChild("HumanoidRootPart")
             if not tHrp then return end
-            -- камера сзади-сверху от цели
             local desired = tHrp.CFrame * CFrame.new(0, 6, 14)
             Cam.CFrame = Cam.CFrame:Lerp(desired, 0.15)
         end)
@@ -853,7 +860,9 @@ local function flingStart(targetName)
                     myRoot.CFrame = CFrame.new(targetPos + sideOffset, targetPos)
                 else
                     myRoot.CFrame = CFrame.new(targetPos + Vector3.new(0, 1, 0))
-                    if flatDir.Magnitude < 0.1 then flatDir = Vector3.new(0, 0, 1) end
+                    if flatDir.Magnitude < 0.1 then
+                        flatDir = Vector3.new(0, 0, 1)
+                    end
                     local pushDir = flatDir.Unit
                     myRoot.AssemblyLinearVelocity = pushDir * S.flingForce
                     targetRoot.AssemblyLinearVelocity = pushDir * S.flingForce
@@ -914,7 +923,8 @@ local function startFarm()
         while S.farmEnabled do
             if isBagFull() then
                 notify(T("farm_full"), Color3.fromRGB(255,200,0))
-                S.farmEnabled = false; break
+                S.farmEnabled = false
+                break
             end
             local coin = findCoin()
             if not coin then
@@ -954,7 +964,8 @@ local function startFarm()
                 end
                 if isBagFull() then
                     notify(T("farm_full"), Color3.fromRGB(255,200,0))
-                    S.farmEnabled = false; break
+                    S.farmEnabled = false
+                    break
                 end
                 task.wait()
             end
@@ -1946,7 +1957,7 @@ local function createGUI()
         if v then S.flingDist = v SaveData.fling_dist = v saveSettings() notify(T("saved_msg"), Color3.fromRGB(0,200,100)) end
     end)
     addLabel(tabPlayers, T("fling_interval"))
-    local flingIntBox = addTextBox(tabPlayers, S.flingInterval, "0.1")
+    local flingIntBox = addTextBox(tabPlayers, S.flingInterval, "0.05")
     flingIntBox.FocusLost:Connect(function()
         local v = tonumber(flingIntBox.Text)
         if v then S.flingInterval = v SaveData.fling_interval = v saveSettings() notify(T("saved_msg"), Color3.fromRGB(0,200,100)) end
@@ -2106,7 +2117,7 @@ local function createGUI()
     Instance.new("UICorner", colorHolder).CornerRadius = UDim.new(0, 10)
     local colorGrid = Instance.new("UIGridLayout")
     colorGrid.CellSize = UDim2.new(0,32,0,32)
-    colorGrid.CellPadding = UDim.new(0,6,0,6)
+    colorGrid.CellPadding = UDim2.new(0,6,0,6)
     colorGrid.Parent = colorHolder
     local palette = {
         {255,0,100},{255,50,50},{255,100,0},{255,150,0},
@@ -2173,7 +2184,8 @@ local function createGUI()
         local path = "vanka_configs/" .. nameBox.Text .. ".txt"
         local ok, exists = pcall(isfile, path)
         if not ok or not exists then
-            notify(T("cfg_notfound"), Color3.fromRGB(255,60,60)); return
+            notify(T("cfg_notfound"), Color3.fromRGB(255,60,60))
+            return
         end
         local ok2, data = pcall(readfile, path)
         if ok2 and data then
