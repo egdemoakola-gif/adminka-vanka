@@ -1,4 +1,4 @@
--- Vanka Admin Panel v34
+-- Vanka Admin Panel v35
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players           = game:GetService("Players")
@@ -41,6 +41,7 @@ local L = {
         sec_smooth="Плавность", smooth_slow="Плавно", smooth_mid="Средне", smooth_fast="Резко",
         kill_aim="Убить цель аима",
         sec_spin="СПИНБОТ", spin="Спинбот",
+        sec_antiaim="АНТИ-АИМ", antiaim="Отворот от прицела",
         sec_util="УТИЛИТЫ", respawn="Респавн", disable_all="ВЫКЛЮЧИТЬ ВСЁ",
         plist="СПИСОК ИГРОКОВ", tp="ТП", fling="ФЛИНГ",
         sec_fling="НАСТРОЙКИ ФЛИНГА", fling_speed="Скорость",
@@ -64,6 +65,7 @@ local L = {
         size_saved="Размер панели сохранён",
         sec_lines="ПОЛОСЫ", lines="Линии к игрокам",
         sec_hitbox="ХИТБОКС", hitbox="Хитбоксы (показ)",
+        saved_msg="💾 Сохранено",
     },
     en = {
         title="VANKA ADMIN",
@@ -92,6 +94,7 @@ local L = {
         sec_smooth="Smoothness", smooth_slow="Slow", smooth_mid="Medium", smooth_fast="Fast",
         kill_aim="Kill aim target",
         sec_spin="SPINBOT", spin="Spinbot",
+        sec_antiaim="ANTI-AIM", antiaim="Turn away from aim",
         sec_util="UTILITIES", respawn="Respawn", disable_all="TURN OFF ALL",
         plist="PLAYERS LIST", tp="TP", fling="FLING",
         sec_fling="FLING SETTINGS", fling_speed="Speed",
@@ -115,6 +118,7 @@ local L = {
         size_saved="Panel size saved",
         sec_lines="LINES", lines="Lines to players",
         sec_hitbox="HITBOX", hitbox="Show hitboxes",
+        saved_msg="💾 Saved",
     },
     zh = {
         title="VANKA 管理员",
@@ -143,6 +147,7 @@ local L = {
         sec_smooth="平滑", smooth_slow="慢", smooth_mid="中", smooth_fast="快",
         kill_aim="击杀瞄准目标",
         sec_spin="旋转", spin="旋转机器人",
+        sec_antiaim="防瞄准", antiaim="转开瞄准",
         sec_util="工具", respawn="重生", disable_all="关闭所有",
         plist="玩家列表", tp="传送", fling="甩飞",
         sec_fling="甩飞设置", fling_speed="速度",
@@ -166,6 +171,7 @@ local L = {
         size_saved="面板尺寸已保存",
         sec_lines="线", lines="到玩家的线",
         sec_hitbox="碰撞箱", hitbox="显示碰撞箱",
+        saved_msg="💾 已保存",
     }
 }
 local function T(k) return L[LANG][k] or k end
@@ -183,7 +189,7 @@ local function detectDevice()
     return "pc"
 end
 
-local SAVE_FILE = "vanka_settings_v34.txt"
+local SAVE_FILE = "vanka_settings_v35.txt"
 local SaveData = {
     lang="ru", device="",
     panel_w=540, panel_h=660, panel_x=20, panel_y=0,
@@ -197,6 +203,7 @@ local SaveData = {
     cross=true, fov=true, hardaim=true, fly=false, noclip=false, infjump=false,
     fullbright=false, aimbot=false, spin=false,
     hitbox=false, lines=false,
+    antiaim=false,
 }
 
 local function serialize()
@@ -209,7 +216,7 @@ local function serialize()
         "fling_speed","fling_force","fling_dist","fling_interval",
         "autoshoot","autokill","autotp","pickup","roles",
         "cross","fov","hardaim","fly","noclip","infjump",
-        "fullbright","aimbot","spin","hitbox","lines",
+        "fullbright","aimbot","spin","hitbox","lines","antiaim",
     }
     for _, k in ipairs(keys) do
         local v = SaveData[k]
@@ -264,6 +271,7 @@ local function loadSettings()
             elseif k == "spin" then SaveData.spin = (v == "true")
             elseif k == "hitbox" then SaveData.hitbox = (v == "true")
             elseif k == "lines" then SaveData.lines = (v == "true")
+            elseif k == "antiaim" then SaveData.antiaim = (v == "true")
             elseif k == "speed50" then SaveData.speed50 = (v == "true")
             elseif k == "farm" then SaveData.farm = (v == "true")
             elseif k == "invisible" then SaveData.invisible = (v == "true")
@@ -373,6 +381,7 @@ local S = {
     flingInterval=SaveData.fling_interval or 0.05,
     hitbox=SaveData.hitbox, lines=SaveData.lines,
     espLines={}, linesHolder=nil,
+    antiAim=SaveData.antiaim or false,
 }
 
 local function notify(text, color)
@@ -1418,7 +1427,11 @@ local function createGUI()
         Instance.new("UICorner", b).CornerRadius = UDim.new(0, 7)
         b.MouseButton1Click:Connect(function()
             local ok, err = pcall(cb, b)
-            if not ok then notify("Err: " .. tostring(err), Color3.fromRGB(255,60,60)) end
+            if not ok then
+                notify("Err: " .. tostring(err), Color3.fromRGB(255,60,60))
+            else
+                notify(T("saved_msg"), Color3.fromRGB(0,200,100))
+            end
         end)
         return b
     end
@@ -1457,6 +1470,7 @@ local function createGUI()
                 Position = st and UDim2.new(1,-18,0.5,-8) or UDim2.new(0,2,0.5,-8)
             }):Play()
             cb(st)
+            notify(T("saved_msg"), Color3.fromRGB(0,200,100))
         end)
         return row
     end
@@ -1692,6 +1706,8 @@ local function createGUI()
     previewFrame.BorderSizePixel = 0; previewFrame.Parent = tabESP
     Instance.new("UICorner", previewFrame).CornerRadius = UDim.new(0, 10)
     if IMG_NOOB then
+        local oldHb = previewFrame:FindFirstChild("PrevHitbox")
+        if oldHb then oldHb:Destroy() end
         local noobImg = Instance.new("ImageLabel")
         noobImg.Size = UDim2.new(0,130,0,130)
         noobImg.Position = UDim2.new(0.5,-65,0.5,-20)
@@ -1824,6 +1840,10 @@ local function createGUI()
     addToggle(tabRage, T("spin"), SaveData.spin, function(v)
         S.spin = v SaveData.spin = v saveSettings()
     end)
+    addLabel(tabRage, T("sec_antiaim"))
+    addToggle(tabRage, T("antiaim"), SaveData.antiaim, function(v)
+        S.antiAim = v SaveData.antiaim = v saveSettings()
+    end)
     addLabel(tabRage, T("sec_util"))
     addBtn(tabRage, T("respawn"), Color3.fromRGB(100,60,150), function()
         if LP.Character then LP.Character:BreakJoints() end
@@ -1833,12 +1853,13 @@ local function createGUI()
         S.spin=false S.autoPickup=false S.autoShootEnabled=false
         S.autoKillEnabled=false S.autoTpEnabled=false
         S.espEnabled=false S.speed50Enabled=false S.farmEnabled=false
-        S.hitbox=false S.lines=false
+        S.hitbox=false S.lines=false S.antiAim=false
         SaveData.aimbot=false SaveData.roles=false SaveData.fly=false
         SaveData.noclip=false SaveData.infjump=false SaveData.spin=false
         SaveData.pickup=false SaveData.autoshoot=false SaveData.autokill=false
         SaveData.autotp=false SaveData.esp=false SaveData.speed50=false
         SaveData.farm=false SaveData.hitbox=false SaveData.lines=false
+        SaveData.antiaim=false
         saveSettings()
         stopAutoShoot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm() clearHL()
         if S.flingRunning then flingStop() end
@@ -1855,25 +1876,25 @@ local function createGUI()
     local flingSpeedBox = addTextBox(tabPlayers, S.flingSpeed, "10000")
     flingSpeedBox.FocusLost:Connect(function()
         local v = tonumber(flingSpeedBox.Text)
-        if v then S.flingSpeed = v SaveData.fling_speed = v saveSettings() end
+        if v then S.flingSpeed = v SaveData.fling_speed = v saveSettings() notify(T("saved_msg"), Color3.fromRGB(0,200,100)) end
     end)
     addLabel(tabPlayers, T("fling_force"))
     local flingForceBox = addTextBox(tabPlayers, S.flingForce, "5000")
     flingForceBox.FocusLost:Connect(function()
         local v = tonumber(flingForceBox.Text)
-        if v then S.flingForce = v SaveData.fling_force = v saveSettings() end
+        if v then S.flingForce = v SaveData.fling_force = v saveSettings() notify(T("saved_msg"), Color3.fromRGB(0,200,100)) end
     end)
     addLabel(tabPlayers, T("fling_dist"))
     local flingDistBox = addTextBox(tabPlayers, S.flingDist, "2")
     flingDistBox.FocusLost:Connect(function()
         local v = tonumber(flingDistBox.Text)
-        if v then S.flingDist = v SaveData.fling_dist = v saveSettings() end
+        if v then S.flingDist = v SaveData.fling_dist = v saveSettings() notify(T("saved_msg"), Color3.fromRGB(0,200,100)) end
     end)
     addLabel(tabPlayers, T("fling_interval"))
     local flingIntBox = addTextBox(tabPlayers, S.flingInterval, "0.05")
     flingIntBox.FocusLost:Connect(function()
         local v = tonumber(flingIntBox.Text)
-        if v then S.flingInterval = v SaveData.fling_interval = v saveSettings() end
+        if v then S.flingInterval = v SaveData.fling_interval = v saveSettings() notify(T("saved_msg"), Color3.fromRGB(0,200,100)) end
     end)
     addBtn(tabPlayers, T("fling_stop"), Color3.fromRGB(180,20,100), function()
         if S.flingRunning then flingStop() end
@@ -1957,6 +1978,7 @@ local function createGUI()
                         local m = LP.Character:FindFirstChild("HumanoidRootPart")
                         if t and m then
                             pcall(function() m.CFrame = t.CFrame * CFrame.new(0,0,4) end)
+                            notify(T("saved_msg"), Color3.fromRGB(0,200,100))
                         end
                     end
                 end)
@@ -1984,6 +2006,7 @@ local function createGUI()
                     if S.flingRunning then flingStop() end
                     task.wait(0.1)
                     flingStart(plr.Name)
+                    notify(T("saved_msg"), Color3.fromRGB(0,200,100))
                 end)
 
                 rows[plr] = row
@@ -2066,7 +2089,7 @@ local function createGUI()
                     tab.BackgroundColor3 = S.panelColor
                 end
             end
-            notify(T("saved"), Color3.fromRGB(0,200,100))
+            notify(T("saved_msg"), Color3.fromRGB(0,200,100))
         end)
     end
 
@@ -2239,6 +2262,40 @@ local function mainLoop()
         if S.roleHighlight then refreshHL() end
         if S.espEnabled then updateESP() end
 
+        -- ХИТБОКСЫ НА РЕАЛЬНЫХ ИГРОКАХ
+        if S.hitbox then
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= LP and plr.Character then
+                    local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        local hb = hrp:FindFirstChild("VankaHitbox")
+                        if not hb then
+                            hb = Instance.new("BoxHandleAdornment")
+                            hb.Name = "VankaHitbox"
+                            hb.Size = Vector3.new(2, 5, 1)
+                            hb.Adornee = hrp
+                            hb.AlwaysOnTop = true
+                            hb.ZIndex = 5
+                            hb.Transparency = 0.55
+                            hb.Color3 = Color3.fromRGB(255, 50, 50)
+                            hb.Parent = hrp
+                        end
+                    end
+                end
+            end
+        else
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr.Character then
+                    local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        local hb = hrp:FindFirstChild("VankaHitbox")
+                        if hb then hb:Destroy() end
+                    end
+                end
+            end
+        end
+
+        -- РАДУЖНЫЙ НУБ
         if S.previewRefs.noob and S.previewRefs.noob.Parent then
             if S.espRainbow then
                 local hue = (tick() * 0.5) % 1
@@ -2251,6 +2308,7 @@ local function mainLoop()
             end
         end
 
+        -- ПОЛОСЫ К ИГРОКАМ
         if S.lines then
             if not S.linesHolder then
                 S.linesHolder = Instance.new("Frame")
@@ -2301,6 +2359,45 @@ local function mainLoop()
             for plr, line in pairs(S.espLines) do line:Destroy() end
             S.espLines = {}
             if S.linesHolder then S.linesHolder:Destroy() S.linesHolder = nil end
+        end
+
+        -- АНТИ-АИМ
+        if S.antiAim and LP.Character then
+            local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
+            local myHum = LP.Character:FindFirstChildOfClass("Humanoid")
+            if myHrp and myHum and myHum.Health > 0 then
+                local danger = false
+                local threatPos = nil
+                for _, plr in ipairs(Players:GetPlayers()) do
+                    if plr ~= LP and plr.Character then
+                        local tHead = plr.Character:FindFirstChild("Head")
+                        local tHum = plr.Character:FindFirstChildOfClass("Humanoid")
+                        if tHead and tHum and tHum.Health > 0 then
+                            local toMe = (myHrp.Position - tHead.Position)
+                            if toMe.Magnitude > 0.1 then
+                                toMe = toMe.Unit
+                                local look = tHead.CFrame.LookVector
+                                if look:Dot(toMe) > 0.85 then
+                                    danger = true
+                                    threatPos = tHead.Position
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
+                if danger and threatPos then
+                    local away = (myHrp.Position - threatPos)
+                    away = Vector3.new(away.X, 0, away.Z)
+                    if away.Magnitude > 0.1 then
+                        away = away.Unit
+                    else
+                        away = Vector3.new(1, 0, 0)
+                    end
+                    local spin = CFrame.Angles(0, math.rad(90 + math.random(-20,20)), 0)
+                    myHrp.CFrame = CFrame.lookAt(myHrp.Position, myHrp.Position + away) * spin
+                end
+            end
         end
 
         if S.invisibleEnabled then applyInvisible() end
@@ -2423,6 +2520,15 @@ _G.VankaPanel = {
         for _, bb in pairs(S.espBillboards) do pcall(function() bb:Destroy() end) end
         for _, line in pairs(S.espLines) do pcall(function() line:Destroy() end) end
         if S.linesHolder then pcall(function() S.linesHolder:Destroy() end) end
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr.Character then
+                local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local hb = hrp:FindFirstChild("VankaHitbox")
+                    if hb then pcall(function() hb:Destroy() end) end
+                end
+            end
+        end
         if S.gui then pcall(function() S.gui:Destroy() end) end
         _G.VankaPanel = nil
     end
