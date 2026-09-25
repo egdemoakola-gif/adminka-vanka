@@ -1,16 +1,14 @@
--- Vanka Admin Panel v36
+-- Vanka Admin Panel v38
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players           = game:GetService("Players")
 local RunService        = game:GetService("RunService")
 local UIS               = game:GetService("UserInputService")
 local TweenService      = game:GetService("TweenService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Lighting          = game:GetService("Lighting")
 
 local LP    = Players.LocalPlayer
 local Cam   = workspace.CurrentCamera
-local Mouse = LP:GetMouse()
 
 local LANG = "ru"
 local L = {
@@ -23,7 +21,7 @@ local L = {
         sec_autokill="АВТО-КИЛЛ", autokill="Авто-убийство ножом",
         autoTpMurderer="Следование за Мардером",
         sec_farm="ФАРМ", farm="Авто-фарм монет",
-        sec_pickup="ПОДБОР", pickup="Подбор пистолета",
+        sec_pickup="ПОДБОР", pickup="Подбор пистолета (ТП к смерти шерифа)",
         sec_roles="РОЛИ", roles="Подсветка ролей",
         invisible="Невидимость", clear_inv="Очистить инвентарь",
         sec_cross="ПРИЦЕЛ", cross="Прицел", fov="Круг FOV", hardaim="Жёсткий аим",
@@ -66,6 +64,8 @@ local L = {
         sec_lines="ПОЛОСЫ", lines="Линии к игрокам",
         sec_hitbox="ХИТБОКС", hitbox="Хитбоксы (показ)",
         saved_msg="💾 Сохранено",
+        pickup_tp="ТП к смерти шерифа...",
+        pickup_back="Вернулся на место",
     },
     en = {
         title="VANKA ADMIN",
@@ -76,7 +76,7 @@ local L = {
         sec_autokill="AUTO-KILL", autokill="Auto knife kill",
         autoTpMurderer="Follow Murderer",
         sec_farm="FARM", farm="Auto Farm Coins",
-        sec_pickup="PICKUP", pickup="Gun pickup",
+        sec_pickup="PICKUP", pickup="Gun pickup (TP to sheriff death)",
         sec_roles="ROLES", roles="Role highlight",
         invisible="Invisible", clear_inv="Clear inventory",
         sec_cross="CROSSHAIR", cross="Crosshair", fov="FOV circle", hardaim="Hard aim",
@@ -119,6 +119,8 @@ local L = {
         sec_lines="LINES", lines="Lines to players",
         sec_hitbox="HITBOX", hitbox="Show hitboxes",
         saved_msg="💾 Saved",
+        pickup_tp="TP to sheriff death...",
+        pickup_back="Returned back",
     },
     zh = {
         title="VANKA 管理员",
@@ -129,7 +131,7 @@ local L = {
         sec_autokill="自动击杀", autokill="自动刀杀",
         autoTpMurderer="跟踪凶手",
         sec_farm="农场", farm="自动农场",
-        sec_pickup="拾取", pickup="拾取枪支",
+        sec_pickup="拾取", pickup="拾取枪支 (传送死亡点)",
         sec_roles="角色", roles="角色高亮",
         invisible="隐身", clear_inv="清空背包",
         sec_cross="准星", cross="准星", fov="FOV", hardaim="硬瞄准",
@@ -172,6 +174,8 @@ local L = {
         sec_lines="线", lines="到玩家的线",
         sec_hitbox="碰撞箱", hitbox="显示碰撞箱",
         saved_msg="💾 已保存",
+        pickup_tp="传送到死亡点...",
+        pickup_back="已返回",
     }
 }
 local function T(k) return L[LANG][k] or k end
@@ -189,7 +193,7 @@ local function detectDevice()
     return "pc"
 end
 
-local SAVE_FILE = "vanka_settings_v36.txt"
+local SAVE_FILE = "vanka_settings_v38.txt"
 local SaveData = {
     lang="ru", device="",
     panel_w=540, panel_h=660, panel_x=20, panel_y=0,
@@ -382,6 +386,7 @@ local S = {
     hitbox=SaveData.hitbox, lines=SaveData.lines,
     espLines={}, linesHolder=nil,
     antiAim=SaveData.antiaim or false,
+    pickupBusy=false,
 }
 
 local function notify(text, color)
@@ -527,6 +532,7 @@ local function getAimPart(tChar)
     return tChar:FindFirstChild(S.aimPart) or tChar:FindFirstChild("Head")
 end
 
+-- AUTO SHOOT: ТП за 11 стюдов позади мардера, жёсткий аим, залп 20 выстрелов
 local function startAutoShoot()
     if S.autoShootThread then return end
     S.autoShootThread = task.spawn(function()
@@ -567,26 +573,42 @@ local function startAutoShoot()
             local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
             if myHrp and tHrp then
                 pcall(function()
-                    myHrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 2)
-                    myHrp.Velocity = Vector3.new(0, 0, 0)
+                    local behind = -tHrp.CFrame.LookVector
+                    myHrp.CFrame = CFrame.new(tHrp.Position + behind * 11 + Vector3.new(0, 2, 0), tHrp.Position)
+                    myHrp.AssemblyLinearVelocity = Vector3.zero
+                    myHrp.AssemblyAngularVelocity = Vector3.zero
                 end)
             end
             local targetPos = hitbox.Position
-            local newCF = CFrame.new(Cam.CFrame.Position, targetPos)
-            if S.hardAim then Cam.CFrame = newCF
-            else Cam.CFrame = Cam.CFrame:Lerp(newCF, 1 - S.aimSmooth) end
-            local dot = Cam.CFrame.LookVector:Dot((targetPos - Cam.CFrame.Position).Unit)
+            local camPos = Cam.CFrame.Position
+            Cam.CFrame = CFrame.new(camPos, targetPos)
             local canShoot = true
             if S.wallCheck then
                 local rp = RaycastParams.new()
                 rp.FilterType = Enum.RaycastFilterType.Exclude
                 rp.FilterDescendantsInstances = {LP.Character, tChar}
-                if workspace:Raycast(Cam.CFrame.Position, targetPos - Cam.CFrame.Position, rp) then canShoot = false end
+                if workspace:Raycast(camPos, targetPos - camPos, rp) then canShoot = false end
             end
-            if dot > 0.99 and canShoot then
+            local dir = (targetPos - camPos).Unit
+            local dot = Cam.CFrame.LookVector:Dot(dir)
+            if canShoot and dot > 0.99 then
                 local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
                 if tool and isGun(tool) then
-                    for i = 1, 12 do pcall(function() tool:Activate() end) end
+                    for i = 1, 20 do
+                        if not S.autoShootEnabled then break end
+                        if tHum.Health <= 0 then break end
+                        local tHrp2 = tChar:FindFirstChild("HumanoidRootPart")
+                        if not tHrp2 then break end
+                        local hb2 = getAimPart(tChar) or hitbox
+                        pcall(function()
+                            local newBehind = -tHrp2.CFrame.LookVector
+                            myHrp.CFrame = CFrame.new(tHrp2.Position + newBehind * 11 + Vector3.new(0, 2, 0), tHrp2.Position)
+                            myHrp.AssemblyLinearVelocity = Vector3.zero
+                        end)
+                        Cam.CFrame = CFrame.new(Cam.CFrame.Position, hb2.Position)
+                        pcall(function() tool:Activate() end)
+                        task.wait(0.005)
+                    end
                 end
             end
             task.wait()
@@ -692,7 +714,10 @@ local function startAutoTp()
                 local tHrp = murderer.Character:FindFirstChild("HumanoidRootPart")
                 local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
                 if tHrp and myHrp then
-                    pcall(function() myHrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3) end)
+                    pcall(function()
+                        local behind = -tHrp.CFrame.LookVector
+                        myHrp.CFrame = CFrame.new(tHrp.Position + behind * 11 + Vector3.new(0, 2, 0), tHrp.Position)
+                    end)
                 end
             end
             task.wait(0.05)
@@ -726,21 +751,17 @@ local function flingStop(silent)
             hum.UseJumpPower = true
         end
     end
-    if not silent then
-        notify("Флинг остановлен", Color3.fromRGB(200,200,200))
-    end
+    if not silent then notify("Флинг остановлен", Color3.fromRGB(200,200,200)) end
 end
 
 local function flingStart(targetName)
     if S.flingRunning then return end
     if not targetName or targetName == "" then
-        notify(T("no_target"), Color3.fromRGB(255,60,60))
-        return
+        notify(T("no_target"), Color3.fromRGB(255,60,60)); return
     end
     local target = Players:FindFirstChild(targetName)
     if not target then
-        notify("Игрок не найден", Color3.fromRGB(255,60,60))
-        return
+        notify("Игрок не найден", Color3.fromRGB(255,60,60)); return
     end
     S.flingRunning = true
     S.flingTargetName = targetName
@@ -749,8 +770,7 @@ local function flingStart(targetName)
         local targetRoot = targetChar:WaitForChild("HumanoidRootPart", 10)
         if not targetRoot then
             notify("Нет персонажа цели", Color3.fromRGB(255,60,60))
-            flingStop(true)
-            return
+            flingStop(true); return
         end
         local function getMyChar()
             local c = LP.Character or LP.CharacterAdded:Wait()
@@ -761,8 +781,7 @@ local function flingStart(targetName)
         local myChar, myRoot, myHum = getMyChar()
         if not myRoot or not myHum then
             notify("Ошибка персонажа", Color3.fromRGB(255,60,60))
-            flingStop(true)
-            return
+            flingStop(true); return
         end
         myHum.WalkSpeed = S.flingSpeed
         myHum.JumpPower = S.flingSpeed
@@ -809,9 +828,7 @@ local function flingStart(targetName)
                     myRoot.CFrame = CFrame.new(targetPos + sideOffset, targetPos)
                 else
                     myRoot.CFrame = CFrame.new(targetPos + Vector3.new(0, 1, 0))
-                    if flatDir.Magnitude < 0.1 then
-                        flatDir = Vector3.new(0, 0, 1)
-                    end
+                    if flatDir.Magnitude < 0.1 then flatDir = Vector3.new(0, 0, 1) end
                     local pushDir = flatDir.Unit
                     myRoot.AssemblyLinearVelocity = pushDir * S.flingForce
                     targetRoot.AssemblyLinearVelocity = pushDir * S.flingForce
@@ -872,8 +889,7 @@ local function startFarm()
         while S.farmEnabled do
             if isBagFull() then
                 notify(T("farm_full"), Color3.fromRGB(255,200,0))
-                S.farmEnabled = false
-                break
+                S.farmEnabled = false; break
             end
             local coin = findCoin()
             if not coin then
@@ -913,8 +929,7 @@ local function startFarm()
                 end
                 if isBagFull() then
                     notify(T("farm_full"), Color3.fromRGB(255,200,0))
-                    S.farmEnabled = false
-                    break
+                    S.farmEnabled = false; break
                 end
                 task.wait()
             end
@@ -1108,34 +1123,67 @@ local function startSpeed50Loop()
     end)
 end
 
+-- АВТО-ПОДБОР: запоминаем ТВОЮ позицию → ТП на смерть шерифа → 1 сек → возврат
 local function startAutoPickup()
     if S.sheriffThread then return end
-    S.lastSheriff = nil; S.lastSheriffPos = nil
+    S.lastSheriff = nil
+    S.lastSheriffPos = nil
     S.sheriffThread = task.spawn(function()
         while S.autoPickup do
+            -- следим за шерифом
             local curSheriff, curPos = nil, nil
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LP and plr.Character and getRole(plr) == "Sheriff" then
                     curSheriff = plr
                     local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
-                    if hrp then curPos = hrp.CFrame end
+                    if hrp then curPos = hrp.Position end
                     break
                 end
             end
-            if curSheriff and curPos then S.lastSheriffPos = curPos end
-            if S.lastSheriff and not curSheriff and S.lastSheriffPos then
-                task.wait(0.4)
-                if LP.Character then
-                    local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
-                    if myHrp then
-                        pcall(function() myHrp.CFrame = S.lastSheriffPos + Vector3.new(0,3,0) end)
-                        task.wait(1)
-                    end
-                end
-                S.lastSheriffPos = nil
+            if curSheriff and curPos then
+                S.lastSheriffPos = curPos
             end
+
+            -- шериф исчез → он умер → ТП на место
+            if S.lastSheriff and not curSheriff and S.lastSheriffPos and not S.pickupBusy then
+                S.pickupBusy = true
+                local deathPos = S.lastSheriffPos
+                S.lastSheriffPos = nil
+                task.spawn(function()
+                    task.wait(0.3)  -- дать пушке упасть
+
+                    -- запомнить МОЮ позицию
+                    local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                    if not myHrp then S.pickupBusy = false return end
+                    local mySavedPos = myHrp.CFrame
+
+                    -- ТП на место смерти шерифа
+                    pcall(function()
+                        myHrp.CFrame = CFrame.new(deathPos + Vector3.new(0, 2, 0))
+                        myHrp.AssemblyLinearVelocity = Vector3.zero
+                    end)
+                    notify(T("pickup_tp"), Color3.fromRGB(0,200,100))
+
+                    -- ждём ровно 1 секунду
+                    task.wait(1)
+
+                    -- возврат на свою позицию
+                    local myHrp2 = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                    if myHrp2 then
+                        pcall(function()
+                            myHrp2.CFrame = mySavedPos
+                            myHrp2.AssemblyLinearVelocity = Vector3.zero
+                        end)
+                        notify(T("pickup_back"), Color3.fromRGB(150,200,255))
+                    end
+
+                    task.wait(0.5)
+                    S.pickupBusy = false
+                end)
+            end
+
             S.lastSheriff = curSheriff
-            task.wait(0.3)
+            task.wait(0.2)
         end
         S.sheriffThread = nil
     end)
@@ -1143,6 +1191,7 @@ end
 local function stopAutoPickup()
     S.autoPickup = false; S.sheriffThread = nil
     S.lastSheriff = nil; S.lastSheriffPos = nil
+    S.pickupBusy = false
 end
 
 local function refreshHL()
@@ -2120,8 +2169,7 @@ local function createGUI()
         local path = "vanka_configs/" .. nameBox.Text .. ".txt"
         local ok, exists = pcall(isfile, path)
         if not ok or not exists then
-            notify(T("cfg_notfound"), Color3.fromRGB(255,60,60))
-            return
+            notify(T("cfg_notfound"), Color3.fromRGB(255,60,60)); return
         end
         local ok2, data = pcall(readfile, path)
         if ok2 and data then
@@ -2262,7 +2310,6 @@ local function mainLoop()
         if S.roleHighlight then refreshHL() end
         if S.espEnabled then updateESP() end
 
-        -- ХИТБОКСЫ НА РЕАЛЬНЫХ ИГРОКАХ
         if S.hitbox then
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LP and plr.Character then
@@ -2295,7 +2342,6 @@ local function mainLoop()
             end
         end
 
-        -- РАДУЖНЫЙ НУБ
         if S.previewRefs.noob and S.previewRefs.noob.Parent then
             if S.espRainbow then
                 local hue = (tick() * 0.5) % 1
@@ -2308,7 +2354,6 @@ local function mainLoop()
             end
         end
 
-        -- ПОЛОСЫ К ИГРОКАМ
         if S.lines then
             if not S.linesHolder then
                 S.linesHolder = Instance.new("Frame")
@@ -2361,18 +2406,13 @@ local function mainLoop()
             if S.linesHolder then S.linesHolder:Destroy() S.linesHolder = nil end
         end
 
-        -- АНТИ-АИМ (УМНЫЙ, ПО РОЛЯМ)
         if S.antiAim and LP.Character then
             local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
             local myHum = LP.Character:FindFirstChildOfClass("Humanoid")
             if myHrp and myHum and myHum.Health > 0 then
-                -- определяем кто я и на кого реагировать
                 local myRole = getRole(LP)
-                -- если я Мардер → реагирую только на Шерифа
-                -- если я Шериф или Невиновный → реагирую только на Мардера
                 local threatRole = "Murderer"
                 if myRole == "Murderer" then threatRole = "Sheriff" end
-
                 local danger = false
                 local threatPos = nil
                 for _, plr in ipairs(Players:GetPlayers()) do
@@ -2398,11 +2438,7 @@ local function mainLoop()
                 if danger and threatPos then
                     local away = (myHrp.Position - threatPos)
                     away = Vector3.new(away.X, 0, away.Z)
-                    if away.Magnitude > 0.1 then
-                        away = away.Unit
-                    else
-                        away = Vector3.new(1, 0, 0)
-                    end
+                    if away.Magnitude > 0.1 then away = away.Unit else away = Vector3.new(1, 0, 0) end
                     local spin = CFrame.Angles(0, math.rad(90 + math.random(-20,20)), 0)
                     myHrp.CFrame = CFrame.lookAt(myHrp.Position, myHrp.Position + away) * spin
                 end
