@@ -1,4 +1,4 @@
--- Vanka Admin Panel v36
+-- Vanka Admin Panel v37
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players = game:GetService("Players")
@@ -59,7 +59,6 @@ local L = {
         cfg_saved="Конфиг сохранён", cfg_loaded="Конфиг загружен", cfg_notfound="Не найден",
         preview_name="Игрок123", preview_dist="15м",
         loading_text="ЗАГРУЗКА СКРИПТА", resizing="Размер панели",
-        close_hint="Закрыть", min_hint="Свернуть",
     },
     en = {
         title="VANKA ADMIN",
@@ -109,7 +108,6 @@ local L = {
         cfg_saved="Config saved", cfg_loaded="Config loaded", cfg_notfound="Not found",
         preview_name="Player123", preview_dist="15m",
         loading_text="LOADING SCRIPT", resizing="Resize",
-        close_hint="Close", min_hint="Minimize",
     },
     zh = {
         title="VANKA 管理员",
@@ -159,7 +157,6 @@ local L = {
         cfg_saved="已保存", cfg_loaded="已加载", cfg_notfound="未找到",
         preview_name="玩家123", preview_dist="15米",
         loading_text="加载脚本", resizing="调整大小",
-        close_hint="关闭", min_hint="最小化",
     }
 }
 local function T(k) return L[LANG][k] or k end
@@ -177,7 +174,7 @@ local function detectDevice()
     return "pc"
 end
 
-local SAVE_FILE = "vanka_settings_v36.txt"
+local SAVE_FILE = "vanka_settings_v37.txt"
 local SaveData = {
     lang="ru", device="",
     panel_w=540, panel_h=660, panel_x=20, panel_y=0,
@@ -1091,51 +1088,6 @@ local function updateHitbar()
     end
 end
 
--- Универсальная функция для клика (работает и мышь, и тач)
-local function onClick(button, callback)
-    button.MouseButton1Click:Connect(function()
-        local ok, err = pcall(callback)
-        if not ok then warn("[Vanka] " .. tostring(err)) end
-    end)
-end
-
--- Универсальная функция для драга (работает и мышь, и тач)
-local function onDrag(button, onStart, onMove, onEnd)
-    local dragging = false
-    local dragInput = nil
-    local dragStart = nil
-    local startPos = nil
-
-    button.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-            or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = onStart and onStart() or nil
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                    if onEnd then pcall(onEnd) end
-                end
-            end)
-        end
-    end)
-
-    button.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement
-            or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
-
-    local conn = UIS.InputChanged:Connect(function(input)
-        if dragging and input == dragInput and onMove then
-            pcall(onMove, input, dragStart, startPos)
-        end
-    end)
-    table.insert(S.conns, conn)
-end
-
 local function createGUI()
     local parent = (gethui and gethui()) or game:GetService("CoreGui")
     local gui = Instance.new("ScreenGui")
@@ -1159,8 +1111,6 @@ local function createGUI()
     main.Position = UDim2.new(0, PANEL_X, 0.5, -(PANEL_H/2) + PANEL_Y)
     main.BackgroundColor3 = Color3.fromRGB(11, 11, 18)
     main.BorderSizePixel = 0
-    main.Active = true
-    main.Draggable = true
     main.Parent = gui
     Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
     S.panel = main
@@ -1171,61 +1121,12 @@ local function createGUI()
     mstk.Thickness = 2
     mstk.Parent = main
 
-    -- ═══ РУЧКА РЕСАЙЗА (работает и на телефоне) ═══
-    local resizeHandle = Instance.new("TextButton")
-    resizeHandle.Name = "ResizeHandle"
-    resizeHandle.Size = UDim2.new(0, 40, 0, 40)
-    resizeHandle.Position = UDim2.new(1, -44, 1, -44)
-    resizeHandle.BackgroundColor3 = S.panelColor
-    resizeHandle.BackgroundTransparency = 0.2
-    resizeHandle.Text = "◢"
-    resizeHandle.TextColor3 = Color3.new(1,1,1)
-    resizeHandle.TextSize = 26
-    resizeHandle.Font = Enum.Font.GothamBold
-    resizeHandle.AutoButtonColor = false
-    resizeHandle.ZIndex = 100
-    resizeHandle.Parent = main
-    Instance.new("UICorner", resizeHandle).CornerRadius = UDim.new(0, 10)
-
-    local resizeStroke = Instance.new("UIStroke")
-    resizeStroke.Color = Color3.new(1,1,1)
-    resizeStroke.Thickness = 2
-    resizeStroke.Transparency = 0.4
-    resizeStroke.Parent = resizeHandle
-
-    -- Ресайз через универсальный драг
-    local resizeStartMouse
-    local resizeStartSize
-    onDrag(resizeHandle,
-        function()
-            resizeStartMouse = UIS:GetMouseLocation()
-            resizeStartSize = main.AbsoluteSize
-            resizeHandle.BackgroundTransparency = 0.05
-            return resizeStartSize
-        end,
-        function(input, dragStart, startSize)
-            if not resizeStartMouse then return end
-            local cur = UIS:GetMouseLocation()
-            local deltaX = cur.X - resizeStartMouse.X
-            local deltaY = cur.Y - resizeStartMouse.Y
-            local newW = math.clamp(resizeStartSize.X + deltaX, 400, 1400)
-            local newH = math.clamp(resizeStartSize.Y + deltaY, 450, 1400)
-            main.Size = UDim2.new(0, newW, 0, newH)
-        end,
-        function()
-            resizeHandle.BackgroundTransparency = 0.2
-            resizeStartMouse = nil
-            SaveData.panel_w = main.AbsoluteSize.X
-            SaveData.panel_h = main.AbsoluteSize.Y
-            saveSettings()
-            notify(T("resizing") .. ": " .. math.floor(main.AbsoluteSize.X) .. " x " .. math.floor(main.AbsoluteSize.Y), Color3.fromRGB(0,200,100))
-        end
-    )
-
     local top = Instance.new("Frame")
+    top.Name = "TopBar"
     top.Size = UDim2.new(1, 0, 0, HEADER_H)
     top.BackgroundColor3 = Color3.fromRGB(22,22,32)
     top.BorderSizePixel = 0
+    top.Active = true
     top.Parent = main
     Instance.new("UICorner", top).CornerRadius = UDim.new(0, 12)
 
@@ -1236,8 +1137,8 @@ local function createGUI()
     tf.BorderSizePixel = 0
     tf.Parent = top
 
-    -- Логотип (или "V" если картинки нет)
     local logoBox = Instance.new("Frame")
+    logoBox.Name = "LogoBox"
     logoBox.Size = UDim2.new(0, 38, 0, 38)
     logoBox.Position = UDim2.new(0, 10, 0.5, -19)
     logoBox.BackgroundColor3 = S.panelColor
@@ -1277,41 +1178,41 @@ local function createGUI()
     ttl.TextXAlignment = Enum.TextXAlignment.Left
     ttl.Parent = top
 
-    -- ═══ КНОПКА МИНУС (свернуть) ═══
+    -- ═══ КНОПКА СВЁРТЫВАНИЯ (−) ═══
     local minB = Instance.new("TextButton")
     minB.Name = "MinBtn"
-    minB.Size = UDim2.new(0,40,0,40)
-    minB.Position = UDim2.new(1,-92,0.5,-20)
-    minB.BackgroundColor3 = Color3.fromRGB(55,55,70)
-    minB.Text = "−"
+    minB.Size = UDim2.new(0, 34, 0, 34)
+    minB.Position = UDim2.new(1, -82, 0.5, -17)
+    minB.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    minB.Text = "-"
     minB.TextColor3 = Color3.new(1,1,1)
     minB.TextSize = 26
     minB.Font = Enum.Font.GothamBold
     minB.AutoButtonColor = true
-    minB.ZIndex = 100
+    minB.ZIndex = 50
     minB.Parent = top
-    Instance.new("UICorner", minB).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", minB).CornerRadius = UDim.new(0, 8)
 
-    -- ═══ КНОПКА КРЕСТИК (закрыть) ═══
+    -- ═══ КНОПКА ЗАКРЫТИЯ (X) ═══
     local closeB = Instance.new("TextButton")
     closeB.Name = "CloseBtn"
-    closeB.Size = UDim2.new(0,40,0,40)
-    closeB.Position = UDim2.new(1,-48,0.5,-20)
-    closeB.BackgroundColor3 = Color3.fromRGB(255,55,75)
-    closeB.Text = "✕"
+    closeB.Size = UDim2.new(0, 34, 0, 34)
+    closeB.Position = UDim2.new(1, -42, 0.5, -17)
+    closeB.BackgroundColor3 = Color3.fromRGB(230, 50, 70)
+    closeB.Text = "X"
     closeB.TextColor3 = Color3.new(1,1,1)
-    closeB.TextSize = 26
+    closeB.TextSize = 22
     closeB.Font = Enum.Font.GothamBold
     closeB.AutoButtonColor = true
-    closeB.ZIndex = 100
+    closeB.ZIndex = 50
     closeB.Parent = top
-    Instance.new("UICorner", closeB).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", closeB).CornerRadius = UDim.new(0, 8)
 
-    -- ═══ КНОПКА-ЛОГОТИП (открывашка) ═══
+    -- ═══ КНОПКА-ОТКРЫВАШКА ═══
     local openB = Instance.new("TextButton")
     openB.Name = "OpenBtn"
-    openB.Size = UDim2.new(0,65,0,65)
-    openB.Position = UDim2.new(0,15,0.5,-32)
+    openB.Size = UDim2.new(0, 65, 0, 65)
+    openB.Position = UDim2.new(0, 15, 0.5, -32)
     openB.BackgroundColor3 = S.panelColor
     openB.Text = ""
     openB.AutoButtonColor = false
@@ -1352,6 +1253,97 @@ local function createGUI()
             if not openB.Parent then break end
             TweenService:Create(openStroke, TweenInfo.new(1.5), {Transparency = 0.2}):Play()
             task.wait(1.5)
+        end
+    end)
+
+    -- Русайз
+    local resizeHandle = Instance.new("TextButton")
+    resizeHandle.Name = "ResizeHandle"
+    resizeHandle.Size = UDim2.new(0, 30, 0, 30)
+    resizeHandle.Position = UDim2.new(1, -34, 1, -34)
+    resizeHandle.BackgroundColor3 = S.panelColor
+    resizeHandle.BackgroundTransparency = 0.2
+    resizeHandle.Text = "R"
+    resizeHandle.TextColor3 = Color3.new(1,1,1)
+    resizeHandle.TextSize = 14
+    resizeHandle.Font = Enum.Font.GothamBold
+    resizeHandle.AutoButtonColor = false
+    resizeHandle.ZIndex = 15
+    resizeHandle.Parent = main
+    Instance.new("UICorner", resizeHandle).CornerRadius = UDim.new(0, 8)
+
+    local resizing = false
+    local resizeStartMouse
+    local resizeStartSize
+
+    resizeHandle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            resizing = true
+            resizeStartMouse = UIS:GetMouseLocation()
+            resizeStartSize = main.AbsoluteSize
+            resizeHandle.BackgroundTransparency = 0.05
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement
+            or input.UserInputType == Enum.UserInputType.Touch) then
+            local cur = UIS:GetMouseLocation()
+            local dx = cur.X - resizeStartMouse.X
+            local dy = cur.Y - resizeStartMouse.Y
+            local newW = math.clamp(resizeStartSize.X + dx, 400, 1400)
+            local newH = math.clamp(resizeStartSize.Y + dy, 450, 1400)
+            main.Size = UDim2.new(0, newW, 0, newH)
+        end
+    end)
+
+    UIS.InputEnded:Connect(function(input)
+        if resizing and (input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch) then
+            resizing = false
+            resizeHandle.BackgroundTransparency = 0.2
+            SaveData.panel_w = main.AbsoluteSize.X
+            SaveData.panel_h = main.AbsoluteSize.Y
+            saveSettings()
+            notify(T("resizing") .. ": " .. math.floor(main.AbsoluteSize.X) .. " x " .. math.floor(main.AbsoluteSize.Y), Color3.fromRGB(0,200,100))
+        end
+    end)
+
+    -- Перетаскивание панели за top
+    local draggingPanel = false
+    local panelDragStart
+    local panelStartPos
+
+    top.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            draggingPanel = true
+            panelDragStart = input.Position
+            panelStartPos = main.Position
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if draggingPanel and (input.UserInputType == Enum.UserInputType.MouseMovement
+            or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - panelDragStart
+            main.Position = UDim2.new(
+                panelStartPos.X.Scale,
+                panelStartPos.X.Offset + delta.X,
+                panelStartPos.Y.Scale,
+                panelStartPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    UIS.InputEnded:Connect(function(input)
+        if draggingPanel and (input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch) then
+            draggingPanel = false
+            SaveData.panel_x = main.Position.X.Offset
+            SaveData.panel_y = main.Position.Y.Offset - (0.5 - main.Position.Y.Scale) * 0
+            saveSettings()
         end
     end)
 
@@ -1418,7 +1410,7 @@ local function createGUI()
         lay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
             p.CanvasSize = UDim2.new(0,0,0, lay.AbsoluteContentSize.Y + 40)
         end)
-        onClick(b, function() switchTab(key) end)
+        b.MouseButton1Click:Connect(function() switchTab(key) end)
         return p
     end
 
@@ -1431,7 +1423,7 @@ local function createGUI()
         b.Font = Enum.Font.GothamMedium; b.TextWrapped = true
         b.Parent = parent
         Instance.new("UICorner", b).CornerRadius = UDim.new(0, 7)
-        onClick(b, function()
+        b.MouseButton1Click:Connect(function()
             local ok, err = pcall(cb, b)
             if not ok then notify("Err: " .. tostring(err), Color3.fromRGB(255,60,60)) end
         end)
@@ -1463,7 +1455,7 @@ local function createGUI()
         kn.BackgroundColor3 = Color3.new(1,1,1); kn.BorderSizePixel = 0; kn.Parent = sw
         Instance.new("UICorner", kn).CornerRadius = UDim.new(1, 0)
         local st = initial
-        onClick(row, function()
+        row.MouseButton1Click:Connect(function()
             st = not st
             TweenService:Create(sw, TweenInfo.new(0.15), {
                 BackgroundColor3 = st and Color3.fromRGB(0,200,100) or Color3.fromRGB(55,55,70)
@@ -1834,7 +1826,7 @@ local function createGUI()
                 tpB.TextSize = 10; tpB.Font = Enum.Font.GothamBold
                 tpB.Parent = row
                 Instance.new("UICorner", tpB).CornerRadius = UDim.new(0, 6)
-                onClick(tpB, function()
+                tpB.MouseButton1Click:Connect(function()
                     if plr.Character and LP.Character then
                         local t = plr.Character:FindFirstChild("HumanoidRootPart")
                         local m = LP.Character:FindFirstChild("HumanoidRootPart")
@@ -1848,7 +1840,7 @@ local function createGUI()
                 flB.TextSize = 10; flB.Font = Enum.Font.GothamBold
                 flB.Parent = row
                 Instance.new("UICorner", flB).CornerRadius = UDim.new(0, 6)
-                onClick(flB, function()
+                flB.MouseButton1Click:Connect(function()
                     S.flingSpeed = tonumber(flingSpeedBox.Text) or S.flingSpeed
                     S.flingForce = tonumber(flingForceBox.Text) or S.flingForce
                     S.flingDist = tonumber(flingDistBox.Text) or S.flingDist
@@ -1913,7 +1905,7 @@ local function createGUI()
         cBtn.Text = ""
         cBtn.Parent = colorHolder
         Instance.new("UICorner", cBtn).CornerRadius = UDim.new(1, 0)
-        onClick(cBtn, function()
+        cBtn.MouseButton1Click:Connect(function()
             S.panelColor = Color3.fromRGB(c[1],c[2],c[3])
             SaveData.panel_color = {c[1],c[2],c[3]}
             saveSettings()
@@ -1921,6 +1913,7 @@ local function createGUI()
             openB.BackgroundColor3 = S.panelColor
             resizeHandle.BackgroundColor3 = S.panelColor
             logoBox.BackgroundColor3 = S.panelColor
+            openStroke.Color = S.panelColor
             pScroll.ScrollBarImageColor3 = S.panelColor
             notify(T("saved"), Color3.fromRGB(0,200,100))
         end)
@@ -1968,18 +1961,18 @@ local function createGUI()
     addBtn(tabConfigs, T("cfg_aim"), Color3.fromRGB(60,90,60), function() nameBox.Text = "aim" end)
     addBtn(tabConfigs, T("cfg_farm"), Color3.fromRGB(90,90,60), function() nameBox.Text = "farm" end)
 
-    -- ═══ ОБРАБОТЧИКИ КНОПОК ═══
-    onClick(closeB, function()
+    -- ═══ ОБРАБОТЧИКИ ═══
+    closeB.MouseButton1Click:Connect(function()
         main.Visible = false
         openB.Visible = true
         pcall(saveSettings)
     end)
-    onClick(minB, function()
+    minB.MouseButton1Click:Connect(function()
         main.Visible = false
         openB.Visible = true
         pcall(saveSettings)
     end)
-    onClick(openB, function()
+    openB.MouseButton1Click:Connect(function()
         main.Visible = true
         openB.Visible = false
     end)
