@@ -1,4 +1,4 @@
--- Vanka Admin Panel v38
+-- Vanka Admin Panel v39
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players           = game:GetService("Players")
@@ -21,7 +21,7 @@ local L = {
         sec_autokill="АВТО-КИЛЛ", autokill="Авто-убийство ножом",
         autoTpMurderer="Следование за Мардером",
         sec_farm="ФАРМ", farm="Авто-фарм монет",
-        sec_pickup="ПОДБОР", pickup="Подбор пистолета (ТП к смерти шерифа)",
+        sec_pickup="ПОДБОР", pickup="Подбор пистолета",
         sec_roles="РОЛИ", roles="Подсветка ролей",
         invisible="Невидимость", clear_inv="Очистить инвентарь",
         sec_cross="ПРИЦЕЛ", cross="Прицел", fov="Круг FOV", hardaim="Жёсткий аим",
@@ -64,8 +64,8 @@ local L = {
         sec_lines="ПОЛОСЫ", lines="Линии к игрокам",
         sec_hitbox="ХИТБОКС", hitbox="Хитбоксы (показ)",
         saved_msg="💾 Сохранено",
-        pickup_tp="ТП к смерти шерифа...",
-        pickup_back="Вернулся на место",
+        pickup_tp="Проверяю место...",
+        pickup_back="Вернулся",
     },
     en = {
         title="VANKA ADMIN",
@@ -76,7 +76,7 @@ local L = {
         sec_autokill="AUTO-KILL", autokill="Auto knife kill",
         autoTpMurderer="Follow Murderer",
         sec_farm="FARM", farm="Auto Farm Coins",
-        sec_pickup="PICKUP", pickup="Gun pickup (TP to sheriff death)",
+        sec_pickup="PICKUP", pickup="Gun pickup",
         sec_roles="ROLES", roles="Role highlight",
         invisible="Invisible", clear_inv="Clear inventory",
         sec_cross="CROSSHAIR", cross="Crosshair", fov="FOV circle", hardaim="Hard aim",
@@ -119,8 +119,8 @@ local L = {
         sec_lines="LINES", lines="Lines to players",
         sec_hitbox="HITBOX", hitbox="Show hitboxes",
         saved_msg="💾 Saved",
-        pickup_tp="TP to sheriff death...",
-        pickup_back="Returned back",
+        pickup_tp="Checking spot...",
+        pickup_back="Returned",
     },
     zh = {
         title="VANKA 管理员",
@@ -131,7 +131,7 @@ local L = {
         sec_autokill="自动击杀", autokill="自动刀杀",
         autoTpMurderer="跟踪凶手",
         sec_farm="农场", farm="自动农场",
-        sec_pickup="拾取", pickup="拾取枪支 (传送死亡点)",
+        sec_pickup="拾取", pickup="拾取枪支",
         sec_roles="角色", roles="角色高亮",
         invisible="隐身", clear_inv="清空背包",
         sec_cross="准星", cross="准星", fov="FOV", hardaim="硬瞄准",
@@ -174,7 +174,7 @@ local L = {
         sec_lines="线", lines="到玩家的线",
         sec_hitbox="碰撞箱", hitbox="显示碰撞箱",
         saved_msg="💾 已保存",
-        pickup_tp="传送到死亡点...",
+        pickup_tp="检查中...",
         pickup_back="已返回",
     }
 }
@@ -193,7 +193,7 @@ local function detectDevice()
     return "pc"
 end
 
-local SAVE_FILE = "vanka_settings_v38.txt"
+local SAVE_FILE = "vanka_settings_v39.txt"
 local SaveData = {
     lang="ru", device="",
     panel_w=540, panel_h=660, panel_x=20, panel_y=0,
@@ -202,7 +202,7 @@ local SaveData = {
     cross_style=1, cross_color={255,0,100}, panel_color={255,0,100},
     speed50=false, farm=false, invisible=false,
     aim_part="Head", aim_smooth=0.35, wallcheck=false, custom_cross="",
-    fling_speed=10000, fling_force=5000, fling_dist=2, fling_interval=0.05,
+    fling_speed=10000, fling_force=5000, fling_dist=2, fling_interval=0.1,
     autoshoot=false, autokill=false, autotp=false, pickup=false, roles=false,
     cross=true, fov=true, hardaim=true, fly=false, noclip=false, infjump=false,
     fullbright=false, aimbot=false, spin=false,
@@ -287,7 +287,7 @@ local function loadSettings()
             elseif k == "fling_speed" then SaveData.fling_speed = tonumber(v) or 10000
             elseif k == "fling_force" then SaveData.fling_force = tonumber(v) or 5000
             elseif k == "fling_dist" then SaveData.fling_dist = tonumber(v) or 2
-            elseif k == "fling_interval" then SaveData.fling_interval = tonumber(v) or 0.05
+            elseif k == "fling_interval" then SaveData.fling_interval = tonumber(v) or 0.1
             elseif k == "cross_color" then
                 local r,g,b = string.match(v, "(%d+),(%d+),(%d+)")
                 if r then SaveData.cross_color = {tonumber(r),tonumber(g),tonumber(b)} end
@@ -382,11 +382,12 @@ local S = {
     flingSpeed=SaveData.fling_speed or 10000,
     flingForce=SaveData.fling_force or 5000,
     flingDist=SaveData.fling_dist or 2,
-    flingInterval=SaveData.fling_interval or 0.05,
+    flingInterval=SaveData.fling_interval or 0.1,
     hitbox=SaveData.hitbox, lines=SaveData.lines,
     espLines={}, linesHolder=nil,
     antiAim=SaveData.antiaim or false,
     pickupBusy=false,
+    flingCamConn=nil,
 }
 
 local function notify(text, color)
@@ -532,7 +533,6 @@ local function getAimPart(tChar)
     return tChar:FindFirstChild(S.aimPart) or tChar:FindFirstChild("Head")
 end
 
--- AUTO SHOOT: ТП за 11 стюдов позади мардера, жёсткий аим, залп 20 выстрелов
 local function startAutoShoot()
     if S.autoShootThread then return end
     S.autoShootThread = task.spawn(function()
@@ -736,6 +736,16 @@ end
 
 local function flingStop(silent)
     S.flingRunning = false
+    -- 🎥 вернуть камеру на себя
+    if S.flingCamConn then
+        pcall(function() S.flingCamConn:Disconnect() end)
+        S.flingCamConn = nil
+    end
+    Cam.CameraType = Enum.CameraType.Custom
+    if LP.Character then
+        local hum = LP.Character:FindFirstChildOfClass("Humanoid")
+        if hum then Cam.CameraSubject = hum end
+    end
     if S.flingThread then
         pcall(task.cancel, S.flingThread)
         S.flingThread = nil
@@ -786,6 +796,21 @@ local function flingStart(targetName)
         myHum.WalkSpeed = S.flingSpeed
         myHum.JumpPower = S.flingSpeed
         myHum.UseJumpPower = true
+
+        -- 🎥 КАМЕРА НА ЦЕЛЬ (смотрим за игроком от 3 лица)
+        Cam.CameraType = Enum.CameraType.Scriptable
+        if S.flingCamConn then pcall(function() S.flingCamConn:Disconnect() end) end
+        S.flingCamConn = RunService.RenderStepped:Connect(function(dt)
+            if not S.flingRunning then return end
+            local t = Players:FindFirstChild(targetName)
+            if not t or not t.Character then return end
+            local tHrp = t.Character:FindFirstChild("HumanoidRootPart")
+            if not tHrp then return end
+            -- камера сзади-сверху от цели
+            local desired = tHrp.CFrame * CFrame.new(0, 6, 14)
+            Cam.CFrame = Cam.CFrame:Lerp(desired, 0.15)
+        end)
+
         table.insert(S.flingConns, LP.CharacterAdded:Connect(function(newChar)
             myChar = newChar
             myRoot = newChar:WaitForChild("HumanoidRootPart", 10)
@@ -1123,14 +1148,12 @@ local function startSpeed50Loop()
     end)
 end
 
--- АВТО-ПОДБОР: запоминаем ТВОЮ позицию → ТП на смерть шерифа → 1 сек → возврат
 local function startAutoPickup()
     if S.sheriffThread then return end
     S.lastSheriff = nil
     S.lastSheriffPos = nil
     S.sheriffThread = task.spawn(function()
         while S.autoPickup do
-            -- следим за шерифом
             local curSheriff, curPos = nil, nil
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LP and plr.Character and getRole(plr) == "Sheriff" then
@@ -1143,31 +1166,21 @@ local function startAutoPickup()
             if curSheriff and curPos then
                 S.lastSheriffPos = curPos
             end
-
-            -- шериф исчез → он умер → ТП на место
             if S.lastSheriff and not curSheriff and S.lastSheriffPos and not S.pickupBusy then
                 S.pickupBusy = true
                 local deathPos = S.lastSheriffPos
                 S.lastSheriffPos = nil
                 task.spawn(function()
-                    task.wait(0.3)  -- дать пушке упасть
-
-                    -- запомнить МОЮ позицию
+                    task.wait(0.3)
                     local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
                     if not myHrp then S.pickupBusy = false return end
                     local mySavedPos = myHrp.CFrame
-
-                    -- ТП на место смерти шерифа
                     pcall(function()
                         myHrp.CFrame = CFrame.new(deathPos + Vector3.new(0, 2, 0))
                         myHrp.AssemblyLinearVelocity = Vector3.zero
                     end)
                     notify(T("pickup_tp"), Color3.fromRGB(0,200,100))
-
-                    -- ждём ровно 1 секунду
                     task.wait(1)
-
-                    -- возврат на свою позицию
                     local myHrp2 = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
                     if myHrp2 then
                         pcall(function()
@@ -1176,12 +1189,10 @@ local function startAutoPickup()
                         end)
                         notify(T("pickup_back"), Color3.fromRGB(150,200,255))
                     end
-
                     task.wait(0.5)
                     S.pickupBusy = false
                 end)
             end
-
             S.lastSheriff = curSheriff
             task.wait(0.2)
         end
@@ -1568,7 +1579,6 @@ local function createGUI()
     local tabConfigs  = addTab("configs", nil, T("tab_configs"))
     switchTab("main")
 
-    -- MAIN
     addLabel(tabMain, T("sec_sheriff"))
     addToggle(tabMain, T("autoshoot"), SaveData.autoshoot, function(v)
         S.autoShootEnabled = v
@@ -1617,7 +1627,6 @@ local function createGUI()
         end
     end)
 
-    -- VISUAL
     addLabel(tabVisual, T("sec_cross"))
     addToggle(tabVisual, T("cross"), SaveData.cross, function(v)
         S.crosshair = v SaveData.cross = v saveSettings()
@@ -1717,7 +1726,6 @@ local function createGUI()
         end
     end)
 
-    -- ESP
     addLabel(tabESP, T("sec_esp"))
     addToggle(tabESP, T("esp_main"), S.espEnabled, function(v)
         S.espEnabled = v SaveData.esp = v saveSettings()
@@ -1851,7 +1859,6 @@ local function createGUI()
         updatePreview()
     end
 
-    -- RAGE
     addLabel(tabRage, T("sec_aim"))
     addToggle(tabRage, T("aimbot"), SaveData.aimbot, function(v)
         S.aimbot = v SaveData.aimbot = v saveSettings()
@@ -1919,7 +1926,6 @@ local function createGUI()
         notify(T("all_off"), Color3.fromRGB(255,60,60))
     end)
 
-    -- PLAYERS
     addLabel(tabPlayers, T("sec_fling"))
     addLabel(tabPlayers, T("fling_speed"))
     local flingSpeedBox = addTextBox(tabPlayers, S.flingSpeed, "10000")
@@ -1940,7 +1946,7 @@ local function createGUI()
         if v then S.flingDist = v SaveData.fling_dist = v saveSettings() notify(T("saved_msg"), Color3.fromRGB(0,200,100)) end
     end)
     addLabel(tabPlayers, T("fling_interval"))
-    local flingIntBox = addTextBox(tabPlayers, S.flingInterval, "0.05")
+    local flingIntBox = addTextBox(tabPlayers, S.flingInterval, "0.1")
     flingIntBox.FocusLost:Connect(function()
         local v = tonumber(flingIntBox.Text)
         if v then S.flingInterval = v SaveData.fling_interval = v saveSettings() notify(T("saved_msg"), Color3.fromRGB(0,200,100)) end
@@ -2066,7 +2072,6 @@ local function createGUI()
     Players.PlayerAdded:Connect(function() task.wait(1) rebuild() end)
     Players.PlayerRemoving:Connect(function() task.wait(0.3) rebuild() end)
 
-    -- SETTINGS
     addLabel(tabSettings, T("sec_lang"))
 
     local function changeLang(newLang)
@@ -2101,7 +2106,7 @@ local function createGUI()
     Instance.new("UICorner", colorHolder).CornerRadius = UDim.new(0, 10)
     local colorGrid = Instance.new("UIGridLayout")
     colorGrid.CellSize = UDim2.new(0,32,0,32)
-    colorGrid.CellPadding = UDim2.new(0,6,0,6)
+    colorGrid.CellPadding = UDim.new(0,6,0,6)
     colorGrid.Parent = colorHolder
     local palette = {
         {255,0,100},{255,50,50},{255,100,0},{255,150,0},
@@ -2142,7 +2147,6 @@ local function createGUI()
         end)
     end
 
-    -- CONFIGS
     addLabel(tabConfigs, T("sec_cfg_save"))
     local nameBox = Instance.new("TextBox")
     nameBox.Size = UDim2.new(1,0,0,BTN_H)
@@ -2278,7 +2282,7 @@ local function mainLoop()
                 fovCircle.Visible = false
             end
         end
-        if S.aimbot then
+        if S.aimbot and not S.flingRunning then
             local cl, dist = nil, S.aimbotFOV * 3
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LP and plr.Character and getRole(plr) == "Murderer" then
@@ -2406,7 +2410,7 @@ local function mainLoop()
             if S.linesHolder then S.linesHolder:Destroy() S.linesHolder = nil end
         end
 
-        if S.antiAim and LP.Character then
+        if S.antiAim and LP.Character and not S.flingRunning then
             local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
             local myHum = LP.Character:FindFirstChildOfClass("Humanoid")
             if myHrp and myHum and myHum.Health > 0 then
@@ -2446,7 +2450,7 @@ local function mainLoop()
         end
 
         if S.invisibleEnabled then applyInvisible() end
-        if S.fly and LP.Character then
+        if S.fly and LP.Character and not S.flingRunning then
             local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
                 local d = Vector3.new(0,0,0)
@@ -2561,6 +2565,7 @@ _G.VankaPanel = {
         end
         clearHL() stopAutoShoot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm()
         if S.flingRunning then flingStop() end
+        if S.flingCamConn then pcall(function() S.flingCamConn:Disconnect() end) end
         if S.invisibleConn then pcall(function() S.invisibleConn:Disconnect() end) end
         for _, bb in pairs(S.espBillboards) do pcall(function() bb:Destroy() end) end
         for _, line in pairs(S.espLines) do pcall(function() line:Destroy() end) end
