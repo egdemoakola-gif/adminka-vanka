@@ -1,16 +1,14 @@
--- Vanka Admin Panel v41
+-- Vanka Admin Panel v42
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players           = game:GetService("Players")
 local RunService        = game:GetService("RunService")
 local UIS               = game:GetService("UserInputService")
 local TweenService      = game:GetService("TweenService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Lighting          = game:GetService("Lighting")
 
 local LP    = Players.LocalPlayer
 local Cam   = workspace.CurrentCamera
-local Mouse = LP:GetMouse()
 
 local LANG = "ru"
 local L = {
@@ -32,6 +30,7 @@ local L = {
         cross_reset="Сбросить прицел",
         sec_move="ДВИЖЕНИЕ", fly="Флай", noclip="Ноклип", infjump="Беск. прыжок",
         speed="Спидхак", walkback="Ходьба задом",
+        sec_sky="НЕБО",
         sec_vis="ВИЗУАЛ", fullbright="Фулбрайт",
         sec_esp="ЕСП", esp_main="Включить", esp_health="Здоровье", esp_name="Имя",
         esp_dist="Дистанция", esp_weapon="Оружие", esp_rainbow="Радуга",
@@ -42,7 +41,6 @@ local L = {
         kill_aim="Килл аим",
         sec_spin="СПИНБОТ", spin="Спинбот",
         sec_antiaim="АНТИ-АИМ", antiaim="Анти-аим",
-        sec_autoshot="АВТО-ШОТ", autoshot="Авто-шот",
         sec_util="УТИЛИТЫ", respawn="Респавн", disable_all="ВЫКЛЮЧИТЬ ВСЁ",
         plist="СПИСОК ИГРОКОВ", tp="ТП", fling="ФЛИНГ",
         sec_fling="ФЛИНГ", fling_speed="Скорость",
@@ -57,7 +55,6 @@ local L = {
         wait_gun="Жду пушку", target="Цель", killed="Килл",
         fling_run="Флинг", no_target="Нет цели",
         sheriff_off="Авто-выстрел ВЫКЛ", all_off="Всё выключено",
-        autoshot_on="Авто-шот ВКЛ", autoshot_off="Авто-шот ВЫКЛ",
         farm_on="Фарм ВКЛ", farm_off="Фарм ВЫКЛ", farm_full="Сумка полная", farm_none="Нет монет",
         inv_on="Инвиз ВКЛ", inv_off="Инвиз ВЫКЛ",
         cross_loaded="Прицел загружен", cross_notfound="Файл не найден",
@@ -71,6 +68,8 @@ local L = {
         pickup_tp="ТП...",
         pickup_back="Вернулся",
         walkback_on="Ходьба задом ВКЛ", walkback_off="Ходьба задом ВЫКЛ",
+        sky_cosmos="Космос", sky_galaxy="Галактика", sky_dawn="Рассвет",
+        sky_sunset="Закат", sky_night="Ночное", sky_purple="Фиолет", sky_clear="Убрать небо",
     },
     en = {
         title="VANKA ADMIN",
@@ -90,6 +89,7 @@ local L = {
         cross_reset="Reset crosshair",
         sec_move="MOVEMENT", fly="Fly", noclip="Noclip", infjump="Inf jump",
         speed="Speedhack", walkback="Walk backwards",
+        sec_sky="SKY",
         sec_vis="VISUAL", fullbright="Fullbright",
         sec_esp="ESP", esp_main="Enable", esp_health="Health", esp_name="Name",
         esp_dist="Distance", esp_weapon="Weapon", esp_rainbow="Rainbow",
@@ -100,7 +100,6 @@ local L = {
         kill_aim="Kill aim",
         sec_spin="SPINBOT", spin="Spinbot",
         sec_antiaim="ANTI-AIM", antiaim="Anti-aim",
-        sec_autoshot="AUTO-SHOT", autoshot="Auto-shot",
         sec_util="UTILITIES", respawn="Respawn", disable_all="TURN OFF ALL",
         plist="PLAYERS", tp="TP", fling="FLING",
         sec_fling="FLING", fling_speed="Speed",
@@ -115,7 +114,6 @@ local L = {
         wait_gun="Waiting gun", target="Target", killed="Killed",
         fling_run="Fling", no_target="No target",
         sheriff_off="Auto-shoot OFF", all_off="All off",
-        autoshot_on="Auto-shot ON", autoshot_off="Auto-shot OFF",
         farm_on="Farm ON", farm_off="Farm OFF", farm_full="Bag full", farm_none="No coins",
         inv_on="Invisible ON", inv_off="Invisible OFF",
         cross_loaded="Crosshair loaded", cross_notfound="Not found",
@@ -129,6 +127,8 @@ local L = {
         pickup_tp="TP...",
         pickup_back="Returned",
         walkback_on="Walk back ON", walkback_off="Walk back OFF",
+        sky_cosmos="Cosmos", sky_galaxy="Galaxy", sky_dawn="Dawn",
+        sky_sunset="Sunset", sky_night="Night", sky_purple="Purple", sky_clear="Clear sky",
     },
     zh = {
         title="VANKA 管理员",
@@ -143,11 +143,12 @@ local L = {
         sec_roles="角色", roles="角色高亮",
         invisible="隐身", clear_inv="清空背包",
         sec_cross="准星", cross="准星", fov="FOV", hardaim="硬瞄准",
-        sec_cross_style="准星样式", cross_1="经典", cross_2="点", cross_3="圆",
+        sec_cross_style="样式", cross_1="经典", cross_2="点", cross_3="圆",
         sec_cross_custom="自定义准星", cross_load="加载 PNG",
         cross_reset="重置准星",
         sec_move="移动", fly="飞行", noclip="穿墙", infjump="无限跳",
         speed="加速", walkback="倒着走",
+        sec_sky="天空",
         sec_vis="视觉", fullbright="全亮",
         sec_esp="ESP", esp_main="启用", esp_health="生命", esp_name="名字",
         esp_dist="距离", esp_weapon="武器", esp_rainbow="彩虹",
@@ -158,12 +159,11 @@ local L = {
         kill_aim="击杀瞄准",
         sec_spin="旋转", spin="旋转机器人",
         sec_antiaim="防瞄准", antiaim="防瞄准",
-        sec_autoshot="自动射击", autoshot="自动射击",
         sec_util="工具", respawn="重生", disable_all="关闭所有",
         plist="玩家", tp="传送", fling="甩飞",
         sec_fling="甩飞", fling_speed="速度",
         fling_force="推力", fling_dist="距离",
-        fling_interval="间隔", fling_stop="停止甩飞",
+        fling_interval="间隔", fling_stop="停止",
         sec_lang="语言", lang_ru="Русский", lang_en="English", lang_zh="中文",
         sec_panel="面板颜色",
         sec_cfg_save="配置", cfg_name="名字", cfg_save="保存",
@@ -173,7 +173,6 @@ local L = {
         wait_gun="等待枪支", target="目标", killed="击杀",
         fling_run="甩飞", no_target="无目标",
         sheriff_off="自动射击关", all_off="全部关闭",
-        autoshot_on="自动射击开", autoshot_off="自动射击关",
         farm_on="农场开", farm_off="农场关", farm_full="满包", farm_none="无硬币",
         inv_on="隐身开", inv_off="隐身关",
         cross_loaded="准星加载", cross_notfound="未找到",
@@ -187,6 +186,8 @@ local L = {
         pickup_tp="传送...",
         pickup_back="已返回",
         walkback_on="倒着走开", walkback_off="倒着走关",
+        sky_cosmos="宇宙", sky_galaxy="银河", sky_dawn="黎明",
+        sky_sunset="日落", sky_night="夜晚", sky_purple="紫色", sky_clear="清除天空",
     }
 }
 local function T(k) return L[LANG][k] or k end
@@ -197,14 +198,14 @@ local function detectDevice()
     local mouse = UIS.MouseEnabled
     if keyboard and mouse and not touch then return "pc"
     elseif touch and not keyboard then
-        local screen = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(0,0)
-        if screen.X >= 900 or screen.Y >= 700 then return "tablet" end
+        local s = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(0,0)
+        if s.X >= 900 or s.Y >= 700 then return "tablet" end
         return "mobile"
     elseif touch and keyboard then return "tablet" end
     return "pc"
 end
 
-local SAVE_FILE = "vanka_settings_v41.txt"
+local SAVE_FILE = "vanka_settings_v42.txt"
 local SaveData = {
     lang="ru", device="",
     panel_w=540, panel_h=660, panel_x=20, panel_y=0,
@@ -219,8 +220,8 @@ local SaveData = {
     fullbright=false, aimbot=false, spin=false,
     hitbox=false, lines=false,
     antiaim=false,
-    autoshot=false,
     walkback=false,
+    sky_name="",
 }
 
 local function serialize()
@@ -233,7 +234,7 @@ local function serialize()
         "fling_speed","fling_force","fling_dist","fling_interval",
         "autoshoot","autokill","autotp","pickup","roles",
         "cross","fov","hardaim","fly","noclip","infjump",
-        "fullbright","aimbot","spin","hitbox","lines","antiaim","autoshot","walkback",
+        "fullbright","aimbot","spin","hitbox","lines","antiaim","walkback","sky_name",
     }
     for _, k in ipairs(keys) do
         local v = SaveData[k]
@@ -289,8 +290,8 @@ local function loadSettings()
             elseif k == "hitbox" then SaveData.hitbox = (v == "true")
             elseif k == "lines" then SaveData.lines = (v == "true")
             elseif k == "antiaim" then SaveData.antiaim = (v == "true")
-            elseif k == "autoshot" then SaveData.autoshot = (v == "true")
             elseif k == "walkback" then SaveData.walkback = (v == "true")
+            elseif k == "sky_name" then SaveData.sky_name = v
             elseif k == "speed50" then SaveData.speed50 = (v == "true")
             elseif k == "farm" then SaveData.farm = (v == "true")
             elseif k == "invisible" then SaveData.invisible = (v == "true")
@@ -369,7 +370,6 @@ local S = {
     roleHighlight=SaveData.roles, roleHL={},
     aimbot=SaveData.aimbot, aimbotFOV=200, aimT=nil, hardAim=SaveData.hardaim,
     autoShootEnabled=SaveData.autoshoot, autoShootThread=nil,
-    autoShotEnabled=SaveData.autoshot or false, autoShotThread=nil,
     autoKillEnabled=SaveData.autokill, autoKillThread=nil, autoKillList={}, autoKillLoopThread=nil,
     autoTpEnabled=SaveData.autotp, autoTpThread=nil,
     autoPickup=SaveData.pickup, sheriffThread=nil, lastSheriffPos=nil, lastSheriff=nil,
@@ -405,6 +405,7 @@ local S = {
     pickupBusy=false,
     flingCamConn=nil,
     walkBack=SaveData.walkback or false, walkBackThread=nil,
+    skyData=nil,
 }
 
 local function notify(text, color)
@@ -550,7 +551,36 @@ local function getAimPart(tChar)
     return tChar:FindFirstChild(S.aimPart) or tChar:FindFirstChild("Head")
 end
 
--- АВТО-ВЫСТРЕЛ: телепорт за спину мардера, стрельба в упор
+local SKY_PRESETS = {
+    {name="sky_cosmos", Bk="rbxassetid://159454299", Dn="rbxassetid://159454296", Ft="rbxassetid://159454293", Lf="rbxassetid://159454286", Rt="rbxassetid://159454300", Up="rbxassetid://159454288", StarCount=3000, Sun=0, Moon=0},
+    {name="sky_galaxy", Bk="rbxassetid://12064107", Dn="rbxassetid://12064152", Ft="rbxassetid://12064121", Lf="rbxassetid://12063984", Rt="rbxassetid://12064115", Up="rbxassetid://12064110", StarCount=5000, Sun=0, Moon=0},
+    {name="sky_dawn", Bk="rbxassetid://102689650082891", Dn="rbxassetid://102674116265235", Ft="rbxassetid://96299524082509", Lf="rbxassetid://132783421887388", Rt="rbxassetid://114892600582661", Up="rbxassetid://97962715183184", StarCount=1500, Sun=25, Moon=0},
+    {name="sky_sunset", Bk="rbxassetid://92250651659757", Dn="rbxassetid://111956545203799", Ft="rbxassetid://130280550923564", Lf="rbxassetid://111720812946771", Rt="rbxassetid://107460137770836", Up="rbxassetid://79376262051171", StarCount=800, Sun=40, Moon=0},
+    {name="sky_night", Bk="rbxassetid://114451342585538", Dn="rbxassetid://127549587091499", Ft="rbxassetid://77761298197293", Lf="rbxassetid://131446517702895", Rt="rbxassetid://137593547997482", Up="rbxassetid://102197634235222", StarCount=4000, Sun=0, Moon=20},
+    {name="sky_purple", Bk="rbxassetid://122410971352244", Dn="rbxassetid://97059853034046", Ft="rbxassetid://124386735837671", Lf="rbxassetid://87499082714917", Rt="rbxassetid://100836305298106", Up="rbxassetid://123220132011101", StarCount=2500, Sun=0, Moon=0},
+}
+
+local function applySky(preset)
+    if S.skyData then pcall(function() S.skyData:Destroy() end) end
+    if not preset then return end
+    local sky = Instance.new("Sky")
+    sky.Name = "VankaSky"
+    sky.SkyboxBk = preset.Bk
+    sky.SkyboxDn = preset.Dn
+    sky.SkyboxFt = preset.Ft
+    sky.SkyboxLf = preset.Lf
+    sky.SkyboxRt = preset.Rt
+    sky.SkyboxUp = preset.Up
+    sky.StarCount = preset.StarCount or 3000
+    sky.SunAngularSize = preset.Sun or 21
+    sky.MoonAngularSize = preset.Moon or 10
+    sky.Parent = Lighting
+    S.skyData = sky
+end
+local function clearSky()
+    if S.skyData then pcall(function() S.skyData:Destroy() end) S.skyData = nil end
+end
+
 local function startAutoShoot()
     if S.autoShootThread then return end
     S.autoShootThread = task.spawn(function()
@@ -573,10 +603,10 @@ local function startAutoShoot()
                         if h and h.Health > 0 then currentTarget = plr break end
                     end
                 end
-                if not currentTarget then task.wait(0.3) continue end
+                if not currentTarget then task.wait(0.2) continue end
             end
             local tChar = currentTarget.Character
-            if not tChar then currentTarget = nil task.wait(0.2) continue end
+            if not tChar then currentTarget = nil task.wait(0.1) continue end
             local tHum = tChar:FindFirstChildOfClass("Humanoid")
             local tHrp = tChar:FindFirstChild("HumanoidRootPart")
             if not tHum or tHum.Health <= 0 or not tHrp then
@@ -586,33 +616,26 @@ local function startAutoShoot()
             for _, p in ipairs(tChar:GetDescendants()) do
                 if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
             end
-            local hitbox = getAimPart(tChar)
-            if not hitbox then task.wait(0.05) continue end
+            local hitbox = getAimPart(tChar) or tHrp
             local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
             if myHrp and tHrp then
                 pcall(function()
                     local behind = -tHrp.CFrame.LookVector
-                    myHrp.CFrame = CFrame.new(tHrp.Position + behind * 8 + Vector3.new(0, 2, 0), tHrp.Position)
+                    myHrp.CFrame = CFrame.new(tHrp.Position + behind * 10 + Vector3.new(0, 2, 0), tHrp.Position)
                     myHrp.AssemblyLinearVelocity = Vector3.zero
                     myHrp.AssemblyAngularVelocity = Vector3.zero
                 end)
             end
             local targetPos = hitbox.Position
             local camPos = Cam.CFrame.Position
-            Cam.CFrame = CFrame.new(camPos, targetPos)
-            local canShoot = true
-            local rp = RaycastParams.new()
-            rp.FilterType = Enum.RaycastFilterType.Exclude
-            rp.FilterDescendantsInstances = {LP.Character, tChar}
-            rp.IgnoreWater = true
-            if workspace:Raycast(camPos, targetPos - camPos, rp) then canShoot = false end
-            local dir = (targetPos - camPos).Unit
+            pcall(function() Cam.CFrame = CFrame.new(camPos, targetPos) end)
+            local dir = (targetPos - camPos)
+            if dir.Magnitude > 0.1 then dir = dir.Unit end
             local dot = Cam.CFrame.LookVector:Dot(dir)
-            if dot < 0.95 then canShoot = false end
-            if canShoot then
+            if dot > 0.82 then
                 local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
                 if tool and isGun(tool) then
-                    for i = 1, 3 do
+                    for i = 1, 5 do
                         if not S.autoShootEnabled then break end
                         if tHum.Health <= 0 then break end
                         local tHrp2 = tChar:FindFirstChild("HumanoidRootPart")
@@ -620,118 +643,22 @@ local function startAutoShoot()
                         local hb2 = getAimPart(tChar) or hitbox
                         pcall(function()
                             local newBehind = -tHrp2.CFrame.LookVector
-                            myHrp.CFrame = CFrame.new(tHrp2.Position + newBehind * 8 + Vector3.new(0, 2, 0), tHrp2.Position)
+                            myHrp.CFrame = CFrame.new(tHrp2.Position + newBehind * 10 + Vector3.new(0, 2, 0), tHrp2.Position)
                             myHrp.AssemblyLinearVelocity = Vector3.zero
                         end)
-                        Cam.CFrame = CFrame.new(Cam.CFrame.Position, hb2.Position)
+                        pcall(function() Cam.CFrame = CFrame.new(Cam.CFrame.Position, hb2.Position) end)
                         pcall(function() tool:Activate() end)
-                        task.wait(0.01)
+                        task.wait(0.008)
                     end
                 end
-            else
-                task.wait(0.05)
             end
-            task.wait()
+            task.wait(0.01)
         end
         S.autoShootThread = nil
         notify(T("sheriff_off"), Color3.fromRGB(150,150,150))
     end)
 end
 local function stopAutoShoot() S.autoShootEnabled = false S.autoShootThread = nil end
-
--- АВТО-ШОТ: ходишь сам, скрипт целится и стреляет когда видно
-local function startAutoShot()
-    if S.autoShotThread then return end
-    S.autoShotThread = task.spawn(function()
-        notify(T("autoshot_on"), Color3.fromRGB(0,200,100))
-        while S.autoShotEnabled do
-            if not hasGunAnywhere() then
-                task.wait(0.3)
-                continue
-            end
-            if not hasGunInHand() then
-                equipGun()
-                task.wait(0.2)
-                if not hasGunInHand() then task.wait(0.3) continue end
-            end
-            local target = nil
-            for _, plr in ipairs(Players:GetPlayers()) do
-                if plr ~= LP and plr.Character and getRole(plr) == "Murderer" then
-                    local h = plr.Character:FindFirstChildOfClass("Humanoid")
-                    if h and h.Health > 0 then target = plr break end
-                end
-            end
-            if not target then task.wait(0.2) continue end
-            local tChar = target.Character
-            if not tChar then task.wait(0.1) continue end
-            local tHum = tChar:FindFirstChildOfClass("Humanoid")
-            local hitbox = getAimPart(tChar)
-            if not tHum or tHum.Health <= 0 or not hitbox then
-                task.wait(0.1); continue
-            end
-            local targetPos = hitbox.Position
-            local camPos = Cam.CFrame.Position
-            local rp = RaycastParams.new()
-            rp.FilterType = Enum.RaycastFilterType.Exclude
-            rp.FilterDescendantsInstances = {LP.Character, tChar}
-            rp.IgnoreWater = true
-            local blocked = workspace:Raycast(camPos, targetPos - camPos, rp)
-            if blocked then
-                Cam.CFrame = CFrame.new(camPos, targetPos)
-                task.wait(0.03)
-                continue
-            end
-            Cam.CFrame = CFrame.new(camPos, targetPos)
-            local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
-            if tool and isGun(tool) then
-                for i = 1, 2 do
-                    if not S.autoShotEnabled then break end
-                    if tHum.Health <= 0 then break end
-                    local hb2 = getAimPart(tChar) or hitbox
-                    Cam.CFrame = CFrame.new(Cam.CFrame.Position, hb2.Position)
-                    pcall(function() tool:Activate() end)
-                    task.wait(0.01)
-                end
-            end
-            task.wait()
-        end
-        S.autoShotThread = nil
-        notify(T("autoshot_off"), Color3.fromRGB(150,150,150))
-    end)
-end
-local function stopAutoShot()
-    S.autoShotEnabled = false
-    S.autoShotThread = nil
-end
-
--- ХОДЬБА ЗАДОМ: идёшь вперёд, персонаж разворачивается спиной
-local function startWalkBack()
-    if S.walkBackThread then return end
-    S.walkBackThread = task.spawn(function()
-        notify(T("walkback_on"), Color3.fromRGB(0,200,100))
-        while S.walkBack do
-            local char = LP.Character
-            local hrp = char and char:FindFirstChild("HumanoidRootPart")
-            local hum = char and char:FindFirstChildOfClass("Humanoid")
-            if hrp and hum and hum.Health > 0 then
-                local moveDir = hum.MoveDirection
-                if moveDir.Magnitude > 0.1 then
-                    local pos = hrp.Position
-                    -- смотрим ПРОТИВ движения = спина вперёд
-                    local newCF = CFrame.lookAt(pos, pos - moveDir.Unit)
-                    hrp.CFrame = newCF
-                end
-            end
-            RunService.RenderStepped:Wait()
-        end
-        S.walkBackThread = nil
-        notify(T("walkback_off"), Color3.fromRGB(150,150,150))
-    end)
-end
-local function stopWalkBack()
-    S.walkBack = false
-    S.walkBackThread = nil
-end
 
 local function killOneTarget(target)
     if not target or target == LP or not target.Character then return false end
@@ -874,21 +801,17 @@ local function flingStop(silent)
             hum.UseJumpPower = true
         end
     end
-    if not silent then
-        notify("Флинг остановлен", Color3.fromRGB(200,200,200))
-    end
+    if not silent then notify("Флинг остановлен", Color3.fromRGB(200,200,200)) end
 end
 
 local function flingStart(targetName)
     if S.flingRunning then return end
     if not targetName or targetName == "" then
-        notify(T("no_target"), Color3.fromRGB(255,60,60))
-        return
+        notify(T("no_target"), Color3.fromRGB(255,60,60)); return
     end
     local target = Players:FindFirstChild(targetName)
     if not target then
-        notify("Игрок не найден", Color3.fromRGB(255,60,60))
-        return
+        notify("Игрок не найден", Color3.fromRGB(255,60,60)); return
     end
     S.flingRunning = true
     S.flingTargetName = targetName
@@ -897,8 +820,7 @@ local function flingStart(targetName)
         local targetRoot = targetChar:WaitForChild("HumanoidRootPart", 10)
         if not targetRoot then
             notify("Нет персонажа цели", Color3.fromRGB(255,60,60))
-            flingStop(true)
-            return
+            flingStop(true); return
         end
         local function getMyChar()
             local c = LP.Character or LP.CharacterAdded:Wait()
@@ -909,13 +831,11 @@ local function flingStart(targetName)
         local myChar, myRoot, myHum = getMyChar()
         if not myRoot or not myHum then
             notify("Ошибка персонажа", Color3.fromRGB(255,60,60))
-            flingStop(true)
-            return
+            flingStop(true); return
         end
         myHum.WalkSpeed = S.flingSpeed
         myHum.JumpPower = S.flingSpeed
         myHum.UseJumpPower = true
-
         Cam.CameraType = Enum.CameraType.Scriptable
         if S.flingCamConn then pcall(function() S.flingCamConn:Disconnect() end) end
         S.flingCamConn = RunService.RenderStepped:Connect(function(dt)
@@ -927,7 +847,6 @@ local function flingStart(targetName)
             local desired = tHrp.CFrame * CFrame.new(0, 6, 14)
             Cam.CFrame = Cam.CFrame:Lerp(desired, 0.15)
         end)
-
         table.insert(S.flingConns, LP.CharacterAdded:Connect(function(newChar)
             myChar = newChar
             myRoot = newChar:WaitForChild("HumanoidRootPart", 10)
@@ -970,13 +889,10 @@ local function flingStart(targetName)
                     myRoot.CFrame = CFrame.new(targetPos + sideOffset, targetPos)
                 else
                     myRoot.CFrame = CFrame.new(targetPos + Vector3.new(0, 1, 0))
-                    if flatDir.Magnitude < 0.1 then
-                        flatDir = Vector3.new(0, 0, 1)
-                    end
+                    if flatDir.Magnitude < 0.1 then flatDir = Vector3.new(0, 0, 1) end
                     local pushDir = flatDir.Unit
                     myRoot.AssemblyLinearVelocity = pushDir * S.flingForce
-                    targetRoot.AssemblyLinearVelocity = pushDir * S.flingForce
-                        + Vector3.new(0, S.flingForce * 0.3, 0)
+                    targetRoot.AssemblyLinearVelocity = pushDir * S.flingForce + Vector3.new(0, S.flingForce * 0.3, 0)
                 end
                 task.wait(S.flingInterval)
             else
@@ -1033,8 +949,7 @@ local function startFarm()
         while S.farmEnabled do
             if isBagFull() then
                 notify(T("farm_full"), Color3.fromRGB(255,200,0))
-                S.farmEnabled = false
-                break
+                S.farmEnabled = false; break
             end
             local coin = findCoin()
             if not coin then
@@ -1074,8 +989,7 @@ local function startFarm()
                 end
                 if isBagFull() then
                     notify(T("farm_full"), Color3.fromRGB(255,200,0))
-                    S.farmEnabled = false
-                    break
+                    S.farmEnabled = false; break
                 end
                 task.wait()
             end
@@ -1232,9 +1146,7 @@ local function setInvisible(state)
     saveSettings()
     if state then
         applyInvisible()
-        if not S.invisibleConn then
-            S.invisibleConn = RunService.Heartbeat:Connect(applyInvisible)
-        end
+        if not S.invisibleConn then S.invisibleConn = RunService.Heartbeat:Connect(applyInvisible) end
         notify(T("inv_on"), Color3.fromRGB(150,50,150))
     else
         if S.invisibleConn then S.invisibleConn:Disconnect() S.invisibleConn = nil end
@@ -1269,6 +1181,32 @@ local function startSpeed50Loop()
     end)
 end
 
+local function startWalkBack()
+    if S.walkBackThread then return end
+    S.walkBackThread = task.spawn(function()
+        notify(T("walkback_on"), Color3.fromRGB(0,200,100))
+        while S.walkBack do
+            local char = LP.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if hrp and hum and hum.Health > 0 then
+                local moveDir = hum.MoveDirection
+                if moveDir.Magnitude > 0.1 then
+                    local pos = hrp.Position
+                    hrp.CFrame = CFrame.lookAt(pos, pos - moveDir.Unit)
+                end
+            end
+            RunService.RenderStepped:Wait()
+        end
+        S.walkBackThread = nil
+        notify(T("walkback_off"), Color3.fromRGB(150,150,150))
+    end)
+end
+local function stopWalkBack()
+    S.walkBack = false
+    S.walkBackThread = nil
+end
+
 local function startAutoPickup()
     if S.sheriffThread then return end
     S.lastSheriff = nil
@@ -1284,9 +1222,7 @@ local function startAutoPickup()
                     break
                 end
             end
-            if curSheriff and curPos then
-                S.lastSheriffPos = curPos
-            end
+            if curSheriff and curPos then S.lastSheriffPos = curPos end
             if S.lastSheriff and not curSheriff and S.lastSheriffPos and not S.pickupBusy then
                 S.pickupBusy = true
                 local deathPos = S.lastSheriffPos
@@ -1510,7 +1446,7 @@ local function createGUI()
 
     local closeB = Instance.new("TextButton")
     closeB.Size = UDim2.new(0,30,0,30); closeB.Position = UDim2.new(1,-38,0.5,-15)
-    closeB.BackgroundColor3 = Color3.fromRGB(255,55,75); closeB.Text = "×"
+    closeB.BackgroundColor3 = Color3.fromRGB(255,55,75); closeB.Text = "X"
     closeB.TextColor3 = Color3.new(1,1,1); closeB.TextSize = 18
     closeB.Font = Enum.Font.GothamBold; closeB.Parent = top
     Instance.new("UICorner", closeB).CornerRadius = UDim.new(0, 8)
@@ -1826,6 +1762,28 @@ local function createGUI()
         saveSettings()
         if v then startWalkBack() else stopWalkBack() end
     end)
+    addLabel(tabVisual, T("sec_sky"))
+    addBtn(tabVisual, T("sky_cosmos"), Color3.fromRGB(40,40,80), function()
+        applySky(SKY_PRESETS[1]) SaveData.sky_name = "sky_cosmos" saveSettings()
+    end)
+    addBtn(tabVisual, T("sky_galaxy"), Color3.fromRGB(60,30,90), function()
+        applySky(SKY_PRESETS[2]) SaveData.sky_name = "sky_galaxy" saveSettings()
+    end)
+    addBtn(tabVisual, T("sky_dawn"), Color3.fromRGB(120,70,60), function()
+        applySky(SKY_PRESETS[3]) SaveData.sky_name = "sky_dawn" saveSettings()
+    end)
+    addBtn(tabVisual, T("sky_sunset"), Color3.fromRGB(140,80,50), function()
+        applySky(SKY_PRESETS[4]) SaveData.sky_name = "sky_sunset" saveSettings()
+    end)
+    addBtn(tabVisual, T("sky_night"), Color3.fromRGB(30,30,60), function()
+        applySky(SKY_PRESETS[5]) SaveData.sky_name = "sky_night" saveSettings()
+    end)
+    addBtn(tabVisual, T("sky_purple"), Color3.fromRGB(80,40,120), function()
+        applySky(SKY_PRESETS[6]) SaveData.sky_name = "sky_purple" saveSettings()
+    end)
+    addBtn(tabVisual, T("sky_clear"), Color3.fromRGB(80,40,40), function()
+        clearSky() SaveData.sky_name = "" saveSettings()
+    end)
     addLabel(tabVisual, T("sec_vis"))
     addToggle(tabVisual, T("fullbright"), SaveData.fullbright, function(v)
         S.fullbright = v SaveData.fullbright = v saveSettings()
@@ -1872,7 +1830,6 @@ local function createGUI()
     addToggle(tabESP, T("esp_rainbow"), S.espRainbow, function(v)
         S.espRainbow = v SaveData.esp_rainbow = v saveSettings()
     end)
-
     addLabel(tabESP, T("sec_hitbox"))
     addToggle(tabESP, T("hitbox"), SaveData.hitbox, function(v)
         S.hitbox = v SaveData.hitbox = v saveSettings()
@@ -1882,7 +1839,6 @@ local function createGUI()
     addToggle(tabESP, T("lines"), SaveData.lines, function(v)
         S.lines = v SaveData.lines = v saveSettings()
     end)
-
     addLabel(tabESP, T("esp_preview"))
     local previewFrame = Instance.new("Frame")
     previewFrame.Size = UDim2.new(1,0,0,240)
@@ -2016,13 +1972,6 @@ local function createGUI()
             if h then h.Health = 0 end
         end
     end)
-    addLabel(tabRage, T("sec_autoshot"))
-    addToggle(tabRage, T("autoshot"), SaveData.autoshot, function(v)
-        S.autoShotEnabled = v
-        SaveData.autoshot = v
-        saveSettings()
-        if v then startAutoShot() else stopAutoShot() end
-    end)
     addLabel(tabRage, T("sec_spin"))
     addToggle(tabRage, T("spin"), SaveData.spin, function(v)
         S.spin = v SaveData.spin = v saveSettings()
@@ -2037,18 +1986,18 @@ local function createGUI()
     end)
     addBtn(tabRage, T("disable_all"), Color3.fromRGB(180,0,100), function()
         S.aimbot=false S.roleHighlight=false S.fly=false S.noclip=false S.infjump=false
-        S.spin=false S.autoPickup=false S.autoShootEnabled=false S.autoShotEnabled=false
+        S.spin=false S.autoPickup=false S.autoShootEnabled=false
         S.autoKillEnabled=false S.autoTpEnabled=false
         S.espEnabled=false S.speed50Enabled=false S.farmEnabled=false
         S.hitbox=false S.lines=false S.antiAim=false S.walkBack=false
         SaveData.aimbot=false SaveData.roles=false SaveData.fly=false
         SaveData.noclip=false SaveData.infjump=false SaveData.spin=false
-        SaveData.pickup=false SaveData.autoshoot=false SaveData.autoshot=false
+        SaveData.pickup=false SaveData.autoshoot=false
         SaveData.autokill=false SaveData.autotp=false SaveData.esp=false
         SaveData.speed50=false SaveData.farm=false SaveData.hitbox=false
         SaveData.lines=false SaveData.antiaim=false SaveData.walkback=false
         saveSettings()
-        stopAutoShoot() stopAutoShot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm() clearHL() stopWalkBack()
+        stopAutoShoot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm() clearHL() stopWalkBack()
         if S.flingRunning then flingStop() end
         if LP.Character then
             local h = LP.Character:FindFirstChildOfClass("Humanoid")
@@ -2118,7 +2067,6 @@ local function createGUI()
                 row.BorderSizePixel = 0
                 row.Parent = pScroll
                 Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
-
                 local av = Instance.new("ImageLabel")
                 av.Size = UDim2.new(0,34,0,34)
                 av.Position = UDim2.new(0,4,0.5,-17)
@@ -2127,7 +2075,6 @@ local function createGUI()
                 av.Image = "rbxthumb://type=AvatarHeadShot&id=" .. plr.UserId .. "&w=150&h=150"
                 av.Parent = row
                 Instance.new("UICorner", av).CornerRadius = UDim.new(0, 17)
-
                 local tag = Instance.new("Frame")
                 tag.Size = UDim2.new(0,5,0,26)
                 tag.Position = UDim2.new(0,42,0.5,-13)
@@ -2135,7 +2082,6 @@ local function createGUI()
                 tag.BorderSizePixel = 0
                 tag.Parent = row
                 Instance.new("UICorner", tag).CornerRadius = UDim.new(1, 0)
-
                 local nm = Instance.new("TextLabel")
                 nm.Size = UDim2.new(1,-170,1,0)
                 nm.Position = UDim2.new(0,52,0,0)
@@ -2147,7 +2093,6 @@ local function createGUI()
                 nm.TextXAlignment = Enum.TextXAlignment.Left
                 nm.TextTruncate = Enum.TextTruncate.AtEnd
                 nm.Parent = row
-
                 local tpB = Instance.new("TextButton")
                 tpB.Size = UDim2.new(0,36,0,26)
                 tpB.Position = UDim2.new(1,-120,0.5,-13)
@@ -2168,7 +2113,6 @@ local function createGUI()
                         end
                     end
                 end)
-
                 local flB = Instance.new("TextButton")
                 flB.Size = UDim2.new(0,76,0,26)
                 flB.Position = UDim2.new(1,-80,0.5,-13)
@@ -2194,7 +2138,6 @@ local function createGUI()
                     flingStart(plr.Name)
                     notify(T("saved_msg"), Color3.fromRGB(0,200,100))
                 end)
-
                 rows[plr] = row
             end
         end
@@ -2204,7 +2147,6 @@ local function createGUI()
     Players.PlayerRemoving:Connect(function() task.wait(0.3) rebuild() end)
 
     addLabel(tabSettings, T("sec_lang"))
-
     local function changeLang(newLang)
         SaveData.lang = newLang
         saveSettings()
@@ -2217,16 +2159,9 @@ local function createGUI()
         task.wait(0.3)
         showLoading()
     end
-
-    addBtn(tabSettings, T("lang_ru"), Color3.fromRGB(50,80,150), function()
-        changeLang("ru")
-    end)
-    addBtn(tabSettings, T("lang_en"), Color3.fromRGB(50,80,150), function()
-        changeLang("en")
-    end)
-    addBtn(tabSettings, T("lang_zh"), Color3.fromRGB(50,80,150), function()
-        changeLang("zh")
-    end)
+    addBtn(tabSettings, T("lang_ru"), Color3.fromRGB(50,80,150), function() changeLang("ru") end)
+    addBtn(tabSettings, T("lang_en"), Color3.fromRGB(50,80,150), function() changeLang("en") end)
+    addBtn(tabSettings, T("lang_zh"), Color3.fromRGB(50,80,150), function() changeLang("zh") end)
 
     addLabel(tabSettings, T("sec_panel"))
     local colorHolder = Instance.new("Frame")
@@ -2304,8 +2239,7 @@ local function createGUI()
         local path = "vanka_configs/" .. nameBox.Text .. ".txt"
         local ok, exists = pcall(isfile, path)
         if not ok or not exists then
-            notify(T("cfg_notfound"), Color3.fromRGB(255,60,60))
-            return
+            notify(T("cfg_notfound"), Color3.fromRGB(255,60,60)); return
         end
         local ok2, data = pcall(readfile, path)
         if ok2 and data then
@@ -2319,7 +2253,9 @@ local function createGUI()
     addBtn(tabConfigs, T("cfg_farm"), Color3.fromRGB(90,90,60), function() nameBox.Text = "farm" end)
 
     closeB.MouseButton1Click:Connect(function()
-        main.Visible = false; openB.Visible = true
+        if _G.VankaPanel and _G.VankaPanel.Destroy then
+            pcall(_G.VankaPanel.Destroy)
+        end
     end)
     minB.MouseButton1Click:Connect(function()
         main.Visible = false; openB.Visible = true
@@ -2414,7 +2350,7 @@ local function mainLoop()
                 fovCircle.Visible = false
             end
         end
-        if S.aimbot and not S.flingRunning and not S.autoShootEnabled and not S.autoShotEnabled then
+        if S.aimbot and not S.flingRunning and not S.autoShootEnabled then
             local cl, dist = nil, S.aimbotFOV * 3
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LP and plr.Character and getRole(plr) == "Murderer" then
@@ -2445,7 +2381,6 @@ local function mainLoop()
         end
         if S.roleHighlight then refreshHL() end
         if S.espEnabled then updateESP() end
-
         if S.hitbox then
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LP and plr.Character then
@@ -2477,7 +2412,6 @@ local function mainLoop()
                 end
             end
         end
-
         if S.previewRefs.noob and S.previewRefs.noob.Parent then
             if S.espRainbow then
                 local hue = (tick() * 0.5) % 1
@@ -2489,7 +2423,6 @@ local function mainLoop()
                 if S.previewRefs.noobStroke then S.previewRefs.noobStroke.Color = S.panelColor end
             end
         end
-
         if S.lines then
             if not S.linesHolder then
                 S.linesHolder = Instance.new("Frame")
@@ -2541,7 +2474,6 @@ local function mainLoop()
             S.espLines = {}
             if S.linesHolder then S.linesHolder:Destroy() S.linesHolder = nil end
         end
-
         if S.antiAim and LP.Character and not S.flingRunning then
             local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
             local myHum = LP.Character:FindFirstChildOfClass("Humanoid")
@@ -2580,7 +2512,6 @@ local function mainLoop()
                 end
             end
         end
-
         if S.invisibleEnabled then applyInvisible() end
         if S.fly and LP.Character and not S.flingRunning then
             local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
@@ -2675,13 +2606,17 @@ function showLoading()
         if S.speed50Enabled then startSpeed50Loop() end
         if S.farmEnabled then startFarm() end
         if S.autoShootEnabled then startAutoShoot() end
-        if S.autoShotEnabled then startAutoShot() end
         if S.autoKillEnabled then startAutoKillLoop() end
         if S.autoTpEnabled then startAutoTp() end
         if S.autoPickup then startAutoPickup() end
         if S.roleHighlight then refreshHL() end
         if S.invisibleEnabled then setInvisible(true) end
         if S.walkBack then startWalkBack() end
+        if SaveData.sky_name and SaveData.sky_name ~= "" then
+            for _, preset in ipairs(SKY_PRESETS) do
+                if preset.name == SaveData.sky_name then applySky(preset) break end
+            end
+        end
         if S.fullbright then
             S.oldLighting = {Brightness=Lighting.Brightness,ClockTime=Lighting.ClockTime,Ambient=Lighting.Ambient,OutdoorAmbient=Lighting.OutdoorAmbient}
             Lighting.Brightness = 2 Lighting.ClockTime = 14
@@ -2697,7 +2632,7 @@ _G.VankaPanel = {
         for _, c in ipairs(S.conns) do
             pcall(function() if c and c.Disconnect then c:Disconnect() end end)
         end
-        clearHL() stopAutoShoot() stopAutoShot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm() stopWalkBack()
+        clearHL() stopAutoShoot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm() stopWalkBack()
         if S.flingRunning then flingStop() end
         if S.flingCamConn then pcall(function() S.flingCamConn:Disconnect() end) end
         if S.invisibleConn then pcall(function() S.invisibleConn:Disconnect() end) end
@@ -2713,6 +2648,7 @@ _G.VankaPanel = {
                 end
             end
         end
+        clearSky()
         if S.gui then pcall(function() S.gui:Destroy() end) end
         _G.VankaPanel = nil
     end
