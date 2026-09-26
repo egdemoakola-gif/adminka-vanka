@@ -1,4 +1,4 @@
--- Vanka Admin Panel v40
+-- Vanka Admin Panel v41
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players           = game:GetService("Players")
@@ -19,133 +19,135 @@ local L = {
         tab_main="ГЛАВНАЯ", tab_visual="ВИЗУАЛ", tab_esp="ЕСП", tab_rage="РЕЙДЖ",
         tab_players="ИГРОКИ", tab_settings="НАСТРОЙКИ", tab_configs="КОНФИГИ",
         role_murderer="Мардер", role_sheriff="Шериф", role_innocent="Невиновный",
-        sec_sheriff="ШЕРИФ", autoshoot="Авто-выстрел в Мардера",
-        sec_autokill="АВТО-КИЛЛ", autokill="Авто-убийство ножом",
-        autoTpMurderer="Следование за Мардером",
-        sec_farm="ФАРМ", farm="Авто-фарм монет",
+        sec_sheriff="ШЕРИФ", autoshoot="Авто-выстрел",
+        sec_autokill="АВТО-КИЛЛ", autokill="Авто-нож",
+        autoTpMurderer="Следование",
+        sec_farm="ФАРМ", farm="Авто-фарм",
         sec_pickup="ПОДБОР", pickup="Подбор пистолета",
         sec_roles="РОЛИ", roles="Подсветка ролей",
-        invisible="Невидимость", clear_inv="Очистить инвентарь",
-        sec_cross="ПРИЦЕЛ", cross="Прицел", fov="Круг FOV", hardaim="Жёсткий аим",
+        invisible="Инвиз", clear_inv="Очистить инвентарь",
+        sec_cross="ПРИЦЕЛ", cross="Прицел", fov="FOV", hardaim="Хард аим",
         sec_cross_style="Стиль прицела", cross_1="Классик", cross_2="Точка", cross_3="Круг",
-        sec_cross_custom="Свой прицел (PNG)", cross_load="Загрузить vanka_crosshair.png",
+        sec_cross_custom="Свой прицел", cross_load="Загрузить PNG",
         cross_reset="Сбросить прицел",
-        sec_move="ДВИЖЕНИЕ", fly="Полёт", noclip="Noclip", infjump="Беск. прыжок",
-        speed="Скорость 50",
-        sec_vis="ВИЗУАЛ", fullbright="Яркий свет",
+        sec_move="ДВИЖЕНИЕ", fly="Флай", noclip="Ноклип", infjump="Беск. прыжок",
+        speed="Спидхак", walkback="Ходьба задом",
+        sec_vis="ВИЗУАЛ", fullbright="Фулбрайт",
         sec_esp="ЕСП", esp_main="Включить", esp_health="Здоровье", esp_name="Имя",
-        esp_dist="Дистанция", esp_weapon="Оружие", esp_rainbow="Радужный режим",
+        esp_dist="Дистанция", esp_weapon="Оружие", esp_rainbow="Радуга",
         esp_preview="Превью:",
         sec_aim="АИМ", aimbot="Аимбот",
-        sec_aim_part="Часть тела", aim_head="Голова", aim_torso="Торс", aim_random="Случайно",
+        sec_aim_part="Часть тела", aim_head="Голова", aim_torso="Торс", aim_random="Рандом",
         sec_smooth="Плавность", smooth_slow="Плавно", smooth_mid="Средне", smooth_fast="Резко",
-        kill_aim="Убить цель аима",
+        kill_aim="Килл аим",
         sec_spin="СПИНБОТ", spin="Спинбот",
-        sec_antiaim="АНТИ-АИМ", antiaim="Отворот от прицела (по ролям)",
-        sec_autoshot="АВТО-ШОТ", autoshot="🔫 Авто-шот (свободно)",
+        sec_antiaim="АНТИ-АИМ", antiaim="Анти-аим",
+        sec_autoshot="АВТО-ШОТ", autoshot="Авто-шот",
         sec_util="УТИЛИТЫ", respawn="Респавн", disable_all="ВЫКЛЮЧИТЬ ВСЁ",
         plist="СПИСОК ИГРОКОВ", tp="ТП", fling="ФЛИНГ",
-        sec_fling="НАСТРОЙКИ ФЛИНГА", fling_speed="Скорость",
-        fling_force="Сила толчка", fling_dist="Дистанция",
-        fling_interval="Интервал (сек)", fling_stop="ОСТАНОВИТЬ ФЛИНГ",
+        sec_fling="ФЛИНГ", fling_speed="Скорость",
+        fling_force="Сила", fling_dist="Дистанция",
+        fling_interval="Интервал", fling_stop="СТОП ФЛИНГ",
         sec_lang="ЯЗЫК", lang_ru="Русский", lang_en="English", lang_zh="中文",
         sec_panel="ЦВЕТ ПАНЕЛИ",
-        sec_cfg_save="СОХРАНЕНИЕ", cfg_name="Имя конфига", cfg_save="Сохранить",
-        cfg_load="Загрузить", cfg_presets="Готовые конфиги:",
-        cfg_default="По умолчанию", cfg_aim="Для аима", cfg_farm="Для фарма",
+        sec_cfg_save="КОНФИГИ", cfg_name="Имя", cfg_save="Сохранить",
+        cfg_load="Загрузить", cfg_presets="Пресеты:",
+        cfg_default="Дефолт", cfg_aim="Аим", cfg_farm="Фарм",
         loaded="Загружено", saved="Сохранено",
-        wait_gun="Жду пистолет", target="Цель", killed="Убил",
-        fling_run="Флингаю", no_target="Нет цели",
+        wait_gun="Жду пушку", target="Цель", killed="Килл",
+        fling_run="Флинг", no_target="Нет цели",
         sheriff_off="Авто-выстрел ВЫКЛ", all_off="Всё выключено",
         autoshot_on="Авто-шот ВКЛ", autoshot_off="Авто-шот ВЫКЛ",
-        farm_on="Фарм ВКЛ", farm_off="Фарм ВЫКЛ", farm_full="Сумка полная", farm_none="Монет нет",
-        inv_on="Невидимость ВКЛ", inv_off="Невидимость ВЫКЛ",
+        farm_on="Фарм ВКЛ", farm_off="Фарм ВЫКЛ", farm_full="Сумка полная", farm_none="Нет монет",
+        inv_on="Инвиз ВКЛ", inv_off="Инвиз ВЫКЛ",
         cross_loaded="Прицел загружен", cross_notfound="Файл не найден",
-        cfg_saved="Конфиг сохранён", cfg_loaded="Конфиг загружен", cfg_notfound="Не найден",
+        cfg_saved="Сохранено", cfg_loaded="Загружено", cfg_notfound="Не найдено",
         preview_name="Игрок123", preview_dist="15м",
-        lang_changed="Язык изменён. Перезапуск...",
-        size_saved="Размер панели сохранён",
-        sec_lines="ПОЛОСЫ", lines="Линии к игрокам",
-        sec_hitbox="ХИТБОКС", hitbox="Хитбоксы (показ)",
-        saved_msg="💾 Сохранено",
-        pickup_tp="Проверяю место...",
+        lang_changed="Перезапуск...",
+        size_saved="Размер сохранён",
+        sec_lines="ЛИНИИ", lines="Линии",
+        sec_hitbox="ХИТБОКС", hitbox="Хитбоксы",
+        saved_msg="Сохранено",
+        pickup_tp="ТП...",
         pickup_back="Вернулся",
+        walkback_on="Ходьба задом ВКЛ", walkback_off="Ходьба задом ВЫКЛ",
     },
     en = {
         title="VANKA ADMIN",
         tab_main="MAIN", tab_visual="VISUAL", tab_esp="ESP", tab_rage="RAGE",
         tab_players="PLAYERS", tab_settings="SETTINGS", tab_configs="CONFIGS",
         role_murderer="Murderer", role_sheriff="Sheriff", role_innocent="Innocent",
-        sec_sheriff="SHERIFF", autoshoot="Auto Shoot (Murderer)",
-        sec_autokill="AUTO-KILL", autokill="Auto knife kill",
-        autoTpMurderer="Follow Murderer",
-        sec_farm="FARM", farm="Auto Farm Coins",
+        sec_sheriff="SHERIFF", autoshoot="Auto-shoot",
+        sec_autokill="AUTO-KILL", autokill="Auto-knife",
+        autoTpMurderer="Follow",
+        sec_farm="FARM", farm="Auto-farm",
         sec_pickup="PICKUP", pickup="Gun pickup",
         sec_roles="ROLES", roles="Role highlight",
         invisible="Invisible", clear_inv="Clear inventory",
-        sec_cross="CROSSHAIR", cross="Crosshair", fov="FOV circle", hardaim="Hard aim",
+        sec_cross="CROSSHAIR", cross="Crosshair", fov="FOV", hardaim="Hard aim",
         sec_cross_style="Crosshair style", cross_1="Classic", cross_2="Dot", cross_3="Circle",
-        sec_cross_custom="Custom crosshair (PNG)", cross_load="Load vanka_crosshair.png",
+        sec_cross_custom="Custom crosshair", cross_load="Load PNG",
         cross_reset="Reset crosshair",
-        sec_move="MOVEMENT", fly="Fly", noclip="Noclip", infjump="Infinite jump",
-        speed="Speed 50",
+        sec_move="MOVEMENT", fly="Fly", noclip="Noclip", infjump="Inf jump",
+        speed="Speedhack", walkback="Walk backwards",
         sec_vis="VISUAL", fullbright="Fullbright",
         sec_esp="ESP", esp_main="Enable", esp_health="Health", esp_name="Name",
-        esp_dist="Distance", esp_weapon="Weapon", esp_rainbow="Rainbow mode",
+        esp_dist="Distance", esp_weapon="Weapon", esp_rainbow="Rainbow",
         esp_preview="Preview:",
         sec_aim="AIM", aimbot="Aimbot",
         sec_aim_part="Aim part", aim_head="Head", aim_torso="Torso", aim_random="Random",
         sec_smooth="Smoothness", smooth_slow="Slow", smooth_mid="Medium", smooth_fast="Fast",
-        kill_aim="Kill aim target",
+        kill_aim="Kill aim",
         sec_spin="SPINBOT", spin="Spinbot",
-        sec_antiaim="ANTI-AIM", antiaim="Turn away from aim (by role)",
-        sec_autoshot="AUTO-SHOT", autoshot="🔫 Auto-shot (free)",
+        sec_antiaim="ANTI-AIM", antiaim="Anti-aim",
+        sec_autoshot="AUTO-SHOT", autoshot="Auto-shot",
         sec_util="UTILITIES", respawn="Respawn", disable_all="TURN OFF ALL",
-        plist="PLAYERS LIST", tp="TP", fling="FLING",
-        sec_fling="FLING SETTINGS", fling_speed="Speed",
-        fling_force="Push force", fling_dist="Distance",
-        fling_interval="Interval (sec)", fling_stop="STOP FLING",
+        plist="PLAYERS", tp="TP", fling="FLING",
+        sec_fling="FLING", fling_speed="Speed",
+        fling_force="Force", fling_dist="Distance",
+        fling_interval="Interval", fling_stop="STOP FLING",
         sec_lang="LANGUAGE", lang_ru="Русский", lang_en="English", lang_zh="中文",
         sec_panel="PANEL COLOR",
-        sec_cfg_save="SAVE", cfg_name="Config name", cfg_save="Save",
+        sec_cfg_save="CONFIGS", cfg_name="Name", cfg_save="Save",
         cfg_load="Load", cfg_presets="Presets:",
-        cfg_default="Default", cfg_aim="For aim", cfg_farm="For farm",
+        cfg_default="Default", cfg_aim="Aim", cfg_farm="Farm",
         loaded="Loaded", saved="Saved",
-        wait_gun="Waiting for gun", target="Target", killed="Killed",
-        fling_run="Flinging", no_target="No target",
-        sheriff_off="Auto Shoot OFF", all_off="All disabled",
+        wait_gun="Waiting gun", target="Target", killed="Killed",
+        fling_run="Fling", no_target="No target",
+        sheriff_off="Auto-shoot OFF", all_off="All off",
         autoshot_on="Auto-shot ON", autoshot_off="Auto-shot OFF",
         farm_on="Farm ON", farm_off="Farm OFF", farm_full="Bag full", farm_none="No coins",
         inv_on="Invisible ON", inv_off="Invisible OFF",
-        cross_loaded="Crosshair loaded", cross_notfound="File not found",
-        cfg_saved="Config saved", cfg_loaded="Config loaded", cfg_notfound="Not found",
+        cross_loaded="Crosshair loaded", cross_notfound="Not found",
+        cfg_saved="Saved", cfg_loaded="Loaded", cfg_notfound="Not found",
         preview_name="Player123", preview_dist="15m",
-        lang_changed="Language changed. Restarting...",
-        size_saved="Panel size saved",
-        sec_lines="LINES", lines="Lines to players",
-        sec_hitbox="HITBOX", hitbox="Show hitboxes",
-        saved_msg="💾 Saved",
-        pickup_tp="Checking spot...",
+        lang_changed="Restarting...",
+        size_saved="Size saved",
+        sec_lines="LINES", lines="Lines",
+        sec_hitbox="HITBOX", hitbox="Hitboxes",
+        saved_msg="Saved",
+        pickup_tp="TP...",
         pickup_back="Returned",
+        walkback_on="Walk back ON", walkback_off="Walk back OFF",
     },
     zh = {
         title="VANKA 管理员",
         tab_main="主要", tab_visual="视觉", tab_esp="ESP", tab_rage="愤怒",
         tab_players="玩家", tab_settings="设置", tab_configs="配置",
         role_murderer="凶手", role_sheriff="警长", role_innocent="无辜",
-        sec_sheriff="警长", autoshoot="自动射击 (凶手)",
-        sec_autokill="自动击杀", autokill="自动刀杀",
-        autoTpMurderer="跟踪凶手",
+        sec_sheriff="警长", autoshoot="自动射击",
+        sec_autokill="自动击杀", autokill="自动刀",
+        autoTpMurderer="跟踪",
         sec_farm="农场", farm="自动农场",
         sec_pickup="拾取", pickup="拾取枪支",
         sec_roles="角色", roles="角色高亮",
         invisible="隐身", clear_inv="清空背包",
         sec_cross="准星", cross="准星", fov="FOV", hardaim="硬瞄准",
         sec_cross_style="准星样式", cross_1="经典", cross_2="点", cross_3="圆",
-        sec_cross_custom="自定义准星", cross_load="加载 vanka_crosshair.png",
+        sec_cross_custom="自定义准星", cross_load="加载 PNG",
         cross_reset="重置准星",
         sec_move="移动", fly="飞行", noclip="穿墙", infjump="无限跳",
-        speed="速度 50",
+        speed="加速", walkback="倒着走",
         sec_vis="视觉", fullbright="全亮",
         sec_esp="ESP", esp_main="启用", esp_health="生命", esp_name="名字",
         esp_dist="距离", esp_weapon="武器", esp_rainbow="彩虹",
@@ -153,37 +155,38 @@ local L = {
         sec_aim="瞄准", aimbot="自瞄",
         sec_aim_part="瞄准部位", aim_head="头", aim_torso="躯干", aim_random="随机",
         sec_smooth="平滑", smooth_slow="慢", smooth_mid="中", smooth_fast="快",
-        kill_aim="击杀瞄准目标",
+        kill_aim="击杀瞄准",
         sec_spin="旋转", spin="旋转机器人",
-        sec_antiaim="防瞄准", antiaim="转开瞄准 (按角色)",
-        sec_autoshot="自动射击", autoshot="🔫 自动射击 (自由)",
+        sec_antiaim="防瞄准", antiaim="防瞄准",
+        sec_autoshot="自动射击", autoshot="自动射击",
         sec_util="工具", respawn="重生", disable_all="关闭所有",
-        plist="玩家列表", tp="传送", fling="甩飞",
-        sec_fling="甩飞设置", fling_speed="速度",
+        plist="玩家", tp="传送", fling="甩飞",
+        sec_fling="甩飞", fling_speed="速度",
         fling_force="推力", fling_dist="距离",
-        fling_interval="间隔 (秒)", fling_stop="停止甩飞",
+        fling_interval="间隔", fling_stop="停止甩飞",
         sec_lang="语言", lang_ru="Русский", lang_en="English", lang_zh="中文",
         sec_panel="面板颜色",
-        sec_cfg_save="保存", cfg_name="配置名", cfg_save="保存",
+        sec_cfg_save="配置", cfg_name="名字", cfg_save="保存",
         cfg_load="加载", cfg_presets="预设:",
         cfg_default="默认", cfg_aim="瞄准", cfg_farm="农场",
         loaded="已加载", saved="已保存",
         wait_gun="等待枪支", target="目标", killed="击杀",
         fling_run="甩飞", no_target="无目标",
-        sheriff_off="自动射击关闭", all_off="全部关闭",
+        sheriff_off="自动射击关", all_off="全部关闭",
         autoshot_on="自动射击开", autoshot_off="自动射击关",
         farm_on="农场开", farm_off="农场关", farm_full="满包", farm_none="无硬币",
         inv_on="隐身开", inv_off="隐身关",
-        cross_loaded="准星加载", cross_notfound="文件未找到",
+        cross_loaded="准星加载", cross_notfound="未找到",
         cfg_saved="已保存", cfg_loaded="已加载", cfg_notfound="未找到",
         preview_name="玩家123", preview_dist="15米",
-        lang_changed="语言已更改。重启中...",
-        size_saved="面板尺寸已保存",
-        sec_lines="线", lines="到玩家的线",
-        sec_hitbox="碰撞箱", hitbox="显示碰撞箱",
-        saved_msg="💾 已保存",
-        pickup_tp="检查中...",
+        lang_changed="重启中...",
+        size_saved="尺寸已保存",
+        sec_lines="线", lines="线",
+        sec_hitbox="碰撞箱", hitbox="碰撞箱",
+        saved_msg="已保存",
+        pickup_tp="传送...",
         pickup_back="已返回",
+        walkback_on="倒着走开", walkback_off="倒着走关",
     }
 }
 local function T(k) return L[LANG][k] or k end
@@ -201,7 +204,7 @@ local function detectDevice()
     return "pc"
 end
 
-local SAVE_FILE = "vanka_settings_v40.txt"
+local SAVE_FILE = "vanka_settings_v41.txt"
 local SaveData = {
     lang="ru", device="",
     panel_w=540, panel_h=660, panel_x=20, panel_y=0,
@@ -217,6 +220,7 @@ local SaveData = {
     hitbox=false, lines=false,
     antiaim=false,
     autoshot=false,
+    walkback=false,
 }
 
 local function serialize()
@@ -229,7 +233,7 @@ local function serialize()
         "fling_speed","fling_force","fling_dist","fling_interval",
         "autoshoot","autokill","autotp","pickup","roles",
         "cross","fov","hardaim","fly","noclip","infjump",
-        "fullbright","aimbot","spin","hitbox","lines","antiaim","autoshot",
+        "fullbright","aimbot","spin","hitbox","lines","antiaim","autoshot","walkback",
     }
     for _, k in ipairs(keys) do
         local v = SaveData[k]
@@ -286,6 +290,7 @@ local function loadSettings()
             elseif k == "lines" then SaveData.lines = (v == "true")
             elseif k == "antiaim" then SaveData.antiaim = (v == "true")
             elseif k == "autoshot" then SaveData.autoshot = (v == "true")
+            elseif k == "walkback" then SaveData.walkback = (v == "true")
             elseif k == "speed50" then SaveData.speed50 = (v == "true")
             elseif k == "farm" then SaveData.farm = (v == "true")
             elseif k == "invisible" then SaveData.invisible = (v == "true")
@@ -399,6 +404,7 @@ local S = {
     antiAim=SaveData.antiaim or false,
     pickupBusy=false,
     flingCamConn=nil,
+    walkBack=SaveData.walkback or false, walkBackThread=nil,
 }
 
 local function notify(text, color)
@@ -544,10 +550,7 @@ local function getAimPart(tChar)
     return tChar:FindFirstChild(S.aimPart) or tChar:FindFirstChild("Head")
 end
 
--- =========================================================
 -- АВТО-ВЫСТРЕЛ: телепорт за спину мардера, стрельба в упор
--- Встроенная проверка стен (стреляет только когда видно)
--- =========================================================
 local function startAutoShoot()
     if S.autoShootThread then return end
     S.autoShootThread = task.spawn(function()
@@ -597,7 +600,6 @@ local function startAutoShoot()
             local targetPos = hitbox.Position
             local camPos = Cam.CFrame.Position
             Cam.CFrame = CFrame.new(camPos, targetPos)
-            -- проверка стен (всегда)
             local canShoot = true
             local rp = RaycastParams.new()
             rp.FilterType = Enum.RaycastFilterType.Exclude
@@ -637,15 +639,12 @@ local function startAutoShoot()
 end
 local function stopAutoShoot() S.autoShootEnabled = false S.autoShootThread = nil end
 
--- =========================================================
 -- АВТО-ШОТ: ходишь сам, скрипт целится и стреляет когда видно
--- =========================================================
 local function startAutoShot()
     if S.autoShotThread then return end
     S.autoShotThread = task.spawn(function()
         notify(T("autoshot_on"), Color3.fromRGB(0,200,100))
         while S.autoShotEnabled do
-            -- есть ли пистолет
             if not hasGunAnywhere() then
                 task.wait(0.3)
                 continue
@@ -655,8 +654,6 @@ local function startAutoShot()
                 task.wait(0.2)
                 if not hasGunInHand() then task.wait(0.3) continue end
             end
-
-            -- найти мардера
             local target = nil
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LP and plr.Character and getRole(plr) == "Murderer" then
@@ -665,7 +662,6 @@ local function startAutoShot()
                 end
             end
             if not target then task.wait(0.2) continue end
-
             local tChar = target.Character
             if not tChar then task.wait(0.1) continue end
             local tHum = tChar:FindFirstChildOfClass("Humanoid")
@@ -673,25 +669,18 @@ local function startAutoShot()
             if not tHum or tHum.Health <= 0 or not hitbox then
                 task.wait(0.1); continue
             end
-
             local targetPos = hitbox.Position
             local camPos = Cam.CFrame.Position
-
-            -- проверка стен
             local rp = RaycastParams.new()
             rp.FilterType = Enum.RaycastFilterType.Exclude
             rp.FilterDescendantsInstances = {LP.Character, tChar}
             rp.IgnoreWater = true
             local blocked = workspace:Raycast(camPos, targetPos - camPos, rp)
-
             if blocked then
-                -- мардер за стеной: наводим камеру, не стреляем
                 Cam.CFrame = CFrame.new(camPos, targetPos)
                 task.wait(0.03)
                 continue
             end
-
-            -- видно: наводим и стреляем
             Cam.CFrame = CFrame.new(camPos, targetPos)
             local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
             if tool and isGun(tool) then
@@ -713,6 +702,35 @@ end
 local function stopAutoShot()
     S.autoShotEnabled = false
     S.autoShotThread = nil
+end
+
+-- ХОДЬБА ЗАДОМ: идёшь вперёд, персонаж разворачивается спиной
+local function startWalkBack()
+    if S.walkBackThread then return end
+    S.walkBackThread = task.spawn(function()
+        notify(T("walkback_on"), Color3.fromRGB(0,200,100))
+        while S.walkBack do
+            local char = LP.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if hrp and hum and hum.Health > 0 then
+                local moveDir = hum.MoveDirection
+                if moveDir.Magnitude > 0.1 then
+                    local pos = hrp.Position
+                    -- смотрим ПРОТИВ движения = спина вперёд
+                    local newCF = CFrame.lookAt(pos, pos - moveDir.Unit)
+                    hrp.CFrame = newCF
+                end
+            end
+            RunService.RenderStepped:Wait()
+        end
+        S.walkBackThread = nil
+        notify(T("walkback_off"), Color3.fromRGB(150,150,150))
+    end)
+end
+local function stopWalkBack()
+    S.walkBack = false
+    S.walkBackThread = nil
 end
 
 local function killOneTarget(target)
@@ -924,7 +942,7 @@ local function flingStart(targetName)
             targetChar = newChar
             targetRoot = newChar:WaitForChild("HumanoidRootPart", 10)
         end))
-        notify(T("fling_run") .. " → " .. targetName, Color3.fromRGB(255,0,150))
+        notify(T("fling_run") .. " -> " .. targetName, Color3.fromRGB(255,0,150))
         while S.flingRunning do
             if not myRoot or not myRoot.Parent then
                 task.wait(0.1)
@@ -1131,7 +1149,7 @@ local function updateESP()
                         local tool = getToolInHand(plr)
                         if tool then
                             if isKnife(tool) then
-                                weaponLbl.Text = "🔪 " .. tool.Name
+                                weaponLbl.Text = tool.Name
                                 weaponLbl.TextColor3 = Color3.fromRGB(255,80,80)
                                 local hand = getHandPart(plr)
                                 if hand and not hand:FindFirstChild("VankaHandHL") then
@@ -1141,7 +1159,7 @@ local function updateESP()
                                     hl.FillTransparency = 0.3; hl.Parent = hand
                                 end
                             elseif isGun(tool) then
-                                weaponLbl.Text = "🔫 " .. tool.Name
+                                weaponLbl.Text = tool.Name
                                 weaponLbl.TextColor3 = Color3.fromRGB(80,180,255)
                                 local hand = getHandPart(plr)
                                 if hand and not hand:FindFirstChild("VankaHandHL") then
@@ -1151,7 +1169,7 @@ local function updateESP()
                                     hl.FillTransparency = 0.3; hl.Parent = hand
                                 end
                             else
-                                weaponLbl.Text = "⚔ " .. tool.Name
+                                weaponLbl.Text = tool.Name
                                 weaponLbl.TextColor3 = Color3.fromRGB(255,200,80)
                             end
                         else weaponLbl.Text = "" end
@@ -1802,6 +1820,12 @@ local function createGUI()
             end
         end
     end)
+    addToggle(tabVisual, T("walkback"), SaveData.walkback, function(v)
+        S.walkBack = v
+        SaveData.walkback = v
+        saveSettings()
+        if v then startWalkBack() else stopWalkBack() end
+    end)
     addLabel(tabVisual, T("sec_vis"))
     addToggle(tabVisual, T("fullbright"), SaveData.fullbright, function(v)
         S.fullbright = v SaveData.fullbright = v saveSettings()
@@ -1925,7 +1949,7 @@ local function createGUI()
         weaponLbl.Size = UDim2.new(0,180,0,18)
         weaponLbl.Position = UDim2.new(0.5,-90,0,44)
         weaponLbl.BackgroundTransparency = 1
-        weaponLbl.Text = "🔫 Gun"
+        weaponLbl.Text = "Gun"
         weaponLbl.TextColor3 = Color3.fromRGB(80,180,255)
         weaponLbl.TextStrokeTransparency = 0
         weaponLbl.TextSize = 13
@@ -2016,15 +2040,15 @@ local function createGUI()
         S.spin=false S.autoPickup=false S.autoShootEnabled=false S.autoShotEnabled=false
         S.autoKillEnabled=false S.autoTpEnabled=false
         S.espEnabled=false S.speed50Enabled=false S.farmEnabled=false
-        S.hitbox=false S.lines=false S.antiAim=false
+        S.hitbox=false S.lines=false S.antiAim=false S.walkBack=false
         SaveData.aimbot=false SaveData.roles=false SaveData.fly=false
         SaveData.noclip=false SaveData.infjump=false SaveData.spin=false
         SaveData.pickup=false SaveData.autoshoot=false SaveData.autoshot=false
         SaveData.autokill=false SaveData.autotp=false SaveData.esp=false
         SaveData.speed50=false SaveData.farm=false SaveData.hitbox=false
-        SaveData.lines=false SaveData.antiaim=false
+        SaveData.lines=false SaveData.antiaim=false SaveData.walkback=false
         saveSettings()
-        stopAutoShoot() stopAutoShot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm() clearHL()
+        stopAutoShoot() stopAutoShot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm() clearHL() stopWalkBack()
         if S.flingRunning then flingStop() end
         if LP.Character then
             local h = LP.Character:FindFirstChildOfClass("Humanoid")
@@ -2657,6 +2681,7 @@ function showLoading()
         if S.autoPickup then startAutoPickup() end
         if S.roleHighlight then refreshHL() end
         if S.invisibleEnabled then setInvisible(true) end
+        if S.walkBack then startWalkBack() end
         if S.fullbright then
             S.oldLighting = {Brightness=Lighting.Brightness,ClockTime=Lighting.ClockTime,Ambient=Lighting.Ambient,OutdoorAmbient=Lighting.OutdoorAmbient}
             Lighting.Brightness = 2 Lighting.ClockTime = 14
@@ -2672,7 +2697,7 @@ _G.VankaPanel = {
         for _, c in ipairs(S.conns) do
             pcall(function() if c and c.Disconnect then c:Disconnect() end end)
         end
-        clearHL() stopAutoShoot() stopAutoShot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm()
+        clearHL() stopAutoShoot() stopAutoShot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm() stopWalkBack()
         if S.flingRunning then flingStop() end
         if S.flingCamConn then pcall(function() S.flingCamConn:Disconnect() end) end
         if S.invisibleConn then pcall(function() S.invisibleConn:Disconnect() end) end
