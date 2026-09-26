@@ -1,4 +1,4 @@
--- Vanka Admin Panel v44
+-- Vanka Admin Panel v45
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players = game:GetService("Players")
@@ -212,7 +212,7 @@ local function detectDevice()
     return "pc"
 end
 
-local SAVE_FILE = "vanka_settings_v44.txt"
+local SAVE_FILE = "vanka_settings_v45.txt"
 local SaveData = {
     lang = "ru", device = "",
     panel_w = 540, panel_h = 660, panel_x = 20, panel_y = 0,
@@ -424,7 +424,7 @@ local S = {
     pickupBusy = false,
     flingCamConn = nil,
     walkBack = SaveData.walkback or false, walkBackThread = nil,
-    skyData = nil,
+    skyData = nil, skyAtmo = nil,
     shiftForced = false,
 }
 
@@ -630,7 +630,7 @@ local SKY_PRESETS = {
         Lf = "rbxassetid://1600951625",
         Rt = "rbxassetid://1600951733",
         Up = "rbxassetid://1600951155",
-        StarCount = 3000, Sun = 0, Moon = 0},
+        StarCount = 3000, Sun = 0, Moon = 0, Clock = 0},
     {name = "sky_galaxy",
         Bk = "rbxassetid://12064107",
         Dn = "rbxassetid://12064152",
@@ -638,31 +638,31 @@ local SKY_PRESETS = {
         Lf = "rbxassetid://12063984",
         Rt = "rbxassetid://12064115",
         Up = "rbxassetid://12064110",
-        StarCount = 5000, Sun = 0, Moon = 0},
+        StarCount = 5000, Sun = 0, Moon = 0, Clock = 0},
     {name = "sky_night",
-        Bk = "rbxassetid://626724982",
-        Dn = "rbxassetid://626724921",
-        Ft = "rbxassetid://626724833",
-        Lf = "rbxassetid://626724713",
-        Rt = "rbxassetid://626724594",
-        Up = "rbxassetid://626724498",
-        StarCount = 4000, Sun = 0, Moon = 20},
+        Bk = "rbxassetid://159460308",
+        Dn = "rbxassetid://159460252",
+        Ft = "rbxassetid://159460224",
+        Lf = "rbxassetid://159460180",
+        Rt = "rbxassetid://159460143",
+        Up = "rbxassetid://159460115",
+        StarCount = 4000, Sun = 0, Moon = 20, Clock = 0},
     {name = "sky_sunset",
-        Bk = "rbxassetid://626729451",
-        Dn = "rbxassetid://626729334",
-        Ft = "rbxassetid://626729244",
-        Lf = "rbxassetid://626729153",
-        Rt = "rbxassetid://626729064",
-        Up = "rbxassetid://626728953",
-        StarCount = 800, Sun = 40, Moon = 0},
+        Bk = "rbxassetid://190012845",
+        Dn = "rbxassetid://190012834",
+        Ft = "rbxassetid://190012826",
+        Lf = "rbxassetid://190012820",
+        Rt = "rbxassetid://190012816",
+        Up = "rbxassetid://190012810",
+        StarCount = 800, Sun = 40, Moon = 0, Clock = 18},
     {name = "sky_dawn",
-        Bk = "rbxassetid://626722314",
-        Dn = "rbxassetid://626722242",
-        Ft = "rbxassetid://626722164",
-        Lf = "rbxassetid://626722068",
-        Rt = "rbxassetid://626721983",
-        Up = "rbxassetid://626721898",
-        StarCount = 1500, Sun = 25, Moon = 0},
+        Bk = "rbxassetid://190012845",
+        Dn = "rbxassetid://190012834",
+        Ft = "rbxassetid://190012826",
+        Lf = "rbxassetid://190012820",
+        Rt = "rbxassetid://190012816",
+        Up = "rbxassetid://190012810",
+        StarCount = 1500, Sun = 25, Moon = 0, Clock = 6},
     {name = "sky_purple",
         Bk = "rbxassetid://1618859413",
         Dn = "rbxassetid://1618859125",
@@ -670,7 +670,7 @@ local SKY_PRESETS = {
         Lf = "rbxassetid://1618858536",
         Rt = "rbxassetid://1618858239",
         Up = "rbxassetid://1618857974",
-        StarCount = 2500, Sun = 0, Moon = 0},
+        StarCount = 2500, Sun = 0, Moon = 0, Clock = 0},
 }
 
 local function applySky(preset)
@@ -678,13 +678,37 @@ local function applySky(preset)
         pcall(function() S.skyData:Destroy() end)
         S.skyData = nil
     end
+    if S.skyAtmo then
+        pcall(function() S.skyAtmo:Destroy() end)
+        S.skyAtmo = nil
+    end
     for _, obj in ipairs(Lighting:GetChildren()) do
         if obj:IsA("Sky") then
             pcall(function() obj:Destroy() end)
         end
     end
-    task.wait(0.15)
+    for _, obj in ipairs(workspace:GetChildren()) do
+        if obj:IsA("Sky") then
+            pcall(function() obj:Destroy() end)
+        end
+    end
+    for _, obj in ipairs(Lighting:GetChildren()) do
+        if obj:IsA("Atmosphere") then
+            pcall(function() obj:Destroy() end)
+        end
+    end
+    task.wait(0.25)
     if not preset then return end
+    local atmo = Instance.new("Atmosphere")
+    atmo.Name = "VankaAtmosphere"
+    atmo.Density = 0.4
+    atmo.Offset = 0.25
+    atmo.Color = Color3.fromRGB(199, 199, 199)
+    atmo.Decay = Color3.fromRGB(106, 112, 125)
+    atmo.Glare = 0
+    atmo.Haze = 0
+    atmo.Parent = Lighting
+    S.skyAtmo = atmo
     local sky = Instance.new("Sky")
     sky.Name = "VankaSky"
     sky.SkyboxBk = preset.Bk
@@ -698,16 +722,20 @@ local function applySky(preset)
     sky.MoonAngularSize = preset.Moon or 10
     sky.Parent = Lighting
     S.skyData = sky
-    task.delay(0.4, function()
+    Lighting.Brightness = 2
+    Lighting.EnvironmentDiffuseScale = 1
+    Lighting.EnvironmentSpecularScale = 1
+    Lighting.Ambient = Color3.fromRGB(120, 120, 140)
+    Lighting.OutdoorAmbient = Color3.fromRGB(120, 120, 140)
+    if preset.Clock then
+        Lighting.ClockTime = preset.Clock
+    end
+    task.delay(0.5, function()
         if sky and sky.Parent then
-            local bk = sky.SkyboxBk
+            local id = sky.SkyboxBk
             sky.SkyboxBk = ""
-            task.wait(0.05)
-            sky.SkyboxBk = bk
-            local dn = sky.SkyboxDn
-            sky.SkyboxDn = ""
-            task.wait(0.05)
-            sky.SkyboxDn = dn
+            task.wait(0.1)
+            sky.SkyboxBk = id
         end
     end)
 end
@@ -717,8 +745,17 @@ local function clearSky()
         pcall(function() S.skyData:Destroy() end)
         S.skyData = nil
     end
+    if S.skyAtmo then
+        pcall(function() S.skyAtmo:Destroy() end)
+        S.skyAtmo = nil
+    end
     for _, obj in ipairs(Lighting:GetChildren()) do
         if obj:IsA("Sky") then
+            pcall(function() obj:Destroy() end)
+        end
+    end
+    for _, obj in ipairs(Lighting:GetChildren()) do
+        if obj:IsA("Atmosphere") then
             pcall(function() obj:Destroy() end)
         end
     end
@@ -2944,10 +2981,8 @@ local function mainLoop()
         if not S.gui then return end
         updateCrosshair()
 
-        -- круг FOV убран
         if fovCircle then fovCircle.Visible = false end
 
-        -- АИМ + ФОРС ШИФТЛОК
         if S.aimbot and not S.flingRunning then
             if not S.shiftForced then
                 S.shiftForced = true
