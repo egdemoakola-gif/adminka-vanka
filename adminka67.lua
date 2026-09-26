@@ -1,4 +1,4 @@
--- Vanka Admin Panel v39
+-- Vanka Admin Panel v40
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players           = game:GetService("Players")
@@ -36,12 +36,13 @@ local L = {
         sec_esp="ЕСП", esp_main="Включить", esp_health="Здоровье", esp_name="Имя",
         esp_dist="Дистанция", esp_weapon="Оружие", esp_rainbow="Радужный режим",
         esp_preview="Превью:",
-        sec_aim="АИМ", aimbot="Аимбот", wallcheck="Проверка стен",
+        sec_aim="АИМ", aimbot="Аимбот",
         sec_aim_part="Часть тела", aim_head="Голова", aim_torso="Торс", aim_random="Случайно",
         sec_smooth="Плавность", smooth_slow="Плавно", smooth_mid="Средне", smooth_fast="Резко",
         kill_aim="Убить цель аима",
         sec_spin="СПИНБОТ", spin="Спинбот",
         sec_antiaim="АНТИ-АИМ", antiaim="Отворот от прицела (по ролям)",
+        sec_autoshot="АВТО-ШОТ", autoshot="🔫 Авто-шот (свободно)",
         sec_util="УТИЛИТЫ", respawn="Респавн", disable_all="ВЫКЛЮЧИТЬ ВСЁ",
         plist="СПИСОК ИГРОКОВ", tp="ТП", fling="ФЛИНГ",
         sec_fling="НАСТРОЙКИ ФЛИНГА", fling_speed="Скорость",
@@ -56,6 +57,7 @@ local L = {
         wait_gun="Жду пистолет", target="Цель", killed="Убил",
         fling_run="Флингаю", no_target="Нет цели",
         sheriff_off="Авто-выстрел ВЫКЛ", all_off="Всё выключено",
+        autoshot_on="Авто-шот ВКЛ", autoshot_off="Авто-шот ВЫКЛ",
         farm_on="Фарм ВКЛ", farm_off="Фарм ВЫКЛ", farm_full="Сумка полная", farm_none="Монет нет",
         inv_on="Невидимость ВКЛ", inv_off="Невидимость ВЫКЛ",
         cross_loaded="Прицел загружен", cross_notfound="Файл не найден",
@@ -91,12 +93,13 @@ local L = {
         sec_esp="ESP", esp_main="Enable", esp_health="Health", esp_name="Name",
         esp_dist="Distance", esp_weapon="Weapon", esp_rainbow="Rainbow mode",
         esp_preview="Preview:",
-        sec_aim="AIM", aimbot="Aimbot", wallcheck="Wall check",
+        sec_aim="AIM", aimbot="Aimbot",
         sec_aim_part="Aim part", aim_head="Head", aim_torso="Torso", aim_random="Random",
         sec_smooth="Smoothness", smooth_slow="Slow", smooth_mid="Medium", smooth_fast="Fast",
         kill_aim="Kill aim target",
         sec_spin="SPINBOT", spin="Spinbot",
         sec_antiaim="ANTI-AIM", antiaim="Turn away from aim (by role)",
+        sec_autoshot="AUTO-SHOT", autoshot="🔫 Auto-shot (free)",
         sec_util="UTILITIES", respawn="Respawn", disable_all="TURN OFF ALL",
         plist="PLAYERS LIST", tp="TP", fling="FLING",
         sec_fling="FLING SETTINGS", fling_speed="Speed",
@@ -111,6 +114,7 @@ local L = {
         wait_gun="Waiting for gun", target="Target", killed="Killed",
         fling_run="Flinging", no_target="No target",
         sheriff_off="Auto Shoot OFF", all_off="All disabled",
+        autoshot_on="Auto-shot ON", autoshot_off="Auto-shot OFF",
         farm_on="Farm ON", farm_off="Farm OFF", farm_full="Bag full", farm_none="No coins",
         inv_on="Invisible ON", inv_off="Invisible OFF",
         cross_loaded="Crosshair loaded", cross_notfound="File not found",
@@ -146,12 +150,13 @@ local L = {
         sec_esp="ESP", esp_main="启用", esp_health="生命", esp_name="名字",
         esp_dist="距离", esp_weapon="武器", esp_rainbow="彩虹",
         esp_preview="预览:",
-        sec_aim="瞄准", aimbot="自瞄", wallcheck="墙检",
+        sec_aim="瞄准", aimbot="自瞄",
         sec_aim_part="瞄准部位", aim_head="头", aim_torso="躯干", aim_random="随机",
         sec_smooth="平滑", smooth_slow="慢", smooth_mid="中", smooth_fast="快",
         kill_aim="击杀瞄准目标",
         sec_spin="旋转", spin="旋转机器人",
         sec_antiaim="防瞄准", antiaim="转开瞄准 (按角色)",
+        sec_autoshot="自动射击", autoshot="🔫 自动射击 (自由)",
         sec_util="工具", respawn="重生", disable_all="关闭所有",
         plist="玩家列表", tp="传送", fling="甩飞",
         sec_fling="甩飞设置", fling_speed="速度",
@@ -166,6 +171,7 @@ local L = {
         wait_gun="等待枪支", target="目标", killed="击杀",
         fling_run="甩飞", no_target="无目标",
         sheriff_off="自动射击关闭", all_off="全部关闭",
+        autoshot_on="自动射击开", autoshot_off="自动射击关",
         farm_on="农场开", farm_off="农场关", farm_full="满包", farm_none="无硬币",
         inv_on="隐身开", inv_off="隐身关",
         cross_loaded="准星加载", cross_notfound="文件未找到",
@@ -195,7 +201,7 @@ local function detectDevice()
     return "pc"
 end
 
-local SAVE_FILE = "vanka_settings_v39.txt"
+local SAVE_FILE = "vanka_settings_v40.txt"
 local SaveData = {
     lang="ru", device="",
     panel_w=540, panel_h=660, panel_x=20, panel_y=0,
@@ -210,6 +216,7 @@ local SaveData = {
     fullbright=false, aimbot=false, spin=false,
     hitbox=false, lines=false,
     antiaim=false,
+    autoshot=false,
 }
 
 local function serialize()
@@ -222,7 +229,7 @@ local function serialize()
         "fling_speed","fling_force","fling_dist","fling_interval",
         "autoshoot","autokill","autotp","pickup","roles",
         "cross","fov","hardaim","fly","noclip","infjump",
-        "fullbright","aimbot","spin","hitbox","lines","antiaim",
+        "fullbright","aimbot","spin","hitbox","lines","antiaim","autoshot",
     }
     for _, k in ipairs(keys) do
         local v = SaveData[k]
@@ -278,6 +285,7 @@ local function loadSettings()
             elseif k == "hitbox" then SaveData.hitbox = (v == "true")
             elseif k == "lines" then SaveData.lines = (v == "true")
             elseif k == "antiaim" then SaveData.antiaim = (v == "true")
+            elseif k == "autoshot" then SaveData.autoshot = (v == "true")
             elseif k == "speed50" then SaveData.speed50 = (v == "true")
             elseif k == "farm" then SaveData.farm = (v == "true")
             elseif k == "invisible" then SaveData.invisible = (v == "true")
@@ -356,6 +364,7 @@ local S = {
     roleHighlight=SaveData.roles, roleHL={},
     aimbot=SaveData.aimbot, aimbotFOV=200, aimT=nil, hardAim=SaveData.hardaim,
     autoShootEnabled=SaveData.autoshoot, autoShootThread=nil,
+    autoShotEnabled=SaveData.autoshot or false, autoShotThread=nil,
     autoKillEnabled=SaveData.autokill, autoKillThread=nil, autoKillList={}, autoKillLoopThread=nil,
     autoTpEnabled=SaveData.autotp, autoTpThread=nil,
     autoPickup=SaveData.pickup, sheriffThread=nil, lastSheriffPos=nil, lastSheriff=nil,
@@ -535,6 +544,10 @@ local function getAimPart(tChar)
     return tChar:FindFirstChild(S.aimPart) or tChar:FindFirstChild("Head")
 end
 
+-- =========================================================
+-- АВТО-ВЫСТРЕЛ: телепорт за спину мардера, стрельба в упор
+-- Встроенная проверка стен (стреляет только когда видно)
+-- =========================================================
 local function startAutoShoot()
     if S.autoShootThread then return end
     S.autoShootThread = task.spawn(function()
@@ -576,7 +589,7 @@ local function startAutoShoot()
             if myHrp and tHrp then
                 pcall(function()
                     local behind = -tHrp.CFrame.LookVector
-                    myHrp.CFrame = CFrame.new(tHrp.Position + behind * 11 + Vector3.new(0, 2, 0), tHrp.Position)
+                    myHrp.CFrame = CFrame.new(tHrp.Position + behind * 8 + Vector3.new(0, 2, 0), tHrp.Position)
                     myHrp.AssemblyLinearVelocity = Vector3.zero
                     myHrp.AssemblyAngularVelocity = Vector3.zero
                 end)
@@ -584,19 +597,20 @@ local function startAutoShoot()
             local targetPos = hitbox.Position
             local camPos = Cam.CFrame.Position
             Cam.CFrame = CFrame.new(camPos, targetPos)
+            -- проверка стен (всегда)
             local canShoot = true
-            if S.wallCheck then
-                local rp = RaycastParams.new()
-                rp.FilterType = Enum.RaycastFilterType.Exclude
-                rp.FilterDescendantsInstances = {LP.Character, tChar}
-                if workspace:Raycast(camPos, targetPos - camPos, rp) then canShoot = false end
-            end
+            local rp = RaycastParams.new()
+            rp.FilterType = Enum.RaycastFilterType.Exclude
+            rp.FilterDescendantsInstances = {LP.Character, tChar}
+            rp.IgnoreWater = true
+            if workspace:Raycast(camPos, targetPos - camPos, rp) then canShoot = false end
             local dir = (targetPos - camPos).Unit
             local dot = Cam.CFrame.LookVector:Dot(dir)
-            if canShoot and dot > 0.99 then
+            if dot < 0.95 then canShoot = false end
+            if canShoot then
                 local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
                 if tool and isGun(tool) then
-                    for i = 1, 20 do
+                    for i = 1, 3 do
                         if not S.autoShootEnabled then break end
                         if tHum.Health <= 0 then break end
                         local tHrp2 = tChar:FindFirstChild("HumanoidRootPart")
@@ -604,14 +618,16 @@ local function startAutoShoot()
                         local hb2 = getAimPart(tChar) or hitbox
                         pcall(function()
                             local newBehind = -tHrp2.CFrame.LookVector
-                            myHrp.CFrame = CFrame.new(tHrp2.Position + newBehind * 11 + Vector3.new(0, 2, 0), tHrp2.Position)
+                            myHrp.CFrame = CFrame.new(tHrp2.Position + newBehind * 8 + Vector3.new(0, 2, 0), tHrp2.Position)
                             myHrp.AssemblyLinearVelocity = Vector3.zero
                         end)
                         Cam.CFrame = CFrame.new(Cam.CFrame.Position, hb2.Position)
                         pcall(function() tool:Activate() end)
-                        task.wait(0.005)
+                        task.wait(0.01)
                     end
                 end
+            else
+                task.wait(0.05)
             end
             task.wait()
         end
@@ -620,6 +636,84 @@ local function startAutoShoot()
     end)
 end
 local function stopAutoShoot() S.autoShootEnabled = false S.autoShootThread = nil end
+
+-- =========================================================
+-- АВТО-ШОТ: ходишь сам, скрипт целится и стреляет когда видно
+-- =========================================================
+local function startAutoShot()
+    if S.autoShotThread then return end
+    S.autoShotThread = task.spawn(function()
+        notify(T("autoshot_on"), Color3.fromRGB(0,200,100))
+        while S.autoShotEnabled do
+            -- есть ли пистолет
+            if not hasGunAnywhere() then
+                task.wait(0.3)
+                continue
+            end
+            if not hasGunInHand() then
+                equipGun()
+                task.wait(0.2)
+                if not hasGunInHand() then task.wait(0.3) continue end
+            end
+
+            -- найти мардера
+            local target = nil
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= LP and plr.Character and getRole(plr) == "Murderer" then
+                    local h = plr.Character:FindFirstChildOfClass("Humanoid")
+                    if h and h.Health > 0 then target = plr break end
+                end
+            end
+            if not target then task.wait(0.2) continue end
+
+            local tChar = target.Character
+            if not tChar then task.wait(0.1) continue end
+            local tHum = tChar:FindFirstChildOfClass("Humanoid")
+            local hitbox = getAimPart(tChar)
+            if not tHum or tHum.Health <= 0 or not hitbox then
+                task.wait(0.1); continue
+            end
+
+            local targetPos = hitbox.Position
+            local camPos = Cam.CFrame.Position
+
+            -- проверка стен
+            local rp = RaycastParams.new()
+            rp.FilterType = Enum.RaycastFilterType.Exclude
+            rp.FilterDescendantsInstances = {LP.Character, tChar}
+            rp.IgnoreWater = true
+            local blocked = workspace:Raycast(camPos, targetPos - camPos, rp)
+
+            if blocked then
+                -- мардер за стеной: наводим камеру, не стреляем
+                Cam.CFrame = CFrame.new(camPos, targetPos)
+                task.wait(0.03)
+                continue
+            end
+
+            -- видно: наводим и стреляем
+            Cam.CFrame = CFrame.new(camPos, targetPos)
+            local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
+            if tool and isGun(tool) then
+                for i = 1, 2 do
+                    if not S.autoShotEnabled then break end
+                    if tHum.Health <= 0 then break end
+                    local hb2 = getAimPart(tChar) or hitbox
+                    Cam.CFrame = CFrame.new(Cam.CFrame.Position, hb2.Position)
+                    pcall(function() tool:Activate() end)
+                    task.wait(0.01)
+                end
+            end
+            task.wait()
+        end
+        S.autoShotThread = nil
+        notify(T("autoshot_off"), Color3.fromRGB(150,150,150))
+    end)
+end
+local function stopAutoShot()
+    S.autoShotEnabled = false
+    S.autoShotThread = nil
+end
 
 local function killOneTarget(target)
     if not target or target == LP or not target.Character then return false end
@@ -738,7 +832,6 @@ end
 
 local function flingStop(silent)
     S.flingRunning = false
-    -- вернуть камеру на себя
     if S.flingCamConn then
         pcall(function() S.flingCamConn:Disconnect() end)
         S.flingCamConn = nil
@@ -805,7 +898,6 @@ local function flingStart(targetName)
         myHum.JumpPower = S.flingSpeed
         myHum.UseJumpPower = true
 
-        -- камера смотрит за целью (3 лицо, сзади-сверху)
         Cam.CameraType = Enum.CameraType.Scriptable
         if S.flingCamConn then pcall(function() S.flingCamConn:Disconnect() end) end
         S.flingCamConn = RunService.RenderStepped:Connect(function(dt)
@@ -1798,7 +1890,7 @@ local function createGUI()
         hbFrame.Position = UDim2.new(0.5, 0, 0.5, 15)
         hbFrame.BackgroundTransparency = 1
         hbFrame.BorderSizePixel = 0
-        hbFrame.Visible = SaveData.hitbox
+        hbFrame.Visible = false
         hbFrame.ZIndex = 5
         hbFrame.Parent = previewFrame
         local hbStroke = Instance.new("UIStroke")
@@ -1874,9 +1966,6 @@ local function createGUI()
     addToggle(tabRage, T("aimbot"), SaveData.aimbot, function(v)
         S.aimbot = v SaveData.aimbot = v saveSettings()
     end)
-    addToggle(tabRage, T("wallcheck"), S.wallCheck, function(v)
-        S.wallCheck = v SaveData.wallcheck = v saveSettings()
-    end)
     addLabel(tabRage, T("sec_aim_part"))
     addBtn(tabRage, T("aim_head"), Color3.fromRGB(60,60,90), function()
         S.aimPart = "Head" SaveData.aim_part = "Head" saveSettings()
@@ -1903,6 +1992,13 @@ local function createGUI()
             if h then h.Health = 0 end
         end
     end)
+    addLabel(tabRage, T("sec_autoshot"))
+    addToggle(tabRage, T("autoshot"), SaveData.autoshot, function(v)
+        S.autoShotEnabled = v
+        SaveData.autoshot = v
+        saveSettings()
+        if v then startAutoShot() else stopAutoShot() end
+    end)
     addLabel(tabRage, T("sec_spin"))
     addToggle(tabRage, T("spin"), SaveData.spin, function(v)
         S.spin = v SaveData.spin = v saveSettings()
@@ -1917,18 +2013,18 @@ local function createGUI()
     end)
     addBtn(tabRage, T("disable_all"), Color3.fromRGB(180,0,100), function()
         S.aimbot=false S.roleHighlight=false S.fly=false S.noclip=false S.infjump=false
-        S.spin=false S.autoPickup=false S.autoShootEnabled=false
+        S.spin=false S.autoPickup=false S.autoShootEnabled=false S.autoShotEnabled=false
         S.autoKillEnabled=false S.autoTpEnabled=false
         S.espEnabled=false S.speed50Enabled=false S.farmEnabled=false
         S.hitbox=false S.lines=false S.antiAim=false
         SaveData.aimbot=false SaveData.roles=false SaveData.fly=false
         SaveData.noclip=false SaveData.infjump=false SaveData.spin=false
-        SaveData.pickup=false SaveData.autoshoot=false SaveData.autokill=false
-        SaveData.autotp=false SaveData.esp=false SaveData.speed50=false
-        SaveData.farm=false SaveData.hitbox=false SaveData.lines=false
-        SaveData.antiaim=false
+        SaveData.pickup=false SaveData.autoshoot=false SaveData.autoshot=false
+        SaveData.autokill=false SaveData.autotp=false SaveData.esp=false
+        SaveData.speed50=false SaveData.farm=false SaveData.hitbox=false
+        SaveData.lines=false SaveData.antiaim=false
         saveSettings()
-        stopAutoShoot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm() clearHL()
+        stopAutoShoot() stopAutoShot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm() clearHL()
         if S.flingRunning then flingStop() end
         if LP.Character then
             local h = LP.Character:FindFirstChildOfClass("Humanoid")
@@ -2294,7 +2390,7 @@ local function mainLoop()
                 fovCircle.Visible = false
             end
         end
-        if S.aimbot and not S.flingRunning then
+        if S.aimbot and not S.flingRunning and not S.autoShootEnabled and not S.autoShotEnabled then
             local cl, dist = nil, S.aimbotFOV * 3
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LP and plr.Character and getRole(plr) == "Murderer" then
@@ -2555,6 +2651,7 @@ function showLoading()
         if S.speed50Enabled then startSpeed50Loop() end
         if S.farmEnabled then startFarm() end
         if S.autoShootEnabled then startAutoShoot() end
+        if S.autoShotEnabled then startAutoShot() end
         if S.autoKillEnabled then startAutoKillLoop() end
         if S.autoTpEnabled then startAutoTp() end
         if S.autoPickup then startAutoPickup() end
@@ -2575,7 +2672,7 @@ _G.VankaPanel = {
         for _, c in ipairs(S.conns) do
             pcall(function() if c and c.Disconnect then c:Disconnect() end end)
         end
-        clearHL() stopAutoShoot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm()
+        clearHL() stopAutoShoot() stopAutoShot() stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopFarm()
         if S.flingRunning then flingStop() end
         if S.flingCamConn then pcall(function() S.flingCamConn:Disconnect() end) end
         if S.invisibleConn then pcall(function() S.invisibleConn:Disconnect() end) end
