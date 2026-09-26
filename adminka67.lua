@@ -1,4 +1,4 @@
--- Vanka Admin Panel v43
+-- Vanka Admin Panel v44
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players = game:GetService("Players")
@@ -6,6 +6,7 @@ local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
+local VirtualUser = game:GetService("VirtualUser")
 
 local LP = Players.LocalPlayer
 local Cam = workspace.CurrentCamera
@@ -211,7 +212,7 @@ local function detectDevice()
     return "pc"
 end
 
-local SAVE_FILE = "vanka_settings_v43.txt"
+local SAVE_FILE = "vanka_settings_v44.txt"
 local SaveData = {
     lang = "ru", device = "",
     panel_w = 540, panel_h = 660, panel_x = 20, panel_y = 0,
@@ -424,6 +425,7 @@ local S = {
     flingCamConn = nil,
     walkBack = SaveData.walkback or false, walkBackThread = nil,
     skyData = nil,
+    shiftForced = false,
 }
 
 local function notify(text, color)
@@ -674,8 +676,14 @@ local SKY_PRESETS = {
 local function applySky(preset)
     if S.skyData then
         pcall(function() S.skyData:Destroy() end)
+        S.skyData = nil
     end
-    task.wait(0.1)
+    for _, obj in ipairs(Lighting:GetChildren()) do
+        if obj:IsA("Sky") then
+            pcall(function() obj:Destroy() end)
+        end
+    end
+    task.wait(0.15)
     if not preset then return end
     local sky = Instance.new("Sky")
     sky.Name = "VankaSky"
@@ -690,12 +698,29 @@ local function applySky(preset)
     sky.MoonAngularSize = preset.Moon or 10
     sky.Parent = Lighting
     S.skyData = sky
+    task.delay(0.4, function()
+        if sky and sky.Parent then
+            local bk = sky.SkyboxBk
+            sky.SkyboxBk = ""
+            task.wait(0.05)
+            sky.SkyboxBk = bk
+            local dn = sky.SkyboxDn
+            sky.SkyboxDn = ""
+            task.wait(0.05)
+            sky.SkyboxDn = dn
+        end
+    end)
 end
 
 local function clearSky()
     if S.skyData then
         pcall(function() S.skyData:Destroy() end)
         S.skyData = nil
+    end
+    for _, obj in ipairs(Lighting:GetChildren()) do
+        if obj:IsA("Sky") then
+            pcall(function() obj:Destroy() end)
+        end
     end
 end
 
@@ -706,15 +731,15 @@ local function startAutoShoot()
         local currentTarget = nil
         while S.autoShootEnabled do
             if not hasGunAnywhere() then
-                if currentTarget then currentTarget = nil end
-                task.wait(0.3)
+                currentTarget = nil
+                task.wait(0.2)
                 continue
             end
             if not hasGunInHand() then
                 equipGun()
                 task.wait(0.1)
                 if not hasGunInHand() then
-                    task.wait(0.3)
+                    task.wait(0.2)
                     continue
                 end
             end
@@ -741,9 +766,9 @@ local function startAutoShoot()
                 continue
             end
             local tHum = tChar:FindFirstChildOfClass("Humanoid")
+            local tHead = tChar:FindFirstChild("Head")
             local tHrp = tChar:FindFirstChild("HumanoidRootPart")
-            if not tHum or tHum.Health <= 0 or not tHrp then
-                notify(T("killed") .. " " .. currentTarget.Name, Color3.fromRGB(0, 255, 100))
+            if not tHum or tHum.Health <= 0 or not tHrp or not tHead then
                 currentTarget = nil
                 task.wait(0.2)
                 continue
@@ -753,45 +778,33 @@ local function startAutoShoot()
                     pcall(function() p:SetNetworkOwner(LP) end)
                 end
             end
-            local hitbox = getAimPart(tChar) or tHrp
             local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
             if myHrp and tHrp then
                 pcall(function()
                     local behind = -tHrp.CFrame.LookVector
-                    myHrp.CFrame = CFrame.new(tHrp.Position + behind * 10 + Vector3.new(0, 2, 0), tHrp.Position)
+                    myHrp.CFrame = CFrame.new(tHrp.Position + behind * 8 + Vector3.new(0, 2, 0), tHrp.Position)
                     myHrp.AssemblyLinearVelocity = Vector3.zero
                     myHrp.AssemblyAngularVelocity = Vector3.zero
                 end)
             end
-            local targetPos = hitbox.Position
-            local camPos = Cam.CFrame.Position
-            pcall(function() Cam.CFrame = CFrame.new(camPos, targetPos) end)
-            local dir = (targetPos - camPos)
-            if dir.Magnitude > 0.1 then
-                dir = dir.Unit
-            end
-            local dot = Cam.CFrame.LookVector:Dot(dir)
-            if dot > 0.82 then
-                local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
-                if tool and isGun(tool) then
-                    for i = 1, 5 do
-                        if not S.autoShootEnabled then break end
-                        if tHum.Health <= 0 then break end
-                        local tHrp2 = tChar:FindFirstChild("HumanoidRootPart")
-                        if not tHrp2 then break end
-                        local hb2 = getAimPart(tChar) or hitbox
-                        pcall(function()
-                            local newBehind = -tHrp2.CFrame.LookVector
-                            myHrp.CFrame = CFrame.new(tHrp2.Position + newBehind * 10 + Vector3.new(0, 2, 0), tHrp2.Position)
-                            myHrp.AssemblyLinearVelocity = Vector3.zero
-                        end)
-                        pcall(function() Cam.CFrame = CFrame.new(Cam.CFrame.Position, hb2.Position) end)
-                        pcall(function() tool:Activate() end)
-                        task.wait(0.008)
-                    end
+            pcall(function()
+                Cam.CFrame = CFrame.new(Cam.CFrame.Position, tHead.Position)
+            end)
+            local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
+            if tool and isGun(tool) then
+                for i = 1, 15 do
+                    if not S.autoShootEnabled then break end
+                    if tHum.Health <= 0 then break end
+                    local tHead2 = tChar:FindFirstChild("Head")
+                    if not tHead2 then break end
+                    pcall(function()
+                        Cam.CFrame = CFrame.new(Cam.CFrame.Position, tHead2.Position)
+                    end)
+                    pcall(function() tool:Activate() end)
+                    task.wait(0.003)
                 end
             end
-            task.wait(0.01)
+            task.wait(0.005)
         end
         S.autoShootThread = nil
         notify(T("sheriff_off"), Color3.fromRGB(150, 150, 150))
@@ -2930,45 +2943,73 @@ local function mainLoop()
     local conn = RunService.RenderStepped:Connect(function(dt)
         if not S.gui then return end
         updateCrosshair()
-        if fovCircle then
-            if S.aimbot and S.fovCircle then
-                fovCircle.Visible = true
-                fovCircle.Size = UDim2.new(0, S.aimbotFOV * 2, 0, S.aimbotFOV * 2)
-            else
-                fovCircle.Visible = false
+
+        -- круг FOV убран
+        if fovCircle then fovCircle.Visible = false end
+
+        -- АИМ + ФОРС ШИФТЛОК
+        if S.aimbot and not S.flingRunning then
+            if not S.shiftForced then
+                S.shiftForced = true
+                pcall(function()
+                    UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
+                    UIS.MouseIconEnabled = false
+                end)
             end
-        end
-        if S.aimbot and not S.flingRunning and not S.autoShootEnabled then
-            local cl, dist = nil, S.aimbotFOV * 3
+            local closest, closestDist = nil, math.huge
+            local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LP and plr.Character and getRole(plr) == "Murderer" then
                     local h = plr.Character:FindFirstChild("Head")
-                    if h then
-                        local sp, on = Cam:WorldToViewportPoint(h.Position)
-                        if on then
-                            local cx = Cam.ViewportSize.X / 2
-                            local cy = Cam.ViewportSize.Y / 2
-                            local d = math.sqrt((sp.X - cx) ^ 2 + (sp.Y - cy) ^ 2)
-                            if d < S.aimbotFOV and d < dist then
-                                dist = d
-                                cl = plr
-                            end
+                    if h and myHrp then
+                        local d = (h.Position - myHrp.Position).Magnitude
+                        if d < closestDist then
+                            closestDist = d
+                            closest = plr
                         end
                     end
                 end
             end
-            if cl and cl.Character and cl.Character:FindFirstChild("Head") then
-                S.aimT = cl
-                local newCF = CFrame.new(Cam.CFrame.Position, cl.Character.Head.Position)
-                if S.hardAim then
-                    Cam.CFrame = newCF
-                else
-                    Cam.CFrame = Cam.CFrame:Lerp(newCF, 1 - S.aimSmooth)
+            if closest and closest.Character then
+                local head = closest.Character:FindFirstChild("Head")
+                if head then
+                    S.aimT = closest
+                    local camPos = Cam.CFrame.Position
+                    local newCF = CFrame.new(camPos, head.Position)
+                    if S.hardAim then
+                        Cam.CFrame = newCF
+                    else
+                        Cam.CFrame = Cam.CFrame:Lerp(newCF, 1 - S.aimSmooth)
+                    end
+                    pcall(function()
+                        UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
+                    end)
+                    if UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+                        local vp = Cam.ViewportSize
+                        local center = Vector2.new(vp.X / 2, vp.Y / 2)
+                        pcall(function()
+                            VirtualUser:Button1Down(center, Cam.CFrame)
+                            VirtualUser:Button1Up(center, Cam.CFrame)
+                        end)
+                        local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
+                        if tool then
+                            pcall(function() tool:Activate() end)
+                        end
+                    end
                 end
             else
                 S.aimT = nil
             end
+        else
+            if S.shiftForced then
+                S.shiftForced = false
+                pcall(function()
+                    UIS.MouseBehavior = Enum.MouseBehavior.Default
+                    UIS.MouseIconEnabled = true
+                end)
+            end
         end
+
         if S.spin and LP.Character then
             local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
@@ -3294,6 +3335,11 @@ end
 
 _G.VankaPanel = {
     Destroy = function()
+        pcall(function()
+            UIS.MouseBehavior = Enum.MouseBehavior.Default
+            UIS.MouseIconEnabled = true
+        end)
+        S.shiftForced = false
         for _, c in ipairs(S.conns) do
             pcall(function()
                 if c and c.Disconnect then
