@@ -1,4 +1,4 @@
--- Vanka Admin Panel v48
+-- Vanka Admin Panel v45
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players = game:GetService("Players")
@@ -30,8 +30,7 @@ local L = {
         sec_cross_custom="Свой прицел", cross_load="Загрузить PNG",
         cross_reset="Сбросить прицел",
         sec_move="ДВИЖЕНИЕ", fly="Флай", noclip="Ноклип", infjump="Беск. прыжок",
-        speed="Спидхак", speed_value="Скорость", speed_hint="16-500",
-        walkback="Ходьба задом",
+        speed="Спидхак", walkback="Ходьба задом",
         sec_sky="НЕБО",
         sec_vis="ВИЗУАЛ", fullbright="Фулбрайт",
         sec_esp="ЕСП", esp_main="Включить", esp_health="Здоровье", esp_name="Имя",
@@ -90,8 +89,7 @@ local L = {
         sec_cross_custom="Custom crosshair", cross_load="Load PNG",
         cross_reset="Reset crosshair",
         sec_move="MOVEMENT", fly="Fly", noclip="Noclip", infjump="Inf jump",
-        speed="Speedhack", speed_value="Speed", speed_hint="16-500",
-        walkback="Walk backwards",
+        speed="Speedhack", walkback="Walk backwards",
         sec_sky="SKY",
         sec_vis="VISUAL", fullbright="Fullbright",
         sec_esp="ESP", esp_main="Enable", esp_health="Health", esp_name="Name",
@@ -150,8 +148,7 @@ local L = {
         sec_cross_custom="自定义准星", cross_load="加载 PNG",
         cross_reset="重置准星",
         sec_move="移动", fly="飞行", noclip="穿墙", infjump="无限跳",
-        speed="加速", speed_value="速度", speed_hint="16-500",
-        walkback="倒着走",
+        speed="加速", walkback="倒着走",
         sec_sky="天空",
         sec_vis="视觉", fullbright="全亮",
         sec_esp="ESP", esp_main="启用", esp_health="生命", esp_name="名字",
@@ -215,7 +212,7 @@ local function detectDevice()
     return "pc"
 end
 
-local SAVE_FILE = "vanka_settings_v48.txt"
+local SAVE_FILE = "vanka_settings_v45.txt"
 local SaveData = {
     lang = "ru", device = "",
     panel_w = 540, panel_h = 660, panel_x = 20, panel_y = 0,
@@ -228,7 +225,10 @@ local SaveData = {
     autoshoot = false, autokill = false, autotp = false, pickup = false, roles = false,
     cross = true, fov = true, hardaim = true, fly = false, noclip = false, infjump = false,
     fullbright = false, aimbot = false, spin = false,
-    hitbox = false, lines = false, antiaim = false, walkback = false, sky_name = "",
+    hitbox = false, lines = false,
+    antiaim = false,
+    walkback = false,
+    sky_name = "",
 }
 
 local function serialize()
@@ -381,13 +381,9 @@ end
 local isMobile = (detectedDevice == "mobile" or detectedDevice == "tablet")
 local PANEL_W = SaveData.panel_w or 540
 local PANEL_H = SaveData.panel_h or 660
-if isMobile then
-    if PANEL_W > 400 then PANEL_W = 350 end
-    if PANEL_H > 600 then PANEL_H = 480 end
-end
-local BTN_H = isMobile and 34 or 34
-local TOGGLE_H = isMobile and 38 or 36
-local FONT_SZ = isMobile and 12 or 12
+local BTN_H = isMobile and 32 or 34
+local TOGGLE_H = isMobile and 34 or 36
+local FONT_SZ = isMobile and 11 or 12
 local HEADER_H = isMobile and 50 or 54
 
 local S = {
@@ -402,8 +398,7 @@ local S = {
     fly = SaveData.fly, noclip = SaveData.noclip, infjump = SaveData.infjump,
     crosshair = SaveData.cross, fovCircle = SaveData.fov,
     espEnabled = SaveData.esp, espBillboards = {},
-    speed50Enabled = SaveData.speed50, speedThread = nil,
-    speedValue = SaveData.speed_value or 50,
+    speed50Enabled = SaveData.speed50, speedThread = nil, speedValue = SaveData.speed_value or 50,
     invisibleEnabled = SaveData.invisible, invisibleConn = nil,
     aimPart = SaveData.aim_part or "Head",
     aimSmooth = SaveData.aim_smooth or 0.35,
@@ -432,7 +427,6 @@ local S = {
     walkBack = SaveData.walkback or false, walkBackThread = nil,
     skyData = nil, skyAtmo = nil,
     shiftForced = false,
-    flyBV = nil, flyBG = nil,
 }
 
 local function notify(text, color)
@@ -1478,8 +1472,9 @@ local function startSpeed50Loop()
         while S.speed50Enabled do
             if LP.Character then
                 local h = LP.Character:FindFirstChildOfClass("Humanoid")
-                if h and h.WalkSpeed ~= S.speedValue then
-                    h.WalkSpeed = S.speedValue
+                local target = S.speedValue or 50
+                if h and h.WalkSpeed ~= target then
+                    h.WalkSpeed = target
                 end
             end
             task.wait(0.3)
@@ -1614,47 +1609,7 @@ local function updatePreview()
     if refs.weaponLbl then refs.weaponLbl.Visible = S.espWeapon end
 end
 
--- ============================================================
--- ФЛАЙ через BodyVelocity + BodyGyro
--- Использует штатный джойстик игры (hum.MoveDirection)
--- ============================================================
-local function startFly()
-    local char = LP.Character
-    if not char then return end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    if not hrp or not hum then return end
-
-    if S.flyBV then pcall(function() S.flyBV:Destroy() end) end
-    if S.flyBG then pcall(function() S.flyBG:Destroy() end) end
-
-    -- НЕ трогаем PlatformStand — джойстик игры должен работать
-    local bv = Instance.new("BodyVelocity")
-    bv.Name = "VankaFlyBV"
-    bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-    bv.P = 12500
-    bv.Velocity = Vector3.zero
-    bv.Parent = hrp
-    S.flyBV = bv
-
-    local bg = Instance.new("BodyGyro")
-    bg.Name = "VankaFlyBG"
-    bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-    bg.P = 25000
-    bg.D = 500
-    bg.CFrame = hrp.CFrame
-    bg.Parent = hrp
-    S.flyBG = bg
-end
-
-local function stopFly()
-    if S.flyBV then pcall(function() S.flyBV:Destroy() end) S.flyBV = nil end
-    if S.flyBG then pcall(function() S.flyBG:Destroy() end) S.flyBG = nil end
-    if LP.Character then
-        local hum = LP.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.PlatformStand = false end
-    end
-end
+local showLoading
 
 local function createGUI()
     local parent = (gethui and gethui()) or game:GetService("CoreGui")
@@ -1681,16 +1636,8 @@ local function createGUI()
     main.Name = "MainFrame"
     PANEL_W = SaveData.panel_w or 540
     PANEL_H = SaveData.panel_h or 660
-    if isMobile then
-        if PANEL_W > 400 then PANEL_W = 350 end
-        if PANEL_H > 600 then PANEL_H = 480 end
-    end
     main.Size = UDim2.new(0, PANEL_W, 0, PANEL_H)
-    if SaveData.panel_x ~= nil and SaveData.panel_y ~= nil then
-        main.Position = UDim2.new(0, SaveData.panel_x, 0, SaveData.panel_y)
-    else
-        main.Position = UDim2.new(0, 20, 0.5, -(PANEL_H / 2))
-    end
+    main.Position = UDim2.new(0, SaveData.panel_x or 20, 0.5, -(PANEL_H / 2) + (SaveData.panel_y or 0))
     main.BackgroundColor3 = Color3.fromRGB(11, 11, 18)
     main.BorderSizePixel = 0
     main.Active = true
@@ -1747,8 +1694,6 @@ local function createGUI()
             resizeHandle.BackgroundTransparency = 0.3
             SaveData.panel_w = main.AbsoluteSize.X
             SaveData.panel_h = main.AbsoluteSize.Y
-            SaveData.panel_x = main.Position.X.Offset
-            SaveData.panel_y = main.Position.Y.Offset
             saveSettings()
             notify(T("size_saved") .. ": " .. math.floor(main.AbsoluteSize.X) .. "x" .. math.floor(main.AbsoluteSize.Y), Color3.fromRGB(0, 200, 100))
         end
@@ -1757,7 +1702,7 @@ local function createGUI()
     main:GetPropertyChangedSignal("Position"):Connect(function()
         if not resizing then
             SaveData.panel_x = main.Position.X.Offset
-            SaveData.panel_y = main.Position.Y.Offset
+            SaveData.panel_y = main.Position.Y.Offset + PANEL_H / 2
             pcall(saveSettings)
         end
     end)
@@ -1900,7 +1845,7 @@ local function createGUI()
 
     local function addTab(key, img, txt)
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(0, isMobile and 42 or 78, 0, 34)
+        b.Size = UDim2.new(0, 78, 0, 34)
         b.BackgroundColor3 = Color3.fromRGB(32, 32, 44)
         b.Text = ""
         b.AutoButtonColor = false
@@ -1918,7 +1863,7 @@ local function createGUI()
         else
             b.Text = txt or key:upper()
             b.TextColor3 = Color3.fromRGB(170, 170, 190)
-            b.TextSize = isMobile and 9 or 10
+            b.TextSize = 10
             b.Font = Enum.Font.GothamBold
         end
         local p = Instance.new("ScrollingFrame")
@@ -2194,16 +2139,37 @@ local function createGUI()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
 
+    addLabel(tabVisual, T("sec_cross_custom"))
+    addBtn(tabVisual, T("cross_load"), Color3.fromRGB(80, 60, 120), function()
+        if isfile and getcustomasset then
+            local ok, exists = pcall(isfile, "vanka_crosshair.png")
+            if ok and exists then
+                local ok2, asset = pcall(getcustomasset, "vanka_crosshair.png")
+                if ok2 and asset and asset ~= "" then
+                    S.crossImage = asset
+                    SaveData.custom_cross = "vanka_crosshair.png"
+                    saveSettings()
+                    if _G.VankaUpdateCross then _G.VankaUpdateCross() end
+                    notify(T("cross_loaded"), Color3.fromRGB(0, 200, 100))
+                end
+            else
+                notify(T("cross_notfound"), Color3.fromRGB(255, 60, 60))
+            end
+        end
+    end)
+
+    addBtn(tabVisual, T("cross_reset"), Color3.fromRGB(120, 50, 50), function()
+        S.crossImage = nil
+        SaveData.custom_cross = ""
+        saveSettings()
+        if _G.VankaUpdateCross then _G.VankaUpdateCross() end
+    end)
+
     addLabel(tabVisual, T("sec_move"))
     addToggle(tabVisual, T("fly"), SaveData.fly, function(v)
         S.fly = v
         SaveData.fly = v
         saveSettings()
-        if v then
-            startFly()
-        else
-            stopFly()
-        end
     end)
     addToggle(tabVisual, T("noclip"), SaveData.noclip, function(v)
         S.noclip = v
@@ -2216,6 +2182,22 @@ local function createGUI()
         saveSettings()
     end)
 
+    addLabel(tabVisual, T("speed"))
+    local speedBox = addTextBox(tabVisual, S.speedValue or 50, "Скорость 16-500")
+    speedBox.FocusLost:Connect(function()
+        local v = tonumber(speedBox.Text)
+        if v and v > 0 and v <= 500 then
+            S.speedValue = v
+            SaveData.speed_value = v
+            saveSettings()
+            if S.speed50Enabled and LP.Character then
+                local h = LP.Character:FindFirstChildOfClass("Humanoid")
+                if h then h.WalkSpeed = v end
+            end
+            notify("Скорость: " .. v, Color3.fromRGB(0, 200, 100))
+        end
+    end)
+
     addToggle(tabVisual, T("speed"), S.speed50Enabled, function(v)
         S.speed50Enabled = v
         SaveData.speed50 = v
@@ -2224,58 +2206,13 @@ local function createGUI()
             startSpeed50Loop()
             if LP.Character then
                 local h = LP.Character:FindFirstChildOfClass("Humanoid")
-                if h then h.WalkSpeed = S.speedValue end
+                if h then h.WalkSpeed = S.speedValue or 50 end
             end
         else
             if LP.Character then
                 local h = LP.Character:FindFirstChildOfClass("Humanoid")
                 if h then h.WalkSpeed = 16 end
             end
-        end
-    end)
-
-    local spdLabel = Instance.new("TextLabel")
-    spdLabel.Size = UDim2.new(1, 0, 0, 20)
-    spdLabel.BackgroundTransparency = 1
-    spdLabel.Text = "  " .. T("speed_value") .. ": " .. S.speedValue
-    spdLabel.TextColor3 = Color3.fromRGB(180, 180, 200)
-    spdLabel.TextSize = FONT_SZ - 1
-    spdLabel.Font = Enum.Font.GothamMedium
-    spdLabel.TextXAlignment = Enum.TextXAlignment.Left
-    spdLabel.Parent = tabVisual
-
-    local spdBox = Instance.new("TextBox")
-    spdBox.Size = UDim2.new(1, 0, 0, 32)
-    spdBox.BackgroundColor3 = Color3.fromRGB(22, 22, 32)
-    spdBox.BorderSizePixel = 0
-    spdBox.Text = tostring(S.speedValue)
-    spdBox.PlaceholderText = T("speed_hint")
-    spdBox.TextColor3 = Color3.new(1, 1, 1)
-    spdBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 140)
-    spdBox.Font = Enum.Font.GothamMedium
-    spdBox.TextSize = FONT_SZ
-    spdBox.ClearTextOnFocus = false
-    spdBox.Parent = tabVisual
-    Instance.new("UICorner", spdBox).CornerRadius = UDim.new(0, 7)
-    local spdPad = Instance.new("UIPadding", spdBox)
-    spdPad.PaddingLeft = UDim.new(0, 12)
-
-    spdBox.FocusLost:Connect(function()
-        local v = tonumber(spdBox.Text)
-        if v then
-            v = math.clamp(v, 16, 500)
-            S.speedValue = v
-            SaveData.speed_value = v
-            saveSettings()
-            spdBox.Text = tostring(v)
-            spdLabel.Text = "  " .. T("speed_value") .. ": " .. v
-            if S.speed50Enabled and LP.Character then
-                local h = LP.Character:FindFirstChildOfClass("Humanoid")
-                if h then h.WalkSpeed = v end
-            end
-            notify(T("speed_value") .. ": " .. v, Color3.fromRGB(0, 200, 100))
-        else
-            spdBox.Text = tostring(S.speedValue)
         end
     end)
 
@@ -2626,7 +2563,6 @@ local function createGUI()
         stopFarm()
         clearHL()
         stopWalkBack()
-        stopFly()
         if S.flingRunning then flingStop() end
         if LP.Character then
             local h = LP.Character:FindFirstChildOfClass("Humanoid")
@@ -2847,7 +2783,6 @@ local function createGUI()
     Instance.new("UICorner", colorHolder).CornerRadius = UDim.new(0, 10)
     local colorGrid = Instance.new("UIGridLayout")
     colorGrid.CellSize = UDim2.new(0, 32, 0, 32)
-    colorGrid.CellPadding = UDim.new(0, 6)
     colorGrid.CellPadding = UDim2.new(0, 6, 0, 6)
     colorGrid.Parent = colorHolder
     local palette = {
@@ -3104,8 +3039,7 @@ local function mainLoop()
                     pcall(function()
                         UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
                     end)
-                    if UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
-                        or (isMobile and UIS:IsMouseButtonPressed(Enum.UserInputType.Touch)) then
+                    if UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
                         local vp = Cam.ViewportSize
                         local center = Vector2.new(vp.X / 2, vp.Y / 2)
                         pcall(function()
@@ -3286,40 +3220,32 @@ local function mainLoop()
             end
         end
         if S.invisibleEnabled then applyInvisible() end
-
-        -- ФЛАЙ через BodyVelocity + BodyGyro
-        -- Читает hum.MoveDirection (штатный джойстик игры)
         if S.fly and LP.Character and not S.flingRunning then
             local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
-            local hum = LP.Character:FindFirstChildOfClass("Humanoid")
-            if hrp and hum then
-                if S.flyBV and S.flyBG then
-                    local moveDir = hum.MoveDirection
-                    local vert = 0
-                    if UIS:IsKeyDown(Enum.KeyCode.Space) then vert = vert + 1 end
-                    if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then vert = vert - 1 end
+            if hrp then
+                local d = Vector3.new(0, 0, 0)
 
-                    local moveVec = Vector3.new(0, 0, 0)
-                    if moveDir.Magnitude > 0.1 then
-                        moveVec = moveDir.Unit
-                    end
-                    if vert ~= 0 then
-                        moveVec = moveVec + Vector3.new(0, vert, 0)
-                    end
+                if UIS:IsKeyDown(Enum.KeyCode.W) then d = d + Cam.CFrame.LookVector end
+                if UIS:IsKeyDown(Enum.KeyCode.S) then d = d - Cam.CFrame.LookVector end
+                if UIS:IsKeyDown(Enum.KeyCode.A) then d = d - Cam.CFrame.RightVector end
+                if UIS:IsKeyDown(Enum.KeyCode.D) then d = d + Cam.CFrame.RightVector end
+                if UIS:IsKeyDown(Enum.KeyCode.Space) then d = d + Vector3.new(0, 1, 0) end
+                if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then d = d - Vector3.new(0, 1, 0) end
 
-                    local flySpeed = S.speedValue or 60
-                    if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then flySpeed = flySpeed * 2 end
-
-                    if moveVec.Magnitude > 0 then
-                        S.flyBV.Velocity = moveVec.Unit * flySpeed
-                    else
-                        S.flyBV.Velocity = Vector3.new(0, 0, 0)
+                if isMobile then
+                    local hum = LP.Character:FindFirstChildOfClass("Humanoid")
+                    if hum and hum.MoveDirection.Magnitude > 0.05 then
+                        d = d + hum.MoveDirection
                     end
-                    S.flyBG.CFrame = Cam.CFrame
+                end
+
+                if d.Magnitude > 0 then
+                    hrp.Velocity = d.Unit * 60
+                else
+                    hrp.Velocity = Vector3.new(0, 0, 0)
                 end
             end
         end
-
         if S.noclip and LP.Character then
             for _, p in ipairs(LP.Character:GetDescendants()) do
                 if p:IsA("BasePart") and p.CanCollide then
@@ -3433,9 +3359,6 @@ function showLoading()
         if S.roleHighlight then refreshHL() end
         if S.invisibleEnabled then setInvisible(true) end
         if S.walkBack then startWalkBack() end
-        if S.fly then
-            startFly()
-        end
         if SaveData.sky_name and SaveData.sky_name ~= "" then
             for _, preset in ipairs(SKY_PRESETS) do
                 if preset.name == SaveData.sky_name then
@@ -3469,7 +3392,6 @@ _G.VankaPanel = {
             UIS.MouseIconEnabled = true
         end)
         S.shiftForced = false
-        stopFly()
         for _, c in ipairs(S.conns) do
             pcall(function()
                 if c and c.Disconnect then
