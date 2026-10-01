@@ -1,4 +1,4 @@
--- Vanka Admin Panel v45
+-- Vanka Admin Panel v46
 if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
 
 local Players = game:GetService("Players")
@@ -129,7 +129,7 @@ local L = {
         lang_changed="Restarting...",
         size_saved="Size saved",
         sec_lines="LINES", lines="Lines",
-        sec_hitbox="HITBOX", hitbox="Hitboxes",
+        sec_hitbox="HITBOX", hitboxes="Hitboxes",
         saved_msg="Saved",
         pickup_tp="TP...",
         pickup_back="Returned",
@@ -221,7 +221,7 @@ local function detectDevice()
     return "pc"
 end
 
-local SAVE_FILE = "vanka_settings_v45.txt"
+local SAVE_FILE = "vanka_settings_v46.txt"
 local SaveData = {
     lang = "ru", device = "",
     panel_w = 540, panel_h = 660, panel_x = 20, panel_y = 0,
@@ -285,7 +285,7 @@ local function loadSettings()
     local ok2, data = pcall(readfile, SAVE_FILE)
     if not ok2 or not data then return end
     for line in string.gmatch(data, "[^\n]+") do
-        local k, v = string.match(line, "(%w+)=(.+)")
+        local k, v = string.match(line, "([%w_]+)=(.+)")
         if k and v then
             if k == "lang" then LANG = v
             elseif k == "device" then SaveData.device = v
@@ -396,8 +396,6 @@ end
 local isMobile = (detectedDevice == "mobile" or detectedDevice == "tablet")
 local PANEL_W = math.clamp(SaveData.panel_w or 540, 400, 1200)
 local PANEL_H = math.clamp(SaveData.panel_h or 660, 400, 1200)
-SaveData.panel_w = PANEL_W
-SaveData.panel_h = PANEL_H
 local BTN_H = isMobile and 32 or 34
 local TOGGLE_H = isMobile and 34 or 36
 local FONT_SZ = isMobile and 11 or 12
@@ -1800,6 +1798,9 @@ local function createGUI()
     Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
     S.panel = main
 
+    local panelReady = false
+    task.delay(0.6, function() panelReady = true end)
+
     local resizeHandle = Instance.new("TextButton")
     resizeHandle.Name = "ResizeHandle"
     resizeHandle.Size = UDim2.new(0, 26, 0, 26)
@@ -1866,14 +1867,14 @@ local function createGUI()
     end
 
     main:GetPropertyChangedSignal("Position"):Connect(function()
-        if resizing then return end
+        if resizing or not panelReady then return end
         SaveData.panel_x = main.Position.X.Offset
         SaveData.panel_y = main.Position.Y.Offset + (main.AbsoluteSize.Y / 2)
         debouncedSave()
     end)
 
     main:GetPropertyChangedSignal("Size"):Connect(function()
-        if resizing then return end
+        if resizing or not panelReady then return end
         SaveData.panel_w = main.AbsoluteSize.X
         SaveData.panel_h = main.AbsoluteSize.Y
         debouncedSave()
@@ -3056,7 +3057,7 @@ local function createGUI()
             end
             for _, pg in pairs(pages) do
                 for _, d in ipairs(pg:GetDescendants()) do
-                    if d.Name == "Accent" and (d:IsA("Frame")) then
+                    if d.Name == "Accent" and d:IsA("Frame") then
                         d.BackgroundColor3 = S.panelColor
                     end
                     if d.Name == "AccentLabel" and d:IsA("TextLabel") then
