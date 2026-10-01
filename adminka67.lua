@@ -40,6 +40,9 @@ local L = {
         sec_aim_part="Часть тела", aim_head="Голова", aim_torso="Торс", aim_random="Рандом",
         sec_smooth="Плавность", smooth_slow="Плавно", smooth_mid="Средне", smooth_fast="Резко",
         kill_aim="Килл аим",
+        sec_trigger="ТРИГГЕР", triggerbot="Триггер-бот",
+        trigger_delay="Задержка", trigger_range="Радиус (метры)",
+        trigger_target="Часть тела", trigger_ready="Триггер готов",
         sec_spin="СПИНБОТ", spin="Спинбот",
         sec_antiaim="АНТИ-АИМ", antiaim="Анти-аим",
         sec_util="УТИЛИТЫ", respawn="Респавн", disable_all="ВЫКЛЮЧИТЬ ВСЁ",
@@ -99,6 +102,9 @@ local L = {
         sec_aim_part="Aim part", aim_head="Head", aim_torso="Torso", aim_random="Random",
         sec_smooth="Smoothness", smooth_slow="Slow", smooth_mid="Medium", smooth_fast="Fast",
         kill_aim="Kill aim",
+        sec_trigger="TRIGGER", triggerbot="Triggerbot",
+        trigger_delay="Delay", trigger_range="Range (studs)",
+        trigger_target="Hit part", trigger_ready="Trigger ready",
         sec_spin="SPINBOT", spin="Spinbot",
         sec_antiaim="ANTI-AIM", antiaim="Anti-aim",
         sec_util="UTILITIES", respawn="Respawn", disable_all="TURN OFF ALL",
@@ -158,6 +164,9 @@ local L = {
         sec_aim_part="瞄准部位", aim_head="头", aim_torso="躯干", aim_random="随机",
         sec_smooth="平滑", smooth_slow="慢", smooth_mid="中", smooth_fast="快",
         kill_aim="击杀瞄准",
+        sec_trigger="扳机", triggerbot="扳机机器人",
+        trigger_delay="延迟", trigger_range="半径 (米)",
+        trigger_target="部位", trigger_ready="扳机就绪",
         sec_spin="旋转", spin="旋转机器人",
         sec_antiaim="防瞄准", antiaim="防瞄准",
         sec_util="工具", respawn="重生", disable_all="关闭所有",
@@ -229,6 +238,7 @@ local SaveData = {
     antiaim = false,
     walkback = false,
     sky_name = "",
+    triggerbot = false, trigger_delay = 0.05, trigger_range = 200, trigger_target = "Head",
 }
 
 local function serialize()
@@ -241,7 +251,8 @@ local function serialize()
         "fling_speed", "fling_force", "fling_dist", "fling_interval",
         "autoshoot", "autokill", "autotp", "pickup", "roles",
         "cross", "fov", "hardaim", "fly", "noclip", "infjump",
-        "fullbright", "aimbot", "spin", "hitbox", "lines", "antiaim", "walkback", "sky_name"
+        "fullbright", "aimbot", "spin", "hitbox", "lines", "antiaim", "walkback", "sky_name",
+        "triggerbot", "trigger_delay", "trigger_range", "trigger_target"
     }
     for _, k in ipairs(keys) do
         local v = SaveData[k]
@@ -320,6 +331,10 @@ local function loadSettings()
             elseif k == "fling_force" then SaveData.fling_force = tonumber(v) or 5000
             elseif k == "fling_dist" then SaveData.fling_dist = tonumber(v) or 2
             elseif k == "fling_interval" then SaveData.fling_interval = tonumber(v) or 0.05
+            elseif k == "triggerbot" then SaveData.triggerbot = (v == "true")
+            elseif k == "trigger_delay" then SaveData.trigger_delay = tonumber(v) or 0.05
+            elseif k == "trigger_range" then SaveData.trigger_range = tonumber(v) or 200
+            elseif k == "trigger_target" then SaveData.trigger_target = v
             elseif k == "cross_color" then
                 local r, g, b = string.match(v, "(%d+),(%d+),(%d+)")
                 if r then SaveData.cross_color = {tonumber(r), tonumber(g), tonumber(b)} end
@@ -427,6 +442,9 @@ local S = {
     walkBack = SaveData.walkback or false, walkBackThread = nil,
     skyData = nil, skyAtmo = nil,
     shiftForced = false,
+    triggerbot = SaveData.triggerbot, triggerDelay = SaveData.trigger_delay or 0.05,
+    triggerRange = SaveData.trigger_range or 200, triggerTarget = SaveData.trigger_target or "Head",
+    triggerThread = nil, triggerConn = nil,
 }
 
 local function notify(text, color)
@@ -621,6 +639,19 @@ local function getAimPart(tChar)
         return tChar:FindFirstChild(parts[math.random(1, #parts)])
     end
     return tChar:FindFirstChild(S.aimPart) or tChar:FindFirstChild("Head")
+end
+
+local function getTargetPartFor(player, mode)
+    if not player or not player.Character then return nil end
+    if mode == "Head" then
+        return player.Character:FindFirstChild("Head")
+    elseif mode == "Torso" then
+        return player.Character:FindFirstChild("UpperTorso") or player.Character:FindFirstChild("Torso")
+    elseif mode == "Random" then
+        local parts = {"Head", "UpperTorso", "Torso", "HumanoidRootPart"}
+        return player.Character:FindFirstChild(parts[math.random(1, #parts)])
+    end
+    return player.Character:FindFirstChild("Head")
 end
 
 local SKY_PRESETS = {
@@ -892,6 +923,108 @@ local function killOneTarget(target)
     end
     task.wait(0.2)
     return targetHum and targetHum.Health <= 0
+end
+
+local function findMurdererSilent()
+    if not LP.Character then return nil end
+    local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
+    if not myHrp then return nil end
+    local closest, closestDist = nil, math.huge
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LP and plr.Character then
+            if getRole(plr) == "Murderer" then
+                local h = plr.Character:FindFirstChildOfClass("Humanoid")
+                local part = getTargetPartFor(plr, S.triggerTarget or "Head")
+                if h and h.Health > 0 and part then
+                    local d = (part.Position - myHrp.Position).Magnitude
+                    if d < (S.triggerRange or 200) and d < closestDist then
+                        closestDist = d
+                        closest = plr
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
+local function silentFire(target)
+    if not target or not target.Character then return end
+    local part = getTargetPartFor(target, S.triggerTarget or "Head")
+    if not part then return end
+
+    local savedCF = Cam.CFrame
+    local newCF = CFrame.new(Cam.CFrame.Position, part.Position)
+    pcall(function() Cam.CFrame = newCF end)
+
+    local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
+    if not tool or not isGun(tool) then
+        pcall(function() Cam.CFrame = savedCF end)
+        return
+    end
+
+    pcall(function()
+        local m = LP:GetMouse()
+        if m then m.Target = part end
+    end)
+
+    local sp = Cam:WorldToViewportPoint(part.Position)
+    pcall(function()
+        VirtualUser:Button1Down(Vector2.new(sp.X, sp.Y), Cam.CFrame)
+        VirtualUser:Button1Up(Vector2.new(sp.X, sp.Y), Cam.CFrame)
+    end)
+
+    pcall(function() tool:Activate() end)
+
+    task.defer(function()
+        pcall(function() Cam.CFrame = savedCF end)
+    end)
+end
+
+local function triggerFire()
+    if not S.triggerbot then return end
+    if getRole(LP) ~= "Sheriff" then return end
+    if not hasGunInHand() then
+        equipGun()
+        return
+    end
+    local target = findMurdererSilent()
+    if target then
+        silentFire(target)
+    end
+end
+
+local function startTriggerbot()
+    if S.triggerThread then return end
+    S.triggerThread = task.spawn(function()
+        while S.triggerbot do
+            if getRole(LP) == "Sheriff" then
+                if not hasGunInHand() then equipGun() end
+                local target = findMurdererSilent()
+                if target then silentFire(target) end
+            end
+            task.wait(S.triggerDelay or 0.05)
+        end
+        S.triggerThread = nil
+    end)
+    if S.triggerConn then return end
+    S.triggerConn = UIS.InputBegan:Connect(function(input, gp)
+        if gp then return end
+        if not S.triggerbot then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            triggerFire()
+        end
+    end)
+end
+
+local function stopTriggerbot()
+    S.triggerbot = false
+    S.triggerThread = nil
+    if S.triggerConn then
+        pcall(function() S.triggerConn:Disconnect() end)
+        S.triggerConn = nil
+    end
 end
 
 local function startAutoKill()
@@ -2501,6 +2634,52 @@ local function createGUI()
         end
     end)
 
+    addLabel(tabRage, T("sec_trigger"))
+    addToggle(tabRage, T("triggerbot"), SaveData.triggerbot, function(v)
+        S.triggerbot = v
+        SaveData.triggerbot = v
+        saveSettings()
+        if v then
+            startTriggerbot()
+            notify(T("trigger_ready"), Color3.fromRGB(0, 200, 100))
+        else
+            stopTriggerbot()
+        end
+    end)
+
+    addLabel(tabRage, T("trigger_delay"))
+    local trigDelayBox = addTextBox(tabRage, S.triggerDelay, "0.05")
+    trigDelayBox.FocusLost:Connect(function()
+        local v = tonumber(trigDelayBox.Text)
+        if v and v >= 0 and v <= 2 then
+            S.triggerDelay = v
+            SaveData.trigger_delay = v
+            saveSettings()
+        end
+    end)
+
+    addLabel(tabRage, T("trigger_range"))
+    local trigRangeBox = addTextBox(tabRage, S.triggerRange, "200")
+    trigRangeBox.FocusLost:Connect(function()
+        local v = tonumber(trigRangeBox.Text)
+        if v and v >= 5 and v <= 2000 then
+            S.triggerRange = v
+            SaveData.trigger_range = v
+            saveSettings()
+        end
+    end)
+
+    addLabel(tabRage, T("trigger_target"))
+    addBtn(tabRage, T("aim_head"), Color3.fromRGB(60, 60, 90), function()
+        S.triggerTarget = "Head"; SaveData.trigger_target = "Head"; saveSettings()
+    end)
+    addBtn(tabRage, T("aim_torso"), Color3.fromRGB(60, 60, 90), function()
+        S.triggerTarget = "Torso"; SaveData.trigger_target = "Torso"; saveSettings()
+    end)
+    addBtn(tabRage, T("aim_random"), Color3.fromRGB(60, 60, 90), function()
+        S.triggerTarget = "Random"; SaveData.trigger_target = "Random"; saveSettings()
+    end)
+
     addLabel(tabRage, T("sec_spin"))
     addToggle(tabRage, T("spin"), SaveData.spin, function(v)
         S.spin = v
@@ -2538,6 +2717,7 @@ local function createGUI()
         S.lines = false
         S.antiAim = false
         S.walkBack = false
+        S.triggerbot = false
         SaveData.aimbot = false
         SaveData.roles = false
         SaveData.fly = false
@@ -2555,6 +2735,7 @@ local function createGUI()
         SaveData.lines = false
         SaveData.antiaim = false
         SaveData.walkback = false
+        SaveData.triggerbot = false
         saveSettings()
         stopAutoShoot()
         stopAutoKillLoop()
@@ -2563,6 +2744,7 @@ local function createGUI()
         stopFarm()
         clearHL()
         stopWalkBack()
+        stopTriggerbot()
         if S.flingRunning then flingStop() end
         if LP.Character then
             local h = LP.Character:FindFirstChildOfClass("Humanoid")
@@ -3004,11 +3186,14 @@ local function mainLoop()
         if fovCircle then fovCircle.Visible = false end
 
         if S.aimbot and not S.flingRunning then
-            if not S.shiftForced then
-                S.shiftForced = true
+            if not isMobile then
                 pcall(function()
-                    UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
-                    UIS.MouseIconEnabled = false
+                    if UIS.MouseBehavior ~= Enum.MouseBehavior.LockCenter then
+                        UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
+                    end
+                    if UIS.MouseIconEnabled then
+                        UIS.MouseIconEnabled = false
+                    end
                 end)
             end
             local closest, closestDist = nil, math.huge
@@ -3025,44 +3210,19 @@ local function mainLoop()
                     end
                 end
             end
-            if closest and closest.Character then
-                local head = closest.Character:FindFirstChild("Head")
-                if head then
-                    S.aimT = closest
-                    local camPos = Cam.CFrame.Position
-                    local newCF = CFrame.new(camPos, head.Position)
-                    if S.hardAim then
-                        Cam.CFrame = newCF
-                    else
-                        Cam.CFrame = Cam.CFrame:Lerp(newCF, 1 - S.aimSmooth)
-                    end
-                    pcall(function()
-                        UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
-                    end)
-                    if UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
-                        local vp = Cam.ViewportSize
-                        local center = Vector2.new(vp.X / 2, vp.Y / 2)
-                        pcall(function()
-                            VirtualUser:Button1Down(center, Cam.CFrame)
-                            VirtualUser:Button1Up(center, Cam.CFrame)
-                        end)
-                        local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
-                        if tool then
-                            pcall(function() tool:Activate() end)
-                        end
-                    end
-                end
-            else
-                S.aimT = nil
-            end
+            S.aimT = closest
         else
-            if S.shiftForced then
-                S.shiftForced = false
+            if not isMobile then
                 pcall(function()
-                    UIS.MouseBehavior = Enum.MouseBehavior.Default
-                    UIS.MouseIconEnabled = true
+                    if UIS.MouseBehavior ~= Enum.MouseBehavior.Default then
+                        UIS.MouseBehavior = Enum.MouseBehavior.Default
+                    end
+                    if not UIS.MouseIconEnabled then
+                        UIS.MouseIconEnabled = true
+                    end
                 end)
             end
+            S.aimT = nil
         end
 
         if S.spin and LP.Character then
@@ -3359,6 +3519,7 @@ function showLoading()
         if S.roleHighlight then refreshHL() end
         if S.invisibleEnabled then setInvisible(true) end
         if S.walkBack then startWalkBack() end
+        if S.triggerbot then startTriggerbot() end
         if SaveData.sky_name and SaveData.sky_name ~= "" then
             for _, preset in ipairs(SKY_PRESETS) do
                 if preset.name == SaveData.sky_name then
@@ -3406,6 +3567,7 @@ _G.VankaPanel = {
         stopAutoPickup()
         stopFarm()
         stopWalkBack()
+        stopTriggerbot()
         if S.flingRunning then flingStop() end
         if S.flingCamConn then
             pcall(function() S.flingCamConn:Disconnect() end)
