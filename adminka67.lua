@@ -394,8 +394,10 @@ if detectedDevice == "" or detectedDevice == nil then
 end
 
 local isMobile = (detectedDevice == "mobile" or detectedDevice == "tablet")
-local PANEL_W = SaveData.panel_w or 540
-local PANEL_H = SaveData.panel_h or 660
+local PANEL_W = math.clamp(SaveData.panel_w or 540, 400, 1200)
+local PANEL_H = math.clamp(SaveData.panel_h or 660, 400, 1200)
+SaveData.panel_w = PANEL_W
+SaveData.panel_h = PANEL_H
 local BTN_H = isMobile and 32 or 34
 local TOGGLE_H = isMobile and 34 or 36
 local FONT_SZ = isMobile and 11 or 12
@@ -411,9 +413,11 @@ local S = {
     farmEnabled = SaveData.farm, farmThread = nil,
     spin = SaveData.spin, spinSpeed = 30,
     fly = SaveData.fly, noclip = SaveData.noclip, infjump = SaveData.infjump,
+    flyBV = nil, flySpeedValue = 50,
     crosshair = SaveData.cross, fovCircle = SaveData.fov,
     espEnabled = SaveData.esp, espBillboards = {},
     speed50Enabled = SaveData.speed50, speedThread = nil, speedValue = SaveData.speed_value or 50,
+    speedRespawnConn = nil,
     invisibleEnabled = SaveData.invisible, invisibleConn = nil,
     aimPart = SaveData.aim_part or "Head",
     aimSmooth = SaveData.aim_smooth or 0.35,
@@ -1599,18 +1603,24 @@ local function setInvisible(state)
     end
 end
 
+local function applySpeedValue()
+    if not S.speed50Enabled then return end
+    local char = LP.Character
+    if not char then return end
+    local h = char:FindFirstChildOfClass("Humanoid")
+    if not h then return end
+    local target = S.speedValue or 50
+    if h.WalkSpeed ~= target then
+        h.WalkSpeed = target
+    end
+end
+
 local function startSpeed50Loop()
     if S.speedThread then return end
     S.speedThread = task.spawn(function()
         while S.speed50Enabled do
-            if LP.Character then
-                local h = LP.Character:FindFirstChildOfClass("Humanoid")
-                local target = S.speedValue or 50
-                if h and h.WalkSpeed ~= target then
-                    h.WalkSpeed = target
-                end
-            end
-            task.wait(0.3)
+            applySpeedValue()
+            task.wait(0.05)
         end
         S.speedThread = nil
     end)
@@ -1641,6 +1651,17 @@ end
 local function stopWalkBack()
     S.walkBack = false
     S.walkBackThread = nil
+end
+
+local function hookSpeedRespawn()
+    if S.speedRespawnConn then return end
+    S.speedRespawnConn = LP.CharacterAdded:Connect(function(char)
+        task.wait(0.5)
+        if S.speed50Enabled then
+            local h = char:FindFirstChildOfClass("Humanoid")
+            if h then h.WalkSpeed = S.speedValue or 50 end
+        end
+    end)
 end
 
 local function startAutoPickup()
@@ -1767,8 +1788,8 @@ local function createGUI()
 
     local main = Instance.new("Frame")
     main.Name = "MainFrame"
-    PANEL_W = SaveData.panel_w or 540
-    PANEL_H = SaveData.panel_h or 660
+    PANEL_W = math.clamp(SaveData.panel_w or 540, 400, 1200)
+    PANEL_H = math.clamp(SaveData.panel_h or 660, 400, 1200)
     main.Size = UDim2.new(0, PANEL_W, 0, PANEL_H)
     main.Position = UDim2.new(0, SaveData.panel_x or 20, 0.5, -(PANEL_H / 2) + (SaveData.panel_y or 0))
     main.BackgroundColor3 = Color3.fromRGB(11, 11, 18)
@@ -1828,16 +1849,34 @@ local function createGUI()
             SaveData.panel_w = main.AbsoluteSize.X
             SaveData.panel_h = main.AbsoluteSize.Y
             saveSettings()
+            PANEL_W = main.AbsoluteSize.X
+            PANEL_H = main.AbsoluteSize.Y
             notify(T("size_saved") .. ": " .. math.floor(main.AbsoluteSize.X) .. "x" .. math.floor(main.AbsoluteSize.Y), Color3.fromRGB(0, 200, 100))
         end
     end)
 
-    main:GetPropertyChangedSignal("Position"):Connect(function()
-        if not resizing then
-            SaveData.panel_x = main.Position.X.Offset
-            SaveData.panel_y = main.Position.Y.Offset + PANEL_H / 2
+    local saveLock = false
+    local function debouncedSave()
+        if saveLock then return end
+        saveLock = true
+        task.delay(0.4, function()
+            saveLock = false
             pcall(saveSettings)
-        end
+        end)
+    end
+
+    main:GetPropertyChangedSignal("Position"):Connect(function()
+        if resizing then return end
+        SaveData.panel_x = main.Position.X.Offset
+        SaveData.panel_y = main.Position.Y.Offset + (main.AbsoluteSize.Y / 2)
+        debouncedSave()
+    end)
+
+    main:GetPropertyChangedSignal("Size"):Connect(function()
+        if resizing then return end
+        SaveData.panel_w = main.AbsoluteSize.X
+        SaveData.panel_h = main.AbsoluteSize.Y
+        debouncedSave()
     end)
 
     local bgGrad = Instance.new("UIGradient")
@@ -2105,6 +2144,7 @@ local function createGUI()
         a.Position = UDim2.new(0, 0, 0.5, -8)
         a.BackgroundColor3 = S.panelColor
         a.BorderSizePixel = 0
+        a.Name = "Accent"
         a.Parent = w
         Instance.new("UICorner", a).CornerRadius = UDim.new(1, 0)
         local l = Instance.new("TextLabel")
@@ -2116,6 +2156,7 @@ local function createGUI()
         l.TextSize = FONT_SZ - 1
         l.Font = Enum.Font.GothamBold
         l.TextXAlignment = Enum.TextXAlignment.Left
+        l.Name = "AccentLabel"
         l.Parent = w
     end
 
@@ -2303,6 +2344,10 @@ local function createGUI()
         S.fly = v
         SaveData.fly = v
         saveSettings()
+        if not v and S.flyBV then
+            pcall(function() S.flyBV:Destroy() end)
+            S.flyBV = nil
+        end
     end)
     addToggle(tabVisual, T("noclip"), SaveData.noclip, function(v)
         S.noclip = v
@@ -2328,6 +2373,9 @@ local function createGUI()
                 if h then h.WalkSpeed = v end
             end
             notify("Скорость: " .. v, Color3.fromRGB(0, 200, 100))
+        else
+            speedBox.Text = tostring(S.speedValue or 50)
+            notify("Скорость 1-500", Color3.fromRGB(255, 60, 60))
         end
     end)
 
@@ -2745,6 +2793,7 @@ local function createGUI()
         clearHL()
         stopWalkBack()
         stopTriggerbot()
+        if S.flyBV then pcall(function() S.flyBV:Destroy() end) S.flyBV = nil end
         if S.flingRunning then flingStop() end
         if LP.Character then
             local h = LP.Character:FindFirstChildOfClass("Humanoid")
@@ -2997,10 +3046,26 @@ local function createGUI()
             openB.BackgroundColor3 = S.panelColor
             resizeHandle.BackgroundColor3 = S.panelColor
             pScroll.ScrollBarImageColor3 = S.panelColor
+            if fovCircle and fovCircle:FindFirstChildOfClass("UIStroke") then
+                fovCircle:FindFirstChildOfClass("UIStroke").Color = S.panelColor
+            end
             for _, tab in pairs(tabs) do
                 if tab.BackgroundColor3 ~= Color3.fromRGB(32, 32, 44) then
                     tab.BackgroundColor3 = S.panelColor
                 end
+            end
+            for _, pg in pairs(pages) do
+                for _, d in ipairs(pg:GetDescendants()) do
+                    if d.Name == "Accent" and (d:IsA("Frame")) then
+                        d.BackgroundColor3 = S.panelColor
+                    end
+                    if d.Name == "AccentLabel" and d:IsA("TextLabel") then
+                        d.TextColor3 = S.panelColor
+                    end
+                end
+            end
+            if S.previewRefs and S.previewRefs.noobStroke then
+                S.previewRefs.noobStroke.Color = S.panelColor
             end
             notify(T("saved_msg"), Color3.fromRGB(0, 200, 100))
         end)
@@ -3383,27 +3448,38 @@ local function mainLoop()
         if S.fly and LP.Character and not S.flingRunning then
             local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
+                if not S.flyBV or S.flyBV.Parent ~= hrp then
+                    if S.flyBV then pcall(function() S.flyBV:Destroy() end) end
+                    S.flyBV = Instance.new("BodyVelocity")
+                    S.flyBV.Name = "VankaFly"
+                    S.flyBV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                    S.flyBV.Velocity = Vector3.new(0, 0, 0)
+                    S.flyBV.Parent = hrp
+                end
                 local d = Vector3.new(0, 0, 0)
-
                 if UIS:IsKeyDown(Enum.KeyCode.W) then d = d + Cam.CFrame.LookVector end
                 if UIS:IsKeyDown(Enum.KeyCode.S) then d = d - Cam.CFrame.LookVector end
                 if UIS:IsKeyDown(Enum.KeyCode.A) then d = d - Cam.CFrame.RightVector end
                 if UIS:IsKeyDown(Enum.KeyCode.D) then d = d + Cam.CFrame.RightVector end
                 if UIS:IsKeyDown(Enum.KeyCode.Space) then d = d + Vector3.new(0, 1, 0) end
                 if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then d = d - Vector3.new(0, 1, 0) end
-
                 if isMobile then
                     local hum = LP.Character:FindFirstChildOfClass("Humanoid")
                     if hum and hum.MoveDirection.Magnitude > 0.05 then
                         d = d + hum.MoveDirection
                     end
                 end
-
+                local spd = S.flySpeedValue or 50
                 if d.Magnitude > 0 then
-                    hrp.Velocity = d.Unit * 60
+                    S.flyBV.Velocity = d.Unit * spd
                 else
-                    hrp.Velocity = Vector3.new(0, 0, 0)
+                    S.flyBV.Velocity = Vector3.new(0, 0, 0)
                 end
+            end
+        else
+            if S.flyBV then
+                pcall(function() S.flyBV:Destroy() end)
+                S.flyBV = nil
             end
         end
         if S.noclip and LP.Character then
@@ -3510,6 +3586,7 @@ function showLoading()
         createOverlays()
         mainLoop()
         setupInfJump()
+        hookSpeedRespawn()
         if S.speed50Enabled then startSpeed50Loop() end
         if S.farmEnabled then startFarm() end
         if S.autoShootEnabled then startAutoShoot() end
@@ -3568,6 +3645,8 @@ _G.VankaPanel = {
         stopFarm()
         stopWalkBack()
         stopTriggerbot()
+        if S.flyBV then pcall(function() S.flyBV:Destroy() end) S.flyBV = nil end
+        if S.speedRespawnConn then pcall(function() S.speedRespawnConn:Disconnect() end) S.speedRespawnConn = nil end
         if S.flingRunning then flingStop() end
         if S.flingCamConn then
             pcall(function() S.flingCamConn:Disconnect() end)
