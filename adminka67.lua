@@ -309,6 +309,7 @@ local function loadSettings()
             elseif k == "hardaim" then SaveData.hardaim = (v == "true")
             elseif k == "fly" then SaveData.fly = (v == "true")
             elseif k == "noclip" then SaveData.noclip = (v == "true")
+            elseif k == "infjump" then SaveData.infump = (v == "true")
             elseif k == "infjump" then SaveData.infjump = (v == "true")
             elseif k == "fullbright" then SaveData.fullbright = (v == "true")
             elseif k == "aimbot" then SaveData.aimbot = (v == "true")
@@ -636,11 +637,23 @@ local function equipMyKnife()
 end
 
 local function getAimPart(tChar)
+    if not tChar then return nil end
     if S.aimPart == "Random" then
         local parts = {"Head", "UpperTorso", "Torso", "HumanoidRootPart"}
-        return tChar:FindFirstChild(parts[math.random(1, #parts)])
+        for _ = 1, 3 do
+            local pick = parts[math.random(1, #parts)]
+            local p = tChar:FindFirstChild(pick)
+            if p then return p end
+        end
+        return tChar:FindFirstChild("Head")
+    elseif S.aimPart == "Torso" then
+        return tChar:FindFirstChild("UpperTorso")
+            or tChar:FindFirstChild("Torso")
+            or tChar:FindFirstChild("HumanoidRootPart")
+            or tChar:FindFirstChild("Head")
+    else
+        return tChar:FindFirstChild(S.aimPart) or tChar:FindFirstChild("Head")
     end
-    return tChar:FindFirstChild(S.aimPart) or tChar:FindFirstChild("Head")
 end
 
 local function getTargetPartFor(player, mode)
@@ -658,78 +671,48 @@ end
 
 local SKY_PRESETS = {
     {name = "sky_cosmos",
-        Bk = "rbxassetid://1600951421",
-        Dn = "rbxassetid://1600951283",
-        Ft = "rbxassetid://1600951537",
-        Lf = "rbxassetid://1600951625",
-        Rt = "rbxassetid://1600951733",
-        Up = "rbxassetid://1600951155",
+        Bk = "rbxassetid://1600951421", Dn = "rbxassetid://1600951283",
+        Ft = "rbxassetid://1600951537", Lf = "rbxassetid://1600951625",
+        Rt = "rbxassetid://1600951733", Up = "rbxassetid://1600951155",
         StarCount = 3000, Sun = 0, Moon = 0, Clock = 0},
     {name = "sky_galaxy",
-        Bk = "rbxassetid://12064107",
-        Dn = "rbxassetid://12064152",
-        Ft = "rbxassetid://12064121",
-        Lf = "rbxassetid://12063984",
-        Rt = "rbxassetid://12064115",
-        Up = "rbxassetid://12064110",
+        Bk = "rbxassetid://12064107", Dn = "rbxassetid://12064152",
+        Ft = "rbxassetid://12064121", Lf = "rbxassetid://12063984",
+        Rt = "rbxassetid://12064115", Up = "rbxassetid://12064110",
         StarCount = 5000, Sun = 0, Moon = 0, Clock = 0},
     {name = "sky_night",
-        Bk = "rbxassetid://159460308",
-        Dn = "rbxassetid://159460252",
-        Ft = "rbxassetid://159460224",
-        Lf = "rbxassetid://159460180",
-        Rt = "rbxassetid://159460143",
-        Up = "rbxassetid://159460115",
+        Bk = "rbxassetid://159460308", Dn = "rbxassetid://159460252",
+        Ft = "rbxassetid://159460224", Lf = "rbxassetid://159460180",
+        Rt = "rbxassetid://159460143", Up = "rbxassetid://159460115",
         StarCount = 4000, Sun = 0, Moon = 20, Clock = 0},
     {name = "sky_sunset",
-        Bk = "rbxassetid://190012845",
-        Dn = "rbxassetid://190012834",
-        Ft = "rbxassetid://190012826",
-        Lf = "rbxassetid://190012820",
-        Rt = "rbxassetid://190012816",
-        Up = "rbxassetid://190012810",
+        Bk = "rbxassetid://190012845", Dn = "rbxassetid://190012834",
+        Ft = "rbxassetid://190012826", Lf = "rbxassetid://190012820",
+        Rt = "rbxassetid://190012816", Up = "rbxassetid://190012810",
         StarCount = 800, Sun = 40, Moon = 0, Clock = 18},
     {name = "sky_dawn",
-        Bk = "rbxassetid://190012845",
-        Dn = "rbxassetid://190012834",
-        Ft = "rbxassetid://190012826",
-        Lf = "rbxassetid://190012820",
-        Rt = "rbxassetid://190012816",
-        Up = "rbxassetid://190012810",
+        Bk = "rbxassetid://190012845", Dn = "rbxassetid://190012834",
+        Ft = "rbxassetid://190012826", Lf = "rbxassetid://190012820",
+        Rt = "rbxassetid://190012816", Up = "rbxassetid://190012810",
         StarCount = 1500, Sun = 25, Moon = 0, Clock = 6},
     {name = "sky_purple",
-        Bk = "rbxassetid://1618859413",
-        Dn = "rbxassetid://1618859125",
-        Ft = "rbxassetid://1618858846",
-        Lf = "rbxassetid://1618858536",
-        Rt = "rbxassetid://1618858239",
-        Up = "rbxassetid://1618857974",
+        Bk = "rbxassetid://1618859413", Dn = "rbxassetid://1618859125",
+        Ft = "rbxassetid://1618858846", Lf = "rbxassetid://1618858536",
+        Rt = "rbxassetid://1618858239", Up = "rbxassetid://1618857974",
         StarCount = 2500, Sun = 0, Moon = 0, Clock = 0},
 }
 
 local function applySky(preset)
-    if S.skyData then
-        pcall(function() S.skyData:Destroy() end)
-        S.skyData = nil
-    end
-    if S.skyAtmo then
-        pcall(function() S.skyAtmo:Destroy() end)
-        S.skyAtmo = nil
-    end
+    if S.skyData then pcall(function() S.skyData:Destroy() end) S.skyData = nil end
+    if S.skyAtmo then pcall(function() S.skyAtmo:Destroy() end) S.skyAtmo = nil end
     for _, obj in ipairs(Lighting:GetChildren()) do
-        if obj:IsA("Sky") then
-            pcall(function() obj:Destroy() end)
-        end
+        if obj:IsA("Sky") then pcall(function() obj:Destroy() end) end
     end
     for _, obj in ipairs(workspace:GetChildren()) do
-        if obj:IsA("Sky") then
-            pcall(function() obj:Destroy() end)
-        end
+        if obj:IsA("Sky") then pcall(function() obj:Destroy() end) end
     end
     for _, obj in ipairs(Lighting:GetChildren()) do
-        if obj:IsA("Atmosphere") then
-            pcall(function() obj:Destroy() end)
-        end
+        if obj:IsA("Atmosphere") then pcall(function() obj:Destroy() end) end
     end
     task.wait(0.25)
     if not preset then return end
@@ -761,9 +744,7 @@ local function applySky(preset)
     Lighting.EnvironmentSpecularScale = 1
     Lighting.Ambient = Color3.fromRGB(120, 120, 140)
     Lighting.OutdoorAmbient = Color3.fromRGB(120, 120, 140)
-    if preset.Clock then
-        Lighting.ClockTime = preset.Clock
-    end
+    if preset.Clock then Lighting.ClockTime = preset.Clock end
     task.delay(0.5, function()
         if sky and sky.Parent then
             local id = sky.SkyboxBk
@@ -775,23 +756,13 @@ local function applySky(preset)
 end
 
 local function clearSky()
-    if S.skyData then
-        pcall(function() S.skyData:Destroy() end)
-        S.skyData = nil
-    end
-    if S.skyAtmo then
-        pcall(function() S.skyAtmo:Destroy() end)
-        S.skyAtmo = nil
+    if S.skyData then pcall(function() S.skyData:Destroy() end) S.skyData = nil end
+    if S.skyAtmo then pcall(function() S.skyAtmo:Destroy() end) S.skyAtmo = nil end
+    for _, obj in ipairs(Lighting:GetChildren()) do
+        if obj:IsA("Sky") then pcall(function() obj:Destroy() end) end
     end
     for _, obj in ipairs(Lighting:GetChildren()) do
-        if obj:IsA("Sky") then
-            pcall(function() obj:Destroy() end)
-        end
-    end
-    for _, obj in ipairs(Lighting:GetChildren()) do
-        if obj:IsA("Atmosphere") then
-            pcall(function() obj:Destroy() end)
-        end
+        if obj:IsA("Atmosphere") then pcall(function() obj:Destroy() end) end
     end
 end
 
@@ -858,9 +829,7 @@ local function startAutoShoot()
                     myHrp.AssemblyAngularVelocity = Vector3.zero
                 end)
             end
-            pcall(function()
-                Cam.CFrame = CFrame.new(Cam.CFrame.Position, tHead.Position)
-            end)
+            pcall(function() Cam.CFrame = CFrame.new(Cam.CFrame.Position, tHead.Position) end)
             local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
             if tool and isGun(tool) then
                 for i = 1, 15 do
@@ -868,9 +837,7 @@ local function startAutoShoot()
                     if tHum.Health <= 0 then break end
                     local tHead2 = tChar:FindFirstChild("Head")
                     if not tHead2 then break end
-                    pcall(function()
-                        Cam.CFrame = CFrame.new(Cam.CFrame.Position, tHead2.Position)
-                    end)
+                    pcall(function() Cam.CFrame = CFrame.new(Cam.CFrame.Position, tHead2.Position) end)
                     pcall(function() tool:Activate() end)
                     task.wait(0.003)
                 end
@@ -900,9 +867,7 @@ local function killOneTarget(target)
     if not knife then return false end
     local handle = knife:FindFirstChild("Handle")
     for _, p in ipairs(target.Character:GetDescendants()) do
-        if p:IsA("BasePart") then
-            pcall(function() p:SetNetworkOwner(LP) end)
-        end
+        if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
     end
     for attempt = 1, 15 do
         if targetHum.Health <= 0 then return true end
@@ -954,33 +919,25 @@ local function silentFire(target)
     if not target or not target.Character then return end
     local part = getTargetPartFor(target, S.triggerTarget or "Head")
     if not part then return end
-
     local savedCF = Cam.CFrame
     local newCF = CFrame.new(Cam.CFrame.Position, part.Position)
     pcall(function() Cam.CFrame = newCF end)
-
     local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
     if not tool or not isGun(tool) then
         pcall(function() Cam.CFrame = savedCF end)
         return
     end
-
     pcall(function()
         local m = LP:GetMouse()
         if m then m.Target = part end
     end)
-
     local sp = Cam:WorldToViewportPoint(part.Position)
     pcall(function()
         VirtualUser:Button1Down(Vector2.new(sp.X, sp.Y), Cam.CFrame)
         VirtualUser:Button1Up(Vector2.new(sp.X, sp.Y), Cam.CFrame)
     end)
-
     pcall(function() tool:Activate() end)
-
-    task.defer(function()
-        pcall(function() Cam.CFrame = savedCF end)
-    end)
+    task.defer(function() pcall(function() Cam.CFrame = savedCF end) end)
 end
 
 local function triggerFire()
@@ -991,9 +948,7 @@ local function triggerFire()
         return
     end
     local target = findMurdererSilent()
-    if target then
-        silentFire(target)
-    end
+    if target then silentFire(target) end
 end
 
 local function startTriggerbot()
@@ -1067,13 +1022,9 @@ local function startAutoKillLoop()
     S.autoKillLoopThread = task.spawn(function()
         while S.autoKillEnabled do
             if getRole(LP) == "Murderer" then
-                if not S.autoKillThread then
-                    startAutoKill()
-                end
+                if not S.autoKillThread then startAutoKill() end
             else
-                if S.autoKillThread then
-                    stopAutoKill()
-                end
+                if S.autoKillThread then stopAutoKill() end
             end
             task.wait(1)
         end
@@ -1125,9 +1076,7 @@ end
 local function flingCleanup()
     for _, c in ipairs(S.flingConns) do
         pcall(function()
-            if c and c.Disconnect then
-                c:Disconnect()
-            end
+            if c and c.Disconnect then c:Disconnect() end
         end)
     end
     S.flingConns = {}
@@ -1255,9 +1204,7 @@ local function flingStart(targetName)
                     myRoot.CFrame = CFrame.new(targetPos + sideOffset, targetPos)
                 else
                     myRoot.CFrame = CFrame.new(targetPos + Vector3.new(0, 1, 0))
-                    if flatDir.Magnitude < 0.1 then
-                        flatDir = Vector3.new(0, 0, 1)
-                    end
+                    if flatDir.Magnitude < 0.1 then flatDir = Vector3.new(0, 0, 1) end
                     local pushDir = flatDir.Unit
                     myRoot.AssemblyLinearVelocity = pushDir * S.flingForce
                     targetRoot.AssemblyLinearVelocity = pushDir * S.flingForce + Vector3.new(0, S.flingForce * 0.3, 0)
@@ -1277,24 +1224,14 @@ local function findCoin()
     for _, obj in ipairs(workspace:GetDescendants()) do
         if string.find(string.lower(obj.Name), "coin") then
             local part = nil
-            if obj:IsA("Tool") then
-                part = obj:FindFirstChild("Handle")
-            elseif obj:IsA("BasePart") then
-                part = obj
-            elseif obj:IsA("Model") then
-                part = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-            end
+            if obj:IsA("Tool") then part = obj:FindFirstChild("Handle")
+            elseif obj:IsA("BasePart") then part = obj
+            elseif obj:IsA("Model") then part = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart") end
             if part then
                 local used = false
                 for _, plr in ipairs(Players:GetPlayers()) do
-                    if plr.Character and obj:IsDescendantOf(plr.Character) then
-                        used = true
-                        break
-                    end
-                    if plr.Backpack and obj:IsDescendantOf(plr.Backpack) then
-                        used = true
-                        break
-                    end
+                    if plr.Character and obj:IsDescendantOf(plr.Character) then used = true break end
+                    if plr.Backpack and obj:IsDescendantOf(plr.Backpack) then used = true break end
                 end
                 if not used then
                     local d = (part.Position - myHrp.Position).Magnitude
@@ -1342,24 +1279,15 @@ local function startFarm()
             end
             local myChar = LP.Character
             local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
-            if not myHrp then
-                task.wait(0.3)
-                continue
-            end
+            if not myHrp then task.wait(0.3) continue end
             local targetPart = coin.part
-            if not targetPart or not targetPart.Parent then
-                task.wait(0.05)
-                continue
-            end
+            if not targetPart or not targetPart.Parent then task.wait(0.05) continue end
             local myPos = myHrp.Position
             local coinPos = targetPart.Position
             local dy = coinPos.Y - myPos.Y
             local newY = myPos.Y
-            if dy > 4 then
-                newY = coinPos.Y + 3
-            elseif dy < -6 then
-                newY = coinPos.Y + 3
-            end
+            if dy > 4 then newY = coinPos.Y + 3
+            elseif dy < -6 then newY = coinPos.Y + 3 end
             pcall(function()
                 myHrp.CFrame = CFrame.new(coinPos.X, newY, coinPos.Z)
                 myHrp.AssemblyLinearVelocity = Vector3.zero
@@ -1370,14 +1298,8 @@ local function startFarm()
                 if not targetPart or not targetPart.Parent then break end
                 local used = false
                 for _, plr in ipairs(Players:GetPlayers()) do
-                    if plr.Character and targetPart:IsDescendantOf(plr.Character) then
-                        used = true
-                        break
-                    end
-                    if plr.Backpack and targetPart:IsDescendantOf(plr.Backpack) then
-                        used = true
-                        break
-                    end
+                    if plr.Character and targetPart:IsDescendantOf(plr.Character) then used = true break end
+                    if plr.Backpack and targetPart:IsDescendantOf(plr.Backpack) then used = true break end
                 end
                 if used then break end
                 if isBagFull() then break end
@@ -1398,9 +1320,7 @@ end
 
 local function updateESP()
     if not S.espEnabled then
-        for _, bb in pairs(S.espBillboards) do
-            pcall(function() bb:Destroy() end)
-        end
+        for _, bb in pairs(S.espBillboards) do pcall(function() bb:Destroy() end) end
         S.espBillboards = {}
         return
     end
@@ -1534,13 +1454,9 @@ local function updateESP()
                         local hpFill = hpBg:FindFirstChild("HpFill")
                         if hpFill then
                             hpFill.Size = UDim2.new(pct, 0, 1, 0)
-                            if pct > 0.6 then
-                                hpFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-                            elseif pct > 0.3 then
-                                hpFill.BackgroundColor3 = Color3.fromRGB(255, 200, 0)
-                            else
-                                hpFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-                            end
+                            if pct > 0.6 then hpFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+                            elseif pct > 0.3 then hpFill.BackgroundColor3 = Color3.fromRGB(255, 200, 0)
+                            else hpFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0) end
                         end
                     end
                 end
@@ -1560,9 +1476,7 @@ local function applyInvisible()
     for _, acc in ipairs(LP.Character:GetChildren()) do
         if acc:IsA("Accessory") then
             local h = acc:FindFirstChild("Handle")
-            if h then
-                pcall(function() h.Transparency = 1 end)
-            end
+            if h then pcall(function() h.Transparency = 1 end) end
         end
     end
 end
@@ -1591,9 +1505,7 @@ local function setInvisible(state)
             for _, acc in ipairs(LP.Character:GetChildren()) do
                 if acc:IsA("Accessory") then
                     local h = acc:FindFirstChild("Handle")
-                    if h then
-                        pcall(function() h.Transparency = 0 end)
-                    end
+                    if h then pcall(function() h.Transparency = 0 end) end
                 end
             end
         end
@@ -1608,9 +1520,7 @@ local function applySpeedValue()
     local h = char:FindFirstChildOfClass("Humanoid")
     if not h then return end
     local target = S.speedValue or 50
-    if h.WalkSpeed ~= target then
-        h.WalkSpeed = target
-    end
+    if h.WalkSpeed ~= target then h.WalkSpeed = target end
 end
 
 local function startSpeed50Loop()
@@ -1677,9 +1587,7 @@ local function startAutoPickup()
                     break
                 end
             end
-            if curSheriff and curPos then
-                S.lastSheriffPos = curPos
-            end
+            if curSheriff and curPos then S.lastSheriffPos = curPos end
             if S.lastSheriff and not curSheriff and S.lastSheriffPos and not S.pickupBusy then
                 S.pickupBusy = true
                 local deathPos = S.lastSheriffPos
@@ -1687,10 +1595,7 @@ local function startAutoPickup()
                 task.spawn(function()
                     task.wait(0.3)
                     local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-                    if not myHrp then
-                        S.pickupBusy = false
-                        return
-                    end
+                    if not myHrp then S.pickupBusy = false return end
                     local mySavedPos = myHrp.CFrame
                     pcall(function()
                         myHrp.CFrame = CFrame.new(deathPos + Vector3.new(0, 2, 0))
@@ -1747,9 +1652,7 @@ local function refreshHL()
 end
 
 local function clearHL()
-    for _, hl in pairs(S.roleHL) do
-        pcall(function() hl:Destroy() end)
-    end
+    for _, hl in pairs(S.roleHL) do pcall(function() hl:Destroy() end) end
     S.roleHL = {}
 end
 
@@ -1762,6 +1665,131 @@ local function updatePreview()
 end
 
 local showLoading
+
+local AIM_BIND = "VankaAimLock"
+local aimBound = false
+
+local function setAimbotVisual(state)
+    if not S.gui then return end
+    local row = S.gui:FindFirstChild("AimToggleRow", true)
+    if not row then return end
+    local sw = row:FindFirstChild("Switch")
+    local kn = row:FindFirstChild("Knob")
+    if sw then
+        TweenService:Create(sw, TweenInfo.new(0.15), {
+            BackgroundColor3 = state and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(55, 55, 70)
+        }):Play()
+    end
+    if kn then
+        TweenService:Create(kn, TweenInfo.new(0.15), {
+            Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+        }):Play()
+    end
+end
+
+local function restoreMouse()
+    pcall(function()
+        if UIS.MouseBehavior ~= Enum.MouseBehavior.Default then
+            UIS.MouseBehavior = Enum.MouseBehavior.Default
+        end
+        if not UIS.MouseIconEnabled then
+            UIS.MouseIconEnabled = true
+        end
+    end)
+end
+
+local function forceShiftLock()
+    pcall(function()
+        if UIS.MouseBehavior ~= Enum.MouseBehavior.LockCenter then
+            UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
+        end
+        if UIS.MouseIconEnabled then
+            UIS.MouseIconEnabled = false
+        end
+    end)
+end
+
+local function setAimbot(state, silent)
+    S.aimbot = state
+    SaveData.aimbot = state
+    saveSettings()
+    setAimbotVisual(state)
+
+    if state then
+        if not aimBound then
+            aimBound = true
+            RunService:BindToRenderStep(AIM_BIND, Enum.RenderPriority.Camera.Value + 1, function(dt)
+                if not S.aimbot then
+                    if aimBound then
+                        aimBound = false
+                        pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
+                    end
+                    restoreMouse()
+                    S.aimT = nil
+                    return
+                end
+                if S.flingRunning then return end
+
+                local closest, closestDist = nil, math.huge
+                local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                if not myHrp then return end
+
+                for _, plr in ipairs(Players:GetPlayers()) do
+                    if plr ~= LP and plr.Character then
+                        if getRole(plr) == "Murderer" then
+                            local part = getAimPart(plr.Character)
+                            local h = plr.Character:FindFirstChildOfClass("Humanoid")
+                            if part and h and h.Health > 0 then
+                                local d = (part.Position - myHrp.Position).Magnitude
+                                if d < closestDist then
+                                    closestDist = d
+                                    closest = plr
+                                end
+                            end
+                        end
+                    end
+                end
+
+                S.aimT = closest
+
+                if closest and closest.Character then
+                    forceShiftLock()
+                    local tPart = getAimPart(closest.Character)
+                    if tPart then
+                        local desired = CFrame.lookAt(Cam.CFrame.Position, tPart.Position)
+                        if S.hardAim then
+                            Cam.CFrame = desired
+                        else
+                            local lerp = math.clamp(1 - (S.aimSmooth or 0.35), 0.08, 1)
+                            Cam.CFrame = Cam.CFrame:Lerp(desired, lerp)
+                        end
+                    end
+                else
+                    if aimBound then
+                        aimBound = false
+                        pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
+                    end
+                    restoreMouse()
+                    S.aimT = nil
+                    S.aimbot = false
+                    SaveData.aimbot = false
+                    saveSettings()
+                    setAimbotVisual(false)
+                    if not silent then
+                        notify("Мардер мёртв — аим ВЫКЛ", Color3.fromRGB(150, 150, 150))
+                    end
+                end
+            end)
+        end
+    else
+        if aimBound then
+            aimBound = false
+            pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
+        end
+        restoreMouse()
+        S.aimT = nil
+    end
+end
 
 local function createGUI()
     local parent = (gethui and gethui()) or game:GetService("CoreGui")
@@ -2008,9 +2036,7 @@ local function createGUI()
 
     local tabs, pages = {}, {}
     local function switchTab(name)
-        for k, p in pairs(pages) do
-            p.Visible = (k == name)
-        end
+        for k, p in pairs(pages) do p.Visible = (k == name) end
         for k, b in pairs(tabs) do
             b.BackgroundColor3 = (k == name) and S.panelColor or Color3.fromRGB(32, 32, 44)
         end
@@ -2107,6 +2133,7 @@ local function createGUI()
         lbl.TextXAlignment = Enum.TextXAlignment.Left
         lbl.Parent = row
         local sw = Instance.new("Frame")
+        sw.Name = "Switch"
         sw.Size = UDim2.new(0, 42, 0, 20)
         sw.Position = UDim2.new(1, -54, 0.5, -10)
         sw.BackgroundColor3 = initial and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(55, 55, 70)
@@ -2114,6 +2141,7 @@ local function createGUI()
         sw.Parent = row
         Instance.new("UICorner", sw).CornerRadius = UDim.new(1, 0)
         local kn = Instance.new("Frame")
+        kn.Name = "Knob"
         kn.Size = UDim2.new(0, 16, 0, 16)
         kn.Position = initial and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
         kn.BackgroundColor3 = Color3.new(1, 1, 1)
@@ -2194,11 +2222,7 @@ local function createGUI()
         S.autoShootEnabled = v
         SaveData.autoshoot = v
         saveSettings()
-        if v then
-            startAutoShoot()
-        else
-            stopAutoShoot()
-        end
+        if v then startAutoShoot() else stopAutoShoot() end
     end)
 
     addLabel(tabMain, T("sec_autokill"))
@@ -2206,22 +2230,14 @@ local function createGUI()
         S.autoKillEnabled = v
         SaveData.autokill = v
         saveSettings()
-        if v then
-            startAutoKillLoop()
-        else
-            stopAutoKillLoop()
-        end
+        if v then startAutoKillLoop() else stopAutoKillLoop() end
     end)
 
     addToggle(tabMain, T("autoTpMurderer"), SaveData.autotp, function(v)
         S.autoTpEnabled = v
         SaveData.autotp = v
         saveSettings()
-        if v then
-            startAutoTp()
-        else
-            stopAutoTp()
-        end
+        if v then startAutoTp() else stopAutoTp() end
     end)
 
     addLabel(tabMain, T("sec_farm"))
@@ -2229,11 +2245,7 @@ local function createGUI()
         S.farmEnabled = v
         SaveData.farm = v
         saveSettings()
-        if v then
-            startFarm()
-        else
-            stopFarm()
-        end
+        if v then startFarm() else stopFarm() end
     end)
 
     addLabel(tabMain, T("sec_pickup"))
@@ -2241,11 +2253,7 @@ local function createGUI()
         S.autoPickup = v
         SaveData.pickup = v
         saveSettings()
-        if v then
-            startAutoPickup()
-        else
-            stopAutoPickup()
-        end
+        if v then startAutoPickup() else stopAutoPickup() end
     end)
 
     addLabel(tabMain, T("sec_roles"))
@@ -2253,16 +2261,10 @@ local function createGUI()
         S.roleHighlight = v
         SaveData.roles = v
         saveSettings()
-        if v then
-            refreshHL()
-        else
-            clearHL()
-        end
+        if v then refreshHL() else clearHL() end
     end)
 
-    addToggle(tabMain, T("invisible"), S.invisibleEnabled, function(v)
-        setInvisible(v)
-    end)
+    addToggle(tabMain, T("invisible"), S.invisibleEnabled, function(v) setInvisible(v) end)
 
     addBtn(tabMain, T("clear_inv"), Color3.fromRGB(60, 60, 70), function()
         if LP.Backpack then
@@ -2279,38 +2281,26 @@ local function createGUI()
 
     addLabel(tabVisual, T("sec_cross"))
     addToggle(tabVisual, T("cross"), SaveData.cross, function(v)
-        S.crosshair = v
-        SaveData.cross = v
-        saveSettings()
+        S.crosshair = v; SaveData.cross = v; saveSettings()
     end)
     addToggle(tabVisual, T("fov"), SaveData.fov, function(v)
-        S.fovCircle = v
-        SaveData.fov = v
-        saveSettings()
+        S.fovCircle = v; SaveData.fov = v; saveSettings()
     end)
     addToggle(tabVisual, T("hardaim"), SaveData.hardaim, function(v)
-        S.hardAim = v
-        SaveData.hardaim = v
-        saveSettings()
+        S.hardAim = v; SaveData.hardaim = v; saveSettings()
     end)
 
     addLabel(tabVisual, T("sec_cross_style"))
     addBtn(tabVisual, T("cross_1"), Color3.fromRGB(60, 60, 90), function()
-        S.crossStyle = 1
-        SaveData.cross_style = 1
-        saveSettings()
+        S.crossStyle = 1; SaveData.cross_style = 1; saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
     addBtn(tabVisual, T("cross_2"), Color3.fromRGB(60, 60, 90), function()
-        S.crossStyle = 2
-        SaveData.cross_style = 2
-        saveSettings()
+        S.crossStyle = 2; SaveData.cross_style = 2; saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
     addBtn(tabVisual, T("cross_3"), Color3.fromRGB(60, 60, 90), function()
-        S.crossStyle = 3
-        SaveData.cross_style = 3
-        saveSettings()
+        S.crossStyle = 3; SaveData.cross_style = 3; saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
 
@@ -2342,23 +2332,17 @@ local function createGUI()
 
     addLabel(tabVisual, T("sec_move"))
     addToggle(tabVisual, T("fly"), SaveData.fly, function(v)
-        S.fly = v
-        SaveData.fly = v
-        saveSettings()
+        S.fly = v; SaveData.fly = v; saveSettings()
         if not v and S.flyBV then
             pcall(function() S.flyBV:Destroy() end)
             S.flyBV = nil
         end
     end)
     addToggle(tabVisual, T("noclip"), SaveData.noclip, function(v)
-        S.noclip = v
-        SaveData.noclip = v
-        saveSettings()
+        S.noclip = v; SaveData.noclip = v; saveSettings()
     end)
     addToggle(tabVisual, T("infjump"), SaveData.infjump, function(v)
-        S.infjump = v
-        SaveData.infjump = v
-        saveSettings()
+        S.infjump = v; SaveData.infjump = v; saveSettings()
     end)
 
     addLabel(tabVisual, T("speed"))
@@ -2402,48 +2386,30 @@ local function createGUI()
         S.walkBack = v
         SaveData.walkback = v
         saveSettings()
-        if v then
-            startWalkBack()
-        else
-            stopWalkBack()
-        end
+        if v then startWalkBack() else stopWalkBack() end
     end)
 
     addLabel(tabVisual, T("sec_sky"))
     addBtn(tabVisual, T("sky_cosmos"), Color3.fromRGB(40, 40, 80), function()
-        applySky(SKY_PRESETS[1])
-        SaveData.sky_name = "sky_cosmos"
-        saveSettings()
+        applySky(SKY_PRESETS[1]); SaveData.sky_name = "sky_cosmos"; saveSettings()
     end)
     addBtn(tabVisual, T("sky_galaxy"), Color3.fromRGB(60, 30, 90), function()
-        applySky(SKY_PRESETS[2])
-        SaveData.sky_name = "sky_galaxy"
-        saveSettings()
+        applySky(SKY_PRESETS[2]); SaveData.sky_name = "sky_galaxy"; saveSettings()
     end)
     addBtn(tabVisual, T("sky_dawn"), Color3.fromRGB(120, 70, 60), function()
-        applySky(SKY_PRESETS[3])
-        SaveData.sky_name = "sky_dawn"
-        saveSettings()
+        applySky(SKY_PRESETS[3]); SaveData.sky_name = "sky_dawn"; saveSettings()
     end)
     addBtn(tabVisual, T("sky_sunset"), Color3.fromRGB(140, 80, 50), function()
-        applySky(SKY_PRESETS[4])
-        SaveData.sky_name = "sky_sunset"
-        saveSettings()
+        applySky(SKY_PRESETS[4]); SaveData.sky_name = "sky_sunset"; saveSettings()
     end)
     addBtn(tabVisual, T("sky_night"), Color3.fromRGB(30, 30, 60), function()
-        applySky(SKY_PRESETS[5])
-        SaveData.sky_name = "sky_night"
-        saveSettings()
+        applySky(SKY_PRESETS[5]); SaveData.sky_name = "sky_night"; saveSettings()
     end)
     addBtn(tabVisual, T("sky_purple"), Color3.fromRGB(80, 40, 120), function()
-        applySky(SKY_PRESETS[6])
-        SaveData.sky_name = "sky_purple"
-        saveSettings()
+        applySky(SKY_PRESETS[6]); SaveData.sky_name = "sky_purple"; saveSettings()
     end)
     addBtn(tabVisual, T("sky_clear"), Color3.fromRGB(80, 40, 40), function()
-        clearSky()
-        SaveData.sky_name = ""
-        saveSettings()
+        clearSky(); SaveData.sky_name = ""; saveSettings()
     end)
 
     addLabel(tabVisual, T("sec_vis"))
@@ -2477,55 +2443,33 @@ local function createGUI()
 
     addLabel(tabESP, T("sec_esp"))
     addToggle(tabESP, T("esp_main"), S.espEnabled, function(v)
-        S.espEnabled = v
-        SaveData.esp = v
-        saveSettings()
+        S.espEnabled = v; SaveData.esp = v; saveSettings()
     end)
     addToggle(tabESP, T("esp_health"), S.espHealth, function(v)
-        S.espHealth = v
-        SaveData.esp_health = v
-        saveSettings()
-        updatePreview()
+        S.espHealth = v; SaveData.esp_health = v; saveSettings(); updatePreview()
     end)
     addToggle(tabESP, T("esp_name"), S.espName, function(v)
-        S.espName = v
-        SaveData.esp_name = v
-        saveSettings()
-        updatePreview()
+        S.espName = v; SaveData.esp_name = v; saveSettings(); updatePreview()
     end)
     addToggle(tabESP, T("esp_dist"), S.espDist, function(v)
-        S.espDist = v
-        SaveData.esp_dist = v
-        saveSettings()
-        updatePreview()
+        S.espDist = v; SaveData.esp_dist = v; saveSettings(); updatePreview()
     end)
     addToggle(tabESP, T("esp_weapon"), S.espWeapon, function(v)
-        S.espWeapon = v
-        SaveData.esp_weapon = v
-        saveSettings()
-        updatePreview()
+        S.espWeapon = v; SaveData.esp_weapon = v; saveSettings(); updatePreview()
     end)
     addToggle(tabESP, T("esp_rainbow"), S.espRainbow, function(v)
-        S.espRainbow = v
-        SaveData.esp_rainbow = v
-        saveSettings()
+        S.espRainbow = v; SaveData.esp_rainbow = v; saveSettings()
     end)
 
     addLabel(tabESP, T("sec_hitbox"))
     addToggle(tabESP, T("hitbox"), SaveData.hitbox, function(v)
-        S.hitbox = v
-        SaveData.hitbox = v
-        saveSettings()
-        if S.previewRefs.hitbox then
-            S.previewRefs.hitbox.Visible = v
-        end
+        S.hitbox = v; SaveData.hitbox = v; saveSettings()
+        if S.previewRefs.hitbox then S.previewRefs.hitbox.Visible = v end
     end)
 
     addLabel(tabESP, T("sec_lines"))
     addToggle(tabESP, T("lines"), SaveData.lines, function(v)
-        S.lines = v
-        SaveData.lines = v
-        saveSettings()
+        S.lines = v; SaveData.lines = v; saveSettings()
     end)
 
     addLabel(tabESP, T("esp_preview"))
@@ -2636,44 +2580,34 @@ local function createGUI()
     end
 
     addLabel(tabRage, T("sec_aim"))
-    addToggle(tabRage, T("aimbot"), SaveData.aimbot, function(v)
-        S.aimbot = v
-        SaveData.aimbot = v
-        saveSettings()
+    local aimbotRow = addToggle(tabRage, T("aimbot"), SaveData.aimbot, function(v)
+        setAimbot(v)
+        if v then
+            notify("Аим: мардер в прицеле", Color3.fromRGB(0, 200, 100))
+        end
     end)
+    aimbotRow.Name = "AimToggleRow"
 
     addLabel(tabRage, T("sec_aim_part"))
     addBtn(tabRage, T("aim_head"), Color3.fromRGB(60, 60, 90), function()
-        S.aimPart = "Head"
-        SaveData.aim_part = "Head"
-        saveSettings()
+        S.aimPart = "Head"; SaveData.aim_part = "Head"; saveSettings()
     end)
     addBtn(tabRage, T("aim_torso"), Color3.fromRGB(60, 60, 90), function()
-        S.aimPart = "Torso"
-        SaveData.aim_part = "Torso"
-        saveSettings()
+        S.aimPart = "Torso"; SaveData.aim_part = "Torso"; saveSettings()
     end)
     addBtn(tabRage, T("aim_random"), Color3.fromRGB(60, 60, 90), function()
-        S.aimPart = "Random"
-        SaveData.aim_part = "Random"
-        saveSettings()
+        S.aimPart = "Random"; SaveData.aim_part = "Random"; saveSettings()
     end)
 
     addLabel(tabRage, T("sec_smooth"))
     addBtn(tabRage, T("smooth_slow"), Color3.fromRGB(60, 60, 90), function()
-        S.aimSmooth = 0.5
-        SaveData.aim_smooth = 0.5
-        saveSettings()
+        S.aimSmooth = 0.5; SaveData.aim_smooth = 0.5; saveSettings()
     end)
     addBtn(tabRage, T("smooth_mid"), Color3.fromRGB(60, 60, 90), function()
-        S.aimSmooth = 0.35
-        SaveData.aim_smooth = 0.35
-        saveSettings()
+        S.aimSmooth = 0.35; SaveData.aim_smooth = 0.35; saveSettings()
     end)
     addBtn(tabRage, T("smooth_fast"), Color3.fromRGB(60, 60, 90), function()
-        S.aimSmooth = 0.15
-        SaveData.aim_smooth = 0.15
-        saveSettings()
+        S.aimSmooth = 0.15; SaveData.aim_smooth = 0.15; saveSettings()
     end)
 
     addBtn(tabRage, T("kill_aim"), Color3.fromRGB(170, 20, 30), function()
@@ -2731,16 +2665,12 @@ local function createGUI()
 
     addLabel(tabRage, T("sec_spin"))
     addToggle(tabRage, T("spin"), SaveData.spin, function(v)
-        S.spin = v
-        SaveData.spin = v
-        saveSettings()
+        S.spin = v; SaveData.spin = v; saveSettings()
     end)
 
     addLabel(tabRage, T("sec_antiaim"))
     addToggle(tabRage, T("antiaim"), SaveData.antiaim, function(v)
-        S.antiAim = v
-        SaveData.antiaim = v
-        saveSettings()
+        S.antiAim = v; SaveData.antiaim = v; saveSettings()
     end)
 
     addLabel(tabRage, T("sec_util"))
@@ -2749,7 +2679,7 @@ local function createGUI()
     end)
 
     addBtn(tabRage, T("disable_all"), Color3.fromRGB(180, 0, 100), function()
-        S.aimbot = false
+        setAimbot(false, true)
         S.roleHighlight = false
         S.fly = false
         S.noclip = false
@@ -2812,9 +2742,7 @@ local function createGUI()
     flingSpeedBox.FocusLost:Connect(function()
         local v = tonumber(flingSpeedBox.Text)
         if v then
-            S.flingSpeed = v
-            SaveData.fling_speed = v
-            saveSettings()
+            S.flingSpeed = v; SaveData.fling_speed = v; saveSettings()
             notify(T("saved_msg"), Color3.fromRGB(0, 200, 100))
         end
     end)
@@ -2824,9 +2752,7 @@ local function createGUI()
     flingForceBox.FocusLost:Connect(function()
         local v = tonumber(flingForceBox.Text)
         if v then
-            S.flingForce = v
-            SaveData.fling_force = v
-            saveSettings()
+            S.flingForce = v; SaveData.fling_force = v; saveSettings()
             notify(T("saved_msg"), Color3.fromRGB(0, 200, 100))
         end
     end)
@@ -2836,9 +2762,7 @@ local function createGUI()
     flingDistBox.FocusLost:Connect(function()
         local v = tonumber(flingDistBox.Text)
         if v then
-            S.flingDist = v
-            SaveData.fling_dist = v
-            saveSettings()
+            S.flingDist = v; SaveData.fling_dist = v; saveSettings()
             notify(T("saved_msg"), Color3.fromRGB(0, 200, 100))
         end
     end)
@@ -2848,9 +2772,7 @@ local function createGUI()
     flingIntBox.FocusLost:Connect(function()
         local v = tonumber(flingIntBox.Text)
         if v then
-            S.flingInterval = v
-            SaveData.fling_interval = v
-            saveSettings()
+            S.flingInterval = v; SaveData.fling_interval = v; saveSettings()
             notify(T("saved_msg"), Color3.fromRGB(0, 200, 100))
         end
     end)
@@ -2884,9 +2806,7 @@ local function createGUI()
 
     local rows = {}
     local function rebuild()
-        for _, r in pairs(rows) do
-            r:Destroy()
-        end
+        for _, r in pairs(rows) do r:Destroy() end
         rows = {}
         for _, plr in ipairs(Players:GetPlayers()) do
             if plr ~= LP then
@@ -2941,9 +2861,7 @@ local function createGUI()
                         local t = plr.Character:FindFirstChild("HumanoidRootPart")
                         local m = LP.Character:FindFirstChild("HumanoidRootPart")
                         if t and m then
-                            pcall(function()
-                                m.CFrame = t.CFrame * CFrame.new(0, 0, 4)
-                            end)
+                            pcall(function() m.CFrame = t.CFrame * CFrame.new(0, 0, 4) end)
                             notify(T("saved_msg"), Color3.fromRGB(0, 200, 100))
                         end
                     end
@@ -2996,15 +2914,9 @@ local function createGUI()
         task.wait(0.3)
         showLoading()
     end
-    addBtn(tabSettings, T("lang_ru"), Color3.fromRGB(50, 80, 150), function()
-        changeLang("ru")
-    end)
-    addBtn(tabSettings, T("lang_en"), Color3.fromRGB(50, 80, 150), function()
-        changeLang("en")
-    end)
-    addBtn(tabSettings, T("lang_zh"), Color3.fromRGB(50, 80, 150), function()
-        changeLang("zh")
-    end)
+    addBtn(tabSettings, T("lang_ru"), Color3.fromRGB(50, 80, 150), function() changeLang("ru") end)
+    addBtn(tabSettings, T("lang_en"), Color3.fromRGB(50, 80, 150), function() changeLang("en") end)
+    addBtn(tabSettings, T("lang_zh"), Color3.fromRGB(50, 80, 150), function() changeLang("zh") end)
 
     addLabel(tabSettings, T("sec_panel"))
     local colorHolder = Instance.new("Frame")
@@ -3047,9 +2959,6 @@ local function createGUI()
             openB.BackgroundColor3 = S.panelColor
             resizeHandle.BackgroundColor3 = S.panelColor
             pScroll.ScrollBarImageColor3 = S.panelColor
-            if fovCircle and fovCircle:FindFirstChildOfClass("UIStroke") then
-                fovCircle:FindFirstChildOfClass("UIStroke").Color = S.panelColor
-            end
             for _, tab in pairs(tabs) do
                 if tab.BackgroundColor3 ~= Color3.fromRGB(32, 32, 44) then
                     tab.BackgroundColor3 = S.panelColor
@@ -3251,46 +3160,6 @@ local function mainLoop()
 
         if fovCircle then fovCircle.Visible = false end
 
-        if S.aimbot and not S.flingRunning then
-            if not isMobile then
-                pcall(function()
-                    if UIS.MouseBehavior ~= Enum.MouseBehavior.LockCenter then
-                        UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
-                    end
-                    if UIS.MouseIconEnabled then
-                        UIS.MouseIconEnabled = false
-                    end
-                end)
-            end
-            local closest, closestDist = nil, math.huge
-            local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-            for _, plr in ipairs(Players:GetPlayers()) do
-                if plr ~= LP and plr.Character and getRole(plr) == "Murderer" then
-                    local h = plr.Character:FindFirstChild("Head")
-                    if h and myHrp then
-                        local d = (h.Position - myHrp.Position).Magnitude
-                        if d < closestDist then
-                            closestDist = d
-                            closest = plr
-                        end
-                    end
-                end
-            end
-            S.aimT = closest
-        else
-            if not isMobile then
-                pcall(function()
-                    if UIS.MouseBehavior ~= Enum.MouseBehavior.Default then
-                        UIS.MouseBehavior = Enum.MouseBehavior.Default
-                    end
-                    if not UIS.MouseIconEnabled then
-                        UIS.MouseIconEnabled = true
-                    end
-                end)
-            end
-            S.aimT = nil
-        end
-
         if S.spin and LP.Character then
             local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
@@ -3392,9 +3261,7 @@ local function mainLoop()
                 end
             end
         else
-            for plr, line in pairs(S.espLines) do
-                line:Destroy()
-            end
+            for plr, line in pairs(S.espLines) do line:Destroy() end
             S.espLines = {}
             if S.linesHolder then
                 S.linesHolder:Destroy()
@@ -3407,9 +3274,7 @@ local function mainLoop()
             if myHrp and myHum and myHum.Health > 0 then
                 local myRole = getRole(LP)
                 local threatRole = "Murderer"
-                if myRole == "Murderer" then
-                    threatRole = "Sheriff"
-                end
+                if myRole == "Murderer" then threatRole = "Sheriff" end
                 local danger = false
                 local threatPos = nil
                 for _, plr in ipairs(Players:GetPlayers()) do
@@ -3435,11 +3300,8 @@ local function mainLoop()
                 if danger and threatPos then
                     local away = (myHrp.Position - threatPos)
                     away = Vector3.new(away.X, 0, away.Z)
-                    if away.Magnitude > 0.1 then
-                        away = away.Unit
-                    else
-                        away = Vector3.new(1, 0, 0)
-                    end
+                    if away.Magnitude > 0.1 then away = away.Unit
+                    else away = Vector3.new(1, 0, 0) end
                     local spin = CFrame.Angles(0, math.rad(90 + math.random(-20, 20)), 0)
                     myHrp.CFrame = CFrame.lookAt(myHrp.Position, myHrp.Position + away) * spin
                 end
@@ -3498,9 +3360,7 @@ local function setupInfJump()
     local c = UIS.JumpRequest:Connect(function()
         if S.infjump and LP.Character then
             local h = LP.Character:FindFirstChildOfClass("Humanoid")
-            if h then
-                h:ChangeState(Enum.HumanoidStateType.Jumping)
-            end
+            if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
         end
     end)
     table.insert(S.conns, c)
@@ -3586,6 +3446,9 @@ function showLoading()
         createGUI()
         createOverlays()
         mainLoop()
+        if S.aimbot then
+            task.delay(0.3, function() setAimbot(true, true) end)
+        end
         setupInfJump()
         hookSpeedRespawn()
         if S.speed50Enabled then startSpeed50Loop() end
@@ -3626,6 +3489,11 @@ end
 
 _G.VankaPanel = {
     Destroy = function()
+        if aimBound then
+            aimBound = false
+            pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
+        end
+        restoreMouse()
         pcall(function()
             UIS.MouseBehavior = Enum.MouseBehavior.Default
             UIS.MouseIconEnabled = true
@@ -3633,9 +3501,7 @@ _G.VankaPanel = {
         S.shiftForced = false
         for _, c in ipairs(S.conns) do
             pcall(function()
-                if c and c.Disconnect then
-                    c:Disconnect()
-                end
+                if c and c.Disconnect then c:Disconnect() end
             end)
         end
         clearHL()
@@ -3649,36 +3515,22 @@ _G.VankaPanel = {
         if S.flyBV then pcall(function() S.flyBV:Destroy() end) S.flyBV = nil end
         if S.speedRespawnConn then pcall(function() S.speedRespawnConn:Disconnect() end) S.speedRespawnConn = nil end
         if S.flingRunning then flingStop() end
-        if S.flingCamConn then
-            pcall(function() S.flingCamConn:Disconnect() end)
-        end
-        if S.invisibleConn then
-            pcall(function() S.invisibleConn:Disconnect() end)
-        end
-        for _, bb in pairs(S.espBillboards) do
-            pcall(function() bb:Destroy() end)
-        end
-        for _, line in pairs(S.espLines) do
-            pcall(function() line:Destroy() end)
-        end
-        if S.linesHolder then
-            pcall(function() S.linesHolder:Destroy() end)
-        end
+        if S.flingCamConn then pcall(function() S.flingCamConn:Disconnect() end) end
+        if S.invisibleConn then pcall(function() S.invisibleConn:Disconnect() end) end
+        for _, bb in pairs(S.espBillboards) do pcall(function() bb:Destroy() end) end
+        for _, line in pairs(S.espLines) do pcall(function() line:Destroy() end) end
+        if S.linesHolder then pcall(function() S.linesHolder:Destroy() end) end
         for _, plr in ipairs(Players:GetPlayers()) do
             if plr.Character then
                 local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
                 if hrp then
                     local hb = hrp:FindFirstChild("VankaHitbox")
-                    if hb then
-                        pcall(function() hb:Destroy() end)
-                    end
+                    if hb then pcall(function() hb:Destroy() end) end
                 end
             end
         end
         clearSky()
-        if S.gui then
-            pcall(function() S.gui:Destroy() end)
-        end
+        if S.gui then pcall(function() S.gui:Destroy() end) end
         _G.VankaPanel = nil
     end
 }
