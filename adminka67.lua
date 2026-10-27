@@ -309,7 +309,6 @@ local function loadSettings()
             elseif k == "hardaim" then SaveData.hardaim = (v == "true")
             elseif k == "fly" then SaveData.fly = (v == "true")
             elseif k == "noclip" then SaveData.noclip = (v == "true")
-            elseif k == "infjump" then SaveData.infump = (v == "true")
             elseif k == "infjump" then SaveData.infjump = (v == "true")
             elseif k == "fullbright" then SaveData.fullbright = (v == "true")
             elseif k == "aimbot" then SaveData.aimbot = (v == "true")
@@ -1687,6 +1686,23 @@ local function setAimbotVisual(state)
     end
 end
 
+local function getUISettings()
+    local attempts = {
+        function() return UserSettings() end,
+        function() return getsettings() end,
+    }
+    for _, fn in ipairs(attempts) do
+        local ok, s = pcall(fn)
+        if ok and s then
+            local ok2, rt = pcall(function() return s.RotationType end)
+            if ok2 and rt ~= nil then
+                return s
+            end
+        end
+    end
+    return nil
+end
+
 local function restoreMouse()
     pcall(function()
         if UIS.MouseBehavior ~= Enum.MouseBehavior.Default then
@@ -1696,6 +1712,14 @@ local function restoreMouse()
             UIS.MouseIconEnabled = true
         end
     end)
+    local us = getUISettings()
+    if us then
+        pcall(function()
+            if us.RotationType ~= Enum.RotationType.MovementRelative then
+                us.RotationType = Enum.RotationType.MovementRelative
+            end
+        end)
+    end
 end
 
 local function forceShiftLock()
@@ -1707,6 +1731,14 @@ local function forceShiftLock()
             UIS.MouseIconEnabled = false
         end
     end)
+    local us = getUISettings()
+    if us then
+        pcall(function()
+            if us.RotationType ~= Enum.RotationType.CameraRelative then
+                us.RotationType = Enum.RotationType.CameraRelative
+            end
+        end)
+    end
 end
 
 local function setAimbot(state, silent)
@@ -1718,6 +1750,7 @@ local function setAimbot(state, silent)
     if state then
         if not aimBound then
             aimBound = true
+            local lastSeen = 0
             RunService:BindToRenderStep(AIM_BIND, Enum.RenderPriority.Camera.Value + 1, function(dt)
                 if not S.aimbot then
                     if aimBound then
@@ -1753,6 +1786,7 @@ local function setAimbot(state, silent)
                 S.aimT = closest
 
                 if closest and closest.Character then
+                    lastSeen = os.clock()
                     forceShiftLock()
                     local tPart = getAimPart(closest.Character)
                     if tPart then
@@ -1765,18 +1799,20 @@ local function setAimbot(state, silent)
                         end
                     end
                 else
-                    if aimBound then
-                        aimBound = false
-                        pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
-                    end
-                    restoreMouse()
-                    S.aimT = nil
-                    S.aimbot = false
-                    SaveData.aimbot = false
-                    saveSettings()
-                    setAimbotVisual(false)
-                    if not silent then
-                        notify("Мардер мёртв — аим ВЫКЛ", Color3.fromRGB(150, 150, 150))
+                    if lastSeen > 0 and (os.clock() - lastSeen) > 1.5 then
+                        if aimBound then
+                            aimBound = false
+                            pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
+                        end
+                        restoreMouse()
+                        S.aimT = nil
+                        S.aimbot = false
+                        SaveData.aimbot = false
+                        saveSettings()
+                        setAimbotVisual(false)
+                        if not silent then
+                            notify("Мардер мёртв — аим ВЫКЛ", Color3.fromRGB(150, 150, 150))
+                        end
                     end
                 end
             end)
