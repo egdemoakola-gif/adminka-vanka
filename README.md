@@ -15,4 +15,4 @@ infjump
 speedboost
 ...
 это весь скрипт. 
-создано компанией AdminKaVankaInternalCreatE
+
