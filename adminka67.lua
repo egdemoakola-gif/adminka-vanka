@@ -7,11 +7,13 @@ local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
 local VirtualUser = game:GetService("VirtualUser")
+local VIM = game:GetService("VirtualInputManager")
 
 local LP = Players.LocalPlayer
 local Cam = workspace.CurrentCamera
 
-local shiftKeyAvailable = (type(keypress) == "function") and (type(keyrelease) == "function")
+local shiftKeyAvailable = false
+local IS_MOBILE = UIS.TouchEnabled and not UIS.MouseEnabled
 
 local LANG = "ru"
 local L = {
@@ -771,85 +773,132 @@ local function clearSky()
     end
 end
 
+-- MOUSE HOOK for silent aim
+local mouseHookInstalled = false
+local mouse = LP:GetMouse()
+local hookTargetPart = nil
+local hookTargetPos = nil
+
+local function installMouseHook()
+    if mouseHookInstalled then return end
+    mouseHookInstalled = true
+
+    local ok = pcall(function()
+        if hookmetamethod then
+            local oldIndex
+            oldIndex = hookmetamethod(game, "__index", function(self, key)
+                if self == mouse then
+                    if key == "Hit" and hookTargetPos then
+                        return CFrame.new(hookTargetPos)
+                    elseif key == "Target" and hookTargetPart then
+                        return hookTargetPart
+                    end
+                end
+                return oldIndex(self, key)
+            end)
+            return
+        end
+
+        if getrawmetatable and setreadonly then
+            local mt = getrawmetatable(mouse)
+            if not mt then return end
+            local oldIndex = mt.__index
+            setreadonly(mt, false)
+            mt.__index = function(self, key)
+                if key == "Hit" and hookTargetPos then
+                    return CFrame.new(hookTargetPos)
+                elseif key == "Target" and hookTargetPart then
+                    return hookTargetPart
+                end
+                return oldIndex(self, key)
+            end
+            setreadonly(mt, true)
+        end
+    end)
+
+    if not ok then
+        mouseHookInstalled = false
+    end
+end
+
+local function fireMobileShot()
+    pcall(function()
+        local v = Cam.ViewportSize
+        local x, y = v.X / 2, v.Y / 2
+        VIM:SendTouchEvent(1, Enum.UserInputState.Begin, x, y, {})
+        task.wait()
+        VIM:SendTouchEvent(1, Enum.UserInputState.End, x, y, {})
+    end)
+end
+
 local function startAutoShoot()
     if S.autoShootThread then return end
+
+    installMouseHook()
+
     S.autoShootThread = task.spawn(function()
         notify(T("wait_gun") .. "...", Color3.fromRGB(255, 200, 0))
-        local currentTarget = nil
         while S.autoShootEnabled do
-            if not hasGunAnywhere() then
-                currentTarget = nil
-                task.wait(0.2)
+            local myChar = LP.Character
+            if not myChar or not myChar.Parent then
+                task.wait(0.1)
                 continue
             end
             if not hasGunInHand() then
-                equipGun()
+                if hasGunAnywhere() then equipGun() end
                 task.wait(0.1)
-                if not hasGunInHand() then
-                    task.wait(0.2)
-                    continue
-                end
+                continue
             end
-            if not currentTarget or not currentTarget.Character then
-                currentTarget = nil
-                for _, plr in ipairs(Players:GetPlayers()) do
-                    if plr ~= LP and plr.Character and getRole(plr) == "Murderer" then
-                        local h = plr.Character:FindFirstChildOfClass("Humanoid")
-                        if h and h.Health > 0 then
-                            currentTarget = plr
+
+            local target = nil
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= LP and plr.Character then
+                    local tHum = plr.Character:FindFirstChildOfClass("Humanoid")
+                    local tHead = plr.Character:FindFirstChild("Head")
+                    if tHum and tHum.Health > 0 and tHead then
+                        if getRole(plr) == "Murderer" then
+                            target = plr
                             break
                         end
                     end
                 end
-                if not currentTarget then
-                    task.wait(0.2)
-                    continue
-                end
             end
-            local tChar = currentTarget.Character
-            if not tChar then
-                currentTarget = nil
-                task.wait(0.1)
+
+            if not target then
+                hookTargetPart = nil
+                hookTargetPos = nil
+                task.wait(0.05)
                 continue
             end
-            local tHum = tChar:FindFirstChildOfClass("Humanoid")
-            local tHead = tChar:FindFirstChild("Head")
-            local tHrp = tChar:FindFirstChild("HumanoidRootPart")
-            if not tHum or tHum.Health <= 0 or not tHrp or not tHead then
-                currentTarget = nil
-                task.wait(0.2)
+
+            local tChar = target.Character
+            local tHead = tChar and tChar:FindFirstChild("Head")
+            local tool = myChar:FindFirstChildOfClass("Tool")
+            if not tHead or not tool or not isGun(tool) then
+                task.wait(0.05)
                 continue
             end
-            for _, p in ipairs(tChar:GetDescendants()) do
-                if p:IsA("BasePart") then
-                    pcall(function() p:SetNetworkOwner(LP) end)
-                end
-            end
-            local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-            if myHrp and tHrp then
+
+            hookTargetPart = tHead
+            hookTargetPos = tHead.Position
+
+            pcall(function() tool:Activate() end)
+
+            if IS_MOBILE then
+                fireMobileShot()
+            else
                 pcall(function()
-                    local behind = -tHrp.CFrame.LookVector
-                    myHrp.CFrame = CFrame.new(tHrp.Position + behind * 8 + Vector3.new(0, 2, 0), tHrp.Position)
-                    myHrp.AssemblyLinearVelocity = Vector3.zero
-                    myHrp.AssemblyAngularVelocity = Vector3.zero
+                    local v = Cam.ViewportSize
+                    VirtualUser:Button1Down(Vector2.new(v.X / 2, v.Y / 2), Cam.CFrame)
+                    VirtualUser:Button1Up(Vector2.new(v.X / 2, v.Y / 2), Cam.CFrame)
                 end)
             end
-            pcall(function() Cam.CFrame = CFrame.new(Cam.CFrame.Position, tHead.Position) end)
-            local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
-            if tool and isGun(tool) then
-                for i = 1, 15 do
-                    if not S.autoShootEnabled then break end
-                    if tHum.Health <= 0 then break end
-                    local tHead2 = tChar:FindFirstChild("Head")
-                    if not tHead2 then break end
-                    pcall(function() Cam.CFrame = CFrame.new(Cam.CFrame.Position, tHead2.Position) end)
-                    pcall(function() tool:Activate() end)
-                    task.wait(0.003)
-                end
-            end
-            task.wait(0.005)
+
+            task.wait(0.03)
         end
         S.autoShootThread = nil
+        hookTargetPart = nil
+        hookTargetPos = nil
         notify(T("sheriff_off"), Color3.fromRGB(150, 150, 150))
     end)
 end
@@ -857,6 +906,8 @@ end
 local function stopAutoShoot()
     S.autoShootEnabled = false
     S.autoShootThread = nil
+    hookTargetPart = nil
+    hookTargetPos = nil
 end
 
 local function killOneTarget(target)
@@ -924,25 +975,28 @@ local function silentFire(target)
     if not target or not target.Character then return end
     local part = getTargetPartFor(target, S.triggerTarget or "Head")
     if not part then return end
-    local savedCF = Cam.CFrame
-    local newCF = CFrame.new(Cam.CFrame.Position, part.Position)
-    pcall(function() Cam.CFrame = newCF end)
+    hookTargetPart = part
+    hookTargetPos = part.Position
     local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
     if not tool or not isGun(tool) then
-        pcall(function() Cam.CFrame = savedCF end)
+        hookTargetPart = nil
+        hookTargetPos = nil
         return
     end
-    pcall(function()
-        local m = LP:GetMouse()
-        if m then m.Target = part end
-    end)
-    local sp = Cam:WorldToViewportPoint(part.Position)
-    pcall(function()
-        VirtualUser:Button1Down(Vector2.new(sp.X, sp.Y), Cam.CFrame)
-        VirtualUser:Button1Up(Vector2.new(sp.X, sp.Y), Cam.CFrame)
-    end)
     pcall(function() tool:Activate() end)
-    task.defer(function() pcall(function() Cam.CFrame = savedCF end) end)
+    if IS_MOBILE then
+        fireMobileShot()
+    else
+        pcall(function()
+            local v = Cam.ViewportSize
+            VirtualUser:Button1Down(Vector2.new(v.X / 2, v.Y / 2), Cam.CFrame)
+            VirtualUser:Button1Up(Vector2.new(v.X / 2, v.Y / 2), Cam.CFrame)
+        end)
+    end
+    task.defer(function()
+        hookTargetPart = nil
+        hookTargetPos = nil
+    end)
 end
 
 local function triggerFire()
@@ -1690,8 +1744,6 @@ local showLoading
 
 local AIM_BIND = "VankaAimLock"
 local aimBound = false
-local shiftToggleTime = 0
-local shiftPending = false
 
 local function setAimbotVisual(state)
     if not S.gui then return end
@@ -1722,29 +1774,6 @@ local function restoreMouse()
     end)
 end
 
-local function forceShiftLock()
-    pcall(function()
-        if UIS.MouseBehavior ~= Enum.MouseBehavior.LockCenter then
-            UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
-        end
-        if UIS.MouseIconEnabled then
-            UIS.MouseIconEnabled = false
-        end
-    end)
-    if not shiftKeyAvailable then return end
-    if shiftPending then return end
-    local now = os.clock()
-    if now - shiftToggleTime < 2 then return end
-    shiftToggleTime = now
-    shiftPending = true
-    task.spawn(function()
-        pcall(function() keypress(Enum.KeyCode.LeftShift) end)
-        task.wait(0.05)
-        pcall(function() keyrelease(Enum.KeyCode.LeftShift) end)
-        shiftPending = false
-    end)
-end
-
 local function aimFireIntercept()
     if not S.aimbot then return end
     if not S.aimT or not S.aimT.Character then return end
@@ -1752,15 +1781,21 @@ local function aimFireIntercept()
     if not tool or not isGun(tool) then return end
     local tPart = getAimPart(S.aimT.Character)
     if not tPart then return end
-    local savedCF = Cam.CFrame
-    pcall(function()
-        Cam.CFrame = CFrame.lookAt(Cam.CFrame.Position, tPart.Position)
-        local m = LP:GetMouse()
-        if m then m.Target = tPart end
-    end)
+    hookTargetPart = tPart
+    hookTargetPos = tPart.Position
+    pcall(function() tool:Activate() end)
+    if IS_MOBILE then
+        fireMobileShot()
+    else
+        pcall(function()
+            local v = Cam.ViewportSize
+            VirtualUser:Button1Down(Vector2.new(v.X / 2, v.Y / 2), Cam.CFrame)
+            VirtualUser:Button1Up(Vector2.new(v.X / 2, v.Y / 2), Cam.CFrame)
+        end)
+    end
     task.defer(function()
-        pcall(function() tool:Activate() end)
-        pcall(function() Cam.CFrame = savedCF end)
+        hookTargetPart = nil
+        hookTargetPos = nil
     end)
 end
 
@@ -1771,6 +1806,7 @@ local function setAimbot(state, silent)
     setAimbotVisual(state)
 
     if state then
+        installMouseHook()
         if not S._aimFireConn then
             S._aimFireConn = UIS.InputBegan:Connect(function(input, gp)
                 if gp then return end
@@ -1796,57 +1832,79 @@ local function setAimbot(state, silent)
                 end
                 if S.flingRunning then return end
 
-                local closest, closestDist = nil, math.huge
-                local myHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-                if not myHrp then return end
+                local ok, err = pcall(function()
+                    local myChar = LP.Character
+                    if not myChar or not myChar.Parent then return end
+                    local myHrp = myChar:FindFirstChild("HumanoidRootPart")
+                    if not myHrp or not myHrp.Parent then return end
+                    local myHrpPos = myHrp.Position
+                    if myHrpPos.X ~= myHrpPos.X then return end
 
-                for _, plr in ipairs(Players:GetPlayers()) do
-                    if plr ~= LP and plr.Character then
-                        if getRole(plr) == "Murderer" then
-                            local part = getAimPart(plr.Character)
-                            local h = plr.Character:FindFirstChildOfClass("Humanoid")
-                            if part and h and h.Health > 0 then
-                                local d = (part.Position - myHrp.Position).Magnitude
-                                if d < closestDist then
-                                    closestDist = d
-                                    closest = plr
+                    local closest, closestDist = nil, math.huge
+                    for _, plr in ipairs(Players:GetPlayers()) do
+                        if plr ~= LP and plr.Character then
+                            local pHum = plr.Character:FindFirstChildOfClass("Humanoid")
+                            if pHum and pHum.Health > 0 then
+                                if getRole(plr) == "Murderer" then
+                                    local part = getAimPart(plr.Character)
+                                    if part and part.Parent then
+                                        local pPos = part.Position
+                                        if pPos.X == pPos.X then
+                                            local d = (pPos - myHrpPos).Magnitude
+                                            if d < closestDist then
+                                                closestDist = d
+                                                closest = plr
+                                            end
+                                        end
+                                    end
                                 end
                             end
                         end
                     end
-                end
 
-                S.aimT = closest
+                    S.aimT = closest
 
-                if closest and closest.Character then
-                    lastSeen = os.clock()
-                    forceShiftLock()
-                    local tPart = getAimPart(closest.Character)
-                    if tPart then
-                        local desired = CFrame.lookAt(Cam.CFrame.Position, tPart.Position)
-                        if S.hardAim then
-                            Cam.CFrame = desired
-                        else
-                            local lerp = math.clamp(1 - (S.aimSmooth or 0.35), 0.08, 1)
-                            Cam.CFrame = Cam.CFrame:Lerp(desired, lerp)
+                    if closest and closest.Character then
+                        lastSeen = os.clock()
+                        local tPart = getAimPart(closest.Character)
+                        if tPart and tPart.Parent then
+                            local tPos = tPart.Position
+                            if tPos.X == tPos.X then
+                                local camPos = Cam.CFrame.Position
+                                if camPos.X == camPos.X then
+                                    local delta = (tPos - camPos).Magnitude
+                                    if delta > 0.5 then
+                                        local desired = CFrame.lookAt(camPos, tPos)
+                                        if S.hardAim then
+                                            Cam.CFrame = desired
+                                        else
+                                            local lerp = math.clamp(1 - (S.aimSmooth or 0.35), 0.08, 1)
+                                            Cam.CFrame = Cam.CFrame:Lerp(desired, lerp)
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    else
+                        if lastSeen > 0 and (os.clock() - lastSeen) > 2 then
+                            if aimBound then
+                                aimBound = false
+                                pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
+                            end
+                            restoreMouse()
+                            S.aimT = nil
+                            S.aimbot = false
+                            SaveData.aimbot = false
+                            saveSettings()
+                            setAimbotVisual(false)
+                            if not silent then
+                                notify("Мардер пропал — аим ВЫКЛ", Color3.fromRGB(150, 150, 150))
+                            end
                         end
                     end
-                else
-                    if lastSeen > 0 and (os.clock() - lastSeen) > 1.5 then
-                        if aimBound then
-                            aimBound = false
-                            pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
-                        end
-                        restoreMouse()
-                        S.aimT = nil
-                        S.aimbot = false
-                        SaveData.aimbot = false
-                        saveSettings()
-                        setAimbotVisual(false)
-                        if not silent then
-                            notify("Мардер мёртв — аим ВЫКЛ", Color3.fromRGB(150, 150, 150))
-                        end
-                    end
+                end)
+                if not ok then
+                    warn("[Vanka aim] " .. tostring(err))
                 end
             end)
         end
