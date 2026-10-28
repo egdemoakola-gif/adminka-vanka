@@ -773,7 +773,6 @@ local function clearSky()
     end
 end
 
--- MOUSE HOOK for silent aim
 local mouseHookInstalled = false
 local mouse = LP:GetMouse()
 local hookTargetPart = nil
@@ -833,9 +832,7 @@ end
 
 local function startAutoShoot()
     if S.autoShootThread then return end
-
     installMouseHook()
-
     S.autoShootThread = task.spawn(function()
         notify(T("wait_gun") .. "...", Color3.fromRGB(255, 200, 0))
         while S.autoShootEnabled do
@@ -849,7 +846,6 @@ local function startAutoShoot()
                 task.wait(0.1)
                 continue
             end
-
             local target = nil
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LP and plr.Character then
@@ -863,14 +859,12 @@ local function startAutoShoot()
                     end
                 end
             end
-
             if not target then
                 hookTargetPart = nil
                 hookTargetPos = nil
                 task.wait(0.05)
                 continue
             end
-
             local tChar = target.Character
             local tHead = tChar and tChar:FindFirstChild("Head")
             local tool = myChar:FindFirstChildOfClass("Tool")
@@ -878,12 +872,9 @@ local function startAutoShoot()
                 task.wait(0.05)
                 continue
             end
-
             hookTargetPart = tHead
             hookTargetPos = tHead.Position
-
             pcall(function() tool:Activate() end)
-
             if IS_MOBILE then
                 fireMobileShot()
             else
@@ -893,7 +884,6 @@ local function startAutoShoot()
                     VirtualUser:Button1Up(Vector2.new(v.X / 2, v.Y / 2), Cam.CFrame)
                 end)
             end
-
             task.wait(0.03)
         end
         S.autoShootThread = nil
@@ -1323,57 +1313,62 @@ local function startFarm()
         notify(T("farm_on"), Color3.fromRGB(0, 200, 100))
         local savedNoclip = S.noclip
         S.noclip = true
-        while S.farmEnabled do
+        local bv = Instance.new("BodyVelocity")
+        bv.Name = "VankaFarmBV"
+        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bv.Velocity = Vector3.zero
+        local currentCoin = nil
+        local conn
+        conn = RunService.Heartbeat:Connect(function()
+            if not S.farmEnabled then
+                if conn then conn:Disconnect() end
+                return
+            end
+            local char = LP.Character
+            if not char then
+                bv.Velocity = Vector3.zero
+                return
+            end
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if not hrp then
+                bv.Velocity = Vector3.zero
+                return
+            end
+            if bv.Parent ~= hrp then
+                bv.Parent = hrp
+            end
             if isBagFull() then
-                notify(T("farm_full"), Color3.fromRGB(255, 200, 0))
                 S.farmEnabled = false
-                break
+                return
             end
-            local coin = findCoin()
-            if not coin then
-                notify(T("farm_none"), Color3.fromRGB(150, 150, 150))
-                task.wait(0.8)
-                if not S.farmEnabled then break end
-                continue
+            if not currentCoin or not currentCoin.part or not currentCoin.part.Parent then
+                currentCoin = findCoin()
+                if not currentCoin then
+                    bv.Velocity = Vector3.zero
+                    return
+                end
             end
-            local myChar = LP.Character
-            local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
-            if not myHrp then
-                task.wait(0.3)
-                continue
+            local targetPos = currentCoin.part.Position
+            local myPos = hrp.Position
+            local flatDelta = Vector3.new(targetPos.X - myPos.X, 0, targetPos.Z - myPos.Z)
+            local dist = flatDelta.Magnitude
+            if dist < 2.5 then
+                bv.Velocity = Vector3.zero
+                currentCoin = nil
+                return
             end
-            local targetPart = coin.part
-            if not targetPart or not targetPart.Parent then
-                task.wait(0.05)
-                continue
+            local speed = FARM_SPEED
+            if dist < 8 then
+                speed = FARM_SPEED * (dist / 8)
+                if speed < 10 then speed = 10 end
             end
-            local myPos = myHrp.Position
-            local coinPos = targetPart.Position
-            local dy = coinPos.Y - myPos.Y
-            local targetY = myPos.Y
-            if dy > 4 then
-                targetY = coinPos.Y + 3
-            elseif dy < -6 then
-                targetY = coinPos.Y + 3
-            end
-            local goalCF = CFrame.new(coinPos.X, targetY, coinPos.Z)
-            local distance = (myHrp.Position - goalCF.Position).Magnitude
-            local tweenTime = distance / FARM_SPEED
-            if tweenTime < 0.05 then tweenTime = 0.05 end
-            if tweenTime > 2 then tweenTime = 2 end
-            local tweenInfo = TweenInfo.new(tweenTime, Enum.EasingStyle.Linear)
-            local tween = TweenService:Create(myHrp, tweenInfo, {CFrame = goalCF})
-            tween:Play()
-            local t0 = tick()
-            while tween.PlaybackState == Enum.PlaybackState.Playing do
-                if not targetPart or not targetPart.Parent then break end
-                if isBagFull() then break end
-                task.wait(0.02)
-                if tick() - t0 > tweenTime + 1 then break end
-            end
-            pcall(function() tween:Cancel() end)
-            task.wait(0.01)
+            bv.Velocity = flatDelta.Unit * speed
+        end)
+        while S.farmEnabled do
+            task.wait(0.1)
         end
+        if conn then conn:Disconnect() end
+        pcall(function() bv:Destroy() end)
         S.noclip = savedNoclip
         notify(T("farm_off"), Color3.fromRGB(150, 150, 150))
         S.farmThread = nil
