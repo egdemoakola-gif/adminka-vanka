@@ -11,6 +11,9 @@ local VirtualUser = game:GetService("VirtualUser")
 local LP = Players.LocalPlayer
 local Cam = workspace.CurrentCamera
 
+local FARM_SPEED = 80
+local shiftKeyAvailable = (type(keypress) == "function") and (type(keyrelease) == "function")
+
 local LANG = "ru"
 local L = {
     ru = {
@@ -21,7 +24,7 @@ local L = {
         sec_sheriff="ШЕРИФ", autoshoot="Авто-выстрел",
         sec_autokill="АВТО-КИЛЛ", autokill="Авто-нож",
         autoTpMurderer="Следование",
-        sec_farm="ФАРМ", farm="Авто-фарм",
+        sec_farm="ФАРМ", farm="Авто-фарм", farm_speed="Скорость фарма",
         sec_pickup="ПОДБОР", pickup="Подбор пистолета",
         sec_roles="РОЛИ", roles="Подсветка ролей",
         invisible="Инвиз", clear_inv="Очистить инвентарь",
@@ -83,7 +86,7 @@ local L = {
         sec_sheriff="SHERIFF", autoshoot="Auto-shoot",
         sec_autokill="AUTO-KILL", autokill="Auto-knife",
         autoTpMurderer="Follow",
-        sec_farm="FARM", farm="Auto-farm",
+        sec_farm="FARM", farm="Auto-farm", farm_speed="Farm speed",
         sec_pickup="PICKUP", pickup="Gun pickup",
         sec_roles="ROLES", roles="Role highlight",
         invisible="Invisible", clear_inv="Clear inventory",
@@ -145,7 +148,7 @@ local L = {
         sec_sheriff="警长", autoshoot="自动射击",
         sec_autokill="自动击杀", autokill="自动刀",
         autoTpMurderer="跟踪",
-        sec_farm="农场", farm="自动农场",
+        sec_farm="农场", farm="自动农场", farm_speed="农场速度",
         sec_pickup="拾取", pickup="拾取枪支",
         sec_roles="角色", roles="角色高亮",
         invisible="隐身", clear_inv="清空背包",
@@ -239,6 +242,7 @@ local SaveData = {
     walkback = false,
     sky_name = "",
     triggerbot = false, trigger_delay = 0.05, trigger_range = 200, trigger_target = "Head",
+    farm_speed = 80,
 }
 
 local function serialize()
@@ -252,7 +256,7 @@ local function serialize()
         "autoshoot", "autokill", "autotp", "pickup", "roles",
         "cross", "fov", "hardaim", "fly", "noclip", "infjump",
         "fullbright", "aimbot", "spin", "hitbox", "lines", "antiaim", "walkback", "sky_name",
-        "triggerbot", "trigger_delay", "trigger_range", "trigger_target"
+        "triggerbot", "trigger_delay", "trigger_range", "trigger_target", "farm_speed"
     }
     for _, k in ipairs(keys) do
         local v = SaveData[k]
@@ -321,6 +325,7 @@ local function loadSettings()
             elseif k == "speed50" then SaveData.speed50 = (v == "true")
             elseif k == "speed_value" then SaveData.speed_value = tonumber(v) or 50
             elseif k == "farm" then SaveData.farm = (v == "true")
+            elseif k == "farm_speed" then SaveData.farm_speed = tonumber(v) or 80
             elseif k == "invisible" then SaveData.invisible = (v == "true")
             elseif k == "wallcheck" then SaveData.wallcheck = (v == "true")
             elseif k == "cross_style" then SaveData.cross_style = tonumber(v) or 1
@@ -355,6 +360,8 @@ local function loadSettings()
     end
 end
 loadSettings()
+
+FARM_SPEED = SaveData.farm_speed or 80
 
 local GH = "https://raw.githubusercontent.com/egdemoakola-gif/adminka-vanka/main/"
 local function downloadImg(name)
@@ -447,6 +454,7 @@ local S = {
     triggerbot = SaveData.triggerbot, triggerDelay = SaveData.trigger_delay or 0.05,
     triggerRange = SaveData.trigger_range or 200, triggerTarget = SaveData.trigger_target or "Head",
     triggerThread = nil, triggerConn = nil,
+    _aimFireConn = nil,
 }
 
 local function notify(text, color)
@@ -1281,29 +1289,32 @@ local function startFarm()
             if not myHrp then task.wait(0.3) continue end
             local targetPart = coin.part
             if not targetPart or not targetPart.Parent then task.wait(0.05) continue end
+
             local myPos = myHrp.Position
             local coinPos = targetPart.Position
             local dy = coinPos.Y - myPos.Y
-            local newY = myPos.Y
-            if dy > 4 then newY = coinPos.Y + 3
-            elseif dy < -6 then newY = coinPos.Y + 3 end
-            pcall(function()
-                myHrp.CFrame = CFrame.new(coinPos.X, newY, coinPos.Z)
-                myHrp.AssemblyLinearVelocity = Vector3.zero
-                myHrp.AssemblyAngularVelocity = Vector3.zero
-            end)
+            local targetY = myPos.Y
+            if dy > 4 then targetY = coinPos.Y + 3
+            elseif dy < -6 then targetY = coinPos.Y + 3 end
+
+            local goalCF = CFrame.new(coinPos.X, targetY, coinPos.Z)
+            local distance = (myHrp.Position - goalCF.Position).Magnitude
+            local tweenTime = distance / FARM_SPEED
+            if tweenTime < 0.05 then tweenTime = 0.05 end
+            if tweenTime > 2 then tweenTime = 2 end
+
+            local tweenInfo = TweenInfo.new(tweenTime, Enum.EasingStyle.Linear)
+            local tween = TweenService:Create(myHrp, tweenInfo, {CFrame = goalCF})
+            tween:Play()
+
             local t0 = tick()
-            while tick() - t0 < 0.4 do
+            while tween.PlaybackState == Enum.PlaybackState.Playing do
                 if not targetPart or not targetPart.Parent then break end
-                local used = false
-                for _, plr in ipairs(Players:GetPlayers()) do
-                    if plr.Character and targetPart:IsDescendantOf(plr.Character) then used = true break end
-                    if plr.Backpack and targetPart:IsDescendantOf(plr.Backpack) then used = true break end
-                end
-                if used then break end
                 if isBagFull() then break end
                 task.wait(0.02)
+                if tick() - t0 > tweenTime + 1 then break end
             end
+            pcall(function() tween:Cancel() end)
             task.wait(0.01)
         end
         S.noclip = savedNoclip
@@ -1667,6 +1678,7 @@ local showLoading
 
 local AIM_BIND = "VankaAimLock"
 local aimBound = false
+local shiftToggleTime = 0
 
 local function setAimbotVisual(state)
     if not S.gui then return end
@@ -1686,23 +1698,6 @@ local function setAimbotVisual(state)
     end
 end
 
-local function getUISettings()
-    local attempts = {
-        function() return UserSettings() end,
-        function() return getsettings() end,
-    }
-    for _, fn in ipairs(attempts) do
-        local ok, s = pcall(fn)
-        if ok and s then
-            local ok2, rt = pcall(function() return s.RotationType end)
-            if ok2 and rt ~= nil then
-                return s
-            end
-        end
-    end
-    return nil
-end
-
 local function restoreMouse()
     pcall(function()
         if UIS.MouseBehavior ~= Enum.MouseBehavior.Default then
@@ -1712,14 +1707,6 @@ local function restoreMouse()
             UIS.MouseIconEnabled = true
         end
     end)
-    local us = getUISettings()
-    if us then
-        pcall(function()
-            if us.RotationType ~= Enum.RotationType.MovementRelative then
-                us.RotationType = Enum.RotationType.MovementRelative
-            end
-        end)
-    end
 end
 
 local function forceShiftLock()
@@ -1731,14 +1718,15 @@ local function forceShiftLock()
             UIS.MouseIconEnabled = false
         end
     end)
-    local us = getUISettings()
-    if us then
-        pcall(function()
-            if us.RotationType ~= Enum.RotationType.CameraRelative then
-                us.RotationType = Enum.RotationType.CameraRelative
-            end
-        end)
-    end
+    if not shiftKeyAvailable then return end
+    local now = os.clock()
+    if now - shiftToggleTime < 2 then return end
+    shiftToggleTime = now
+    pcall(function()
+        keypress(Enum.KeyCode.LeftShift)
+        task.wait(0.05)
+        keyrelease(Enum.KeyCode.LeftShift)
+    end)
 end
 
 local function setAimbot(state, silent)
@@ -2282,6 +2270,21 @@ local function createGUI()
         SaveData.farm = v
         saveSettings()
         if v then startFarm() else stopFarm() end
+    end)
+
+    addLabel(tabMain, T("farm_speed"))
+    local farmSpeedBox = addTextBox(tabMain, FARM_SPEED, "80")
+    farmSpeedBox.FocusLost:Connect(function()
+        local v = tonumber(farmSpeedBox.Text)
+        if v and v >= 10 and v <= 500 then
+            FARM_SPEED = v
+            SaveData.farm_speed = v
+            saveSettings()
+            notify("Скорость фарма: " .. v, Color3.fromRGB(0, 200, 100))
+        else
+            farmSpeedBox.Text = tostring(FARM_SPEED)
+            notify("Скорость 10-500", Color3.fromRGB(255, 60, 60))
+        end
     end)
 
     addLabel(tabMain, T("sec_pickup"))
