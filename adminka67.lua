@@ -771,7 +771,6 @@ local hookTargetPos = nil
 local function installMouseHook()
     if mouseHookInstalled then return end
     mouseHookInstalled = true
-
     local ok = pcall(function()
         if hookmetamethod then
             local oldIndex
@@ -787,7 +786,6 @@ local function installMouseHook()
             end)
             return
         end
-
         if getrawmetatable and setreadonly then
             local mt = getrawmetatable(mouse)
             if not mt then return end
@@ -804,7 +802,6 @@ local function installMouseHook()
             setreadonly(mt, true)
         end
     end)
-
     if not ok then
         mouseHookInstalled = false
     end
@@ -1110,46 +1107,201 @@ local function stopAutoTp()
     S.autoTpThread = nil
 end
 
-local function flingCleanup()
-    for _, c in ipairs(S.flingConns) do
-        pcall(function()
-            if c and c.Disconnect then c:Disconnect() end
-        end)
-    end
-    S.flingConns = {}
-end
-
 local function flingStop(silent)
+    if not S.flingRunning then return end
     S.flingRunning = false
     if S.flingCamConn then
         pcall(function() S.flingCamConn:Disconnect() end)
         S.flingCamConn = nil
     end
-    if Cam then
-        pcall(function()
-            Cam.CameraType = Enum.CameraType.Custom
-            local h = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
-            if h then Cam.CameraSubject = h end
-        end)
-    end
     if S.flingThread then
         pcall(task.cancel, S.flingThread)
         S.flingThread = nil
     end
-    flingCleanup()
     S.flingTargetName = ""
-    local char = LP.Character
-    if char then
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.WalkSpeed = 16
-            hum.JumpPower = 50
-            hum.UseJumpPower = true
-        end
-    end
     if not silent then
         notify("Флинг остановлен", Color3.fromRGB(200, 200, 200))
     end
+end
+
+local function SkidFling(TargetPlayer)
+    if S.flingRunning then return end
+    if not TargetPlayer or TargetPlayer == LP then return end
+
+    local Character = LP.Character
+    local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+    local RootPart = Humanoid and Humanoid.RootPart
+
+    local TCharacter = TargetPlayer.Character
+    local THumanoid = TCharacter and TCharacter:FindFirstChildOfClass("Humanoid")
+    local TRootPart = THumanoid and THumanoid.RootPart
+    local THead = TCharacter and TCharacter:FindFirstChild("Head")
+    local Accessory = TCharacter and TCharacter:FindFirstChildOfClass("Accessory")
+    local Handle = Accessory and Accessory:FindFirstChild("Handle")
+
+    if not (Character and Humanoid and RootPart) then
+        notify("Ошибка: нет персонажа", Color3.fromRGB(255, 60, 60))
+        return
+    end
+    if not (TCharacter and THumanoid) then
+        notify("У цели нет персонажа", Color3.fromRGB(255, 60, 60))
+        return
+    end
+    if THumanoid.Sit then
+        notify("Цель сидит", Color3.fromRGB(255, 60, 60))
+        return
+    end
+
+    S.flingRunning = true
+    S.flingTargetName = TargetPlayer.Name
+
+    local OldPos = RootPart.CFrame
+    local FPDH = workspace.FallenPartsDestroyHeight
+
+    if THead then
+        workspace.CurrentCamera.CameraSubject = THead
+    elseif Handle then
+        workspace.CurrentCamera.CameraSubject = Handle
+    else
+        workspace.CurrentCamera.CameraSubject = THumanoid
+    end
+
+    if not TCharacter:FindFirstChildWhichIsA("BasePart") then
+        S.flingRunning = false
+        S.flingTargetName = ""
+        notify("У цели нет частей", Color3.fromRGB(255, 60, 60))
+        return
+    end
+
+    local function FPos(BasePart, Pos, Ang)
+        RootPart.CFrame = CFrame.new(BasePart.Position) * Pos * Ang
+        Character:SetPrimaryPartCFrame(CFrame.new(BasePart.Position) * Pos * Ang)
+        RootPart.Velocity = Vector3.new(9e7, 9e7 * 10, 9e7)
+        RootPart.RotVelocity = Vector3.new(9e8, 9e8, 9e8)
+    end
+
+    local function SFBasePart(BasePart)
+        local TimeToWait = 2
+        local Time = tick()
+        local Angle = 0
+
+        repeat
+            if RootPart and THumanoid then
+                if BasePart.Velocity.Magnitude < 50 then
+                    Angle = Angle + 100
+
+                    FPos(BasePart, CFrame.new(0, 1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
+                    task.wait()
+
+                    FPos(BasePart, CFrame.new(0, -1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
+                    task.wait()
+
+                    FPos(BasePart, CFrame.new(2.25, 1.5, -2.25) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
+                    task.wait()
+
+                    FPos(BasePart, CFrame.new(-2.25, -1.5, 2.25) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
+                    task.wait()
+
+                    FPos(BasePart, CFrame.new(0, 1.5, 0) + THumanoid.MoveDirection, CFrame.Angles(math.rad(Angle), 0, 0))
+                    task.wait()
+
+                    FPos(BasePart, CFrame.new(0, -1.5, 0) + THumanoid.MoveDirection, CFrame.Angles(math.rad(Angle), 0, 0))
+                    task.wait()
+                else
+                    FPos(BasePart, CFrame.new(0, 1.5, THumanoid.WalkSpeed), CFrame.Angles(math.rad(90), 0, 0))
+                    task.wait()
+
+                    FPos(BasePart, CFrame.new(0, -1.5, -THumanoid.WalkSpeed), CFrame.Angles(0, 0, 0))
+                    task.wait()
+
+                    FPos(BasePart, CFrame.new(0, 1.5, THumanoid.WalkSpeed), CFrame.Angles(math.rad(90), 0, 0))
+                    task.wait()
+
+                    FPos(BasePart, CFrame.new(0, 1.5, TRootPart.Velocity.Magnitude / 1.25), CFrame.Angles(math.rad(90), 0, 0))
+                    task.wait()
+
+                    FPos(BasePart, CFrame.new(0, -1.5, -TRootPart.Velocity.Magnitude / 1.25), CFrame.Angles(0, 0, 0))
+                    task.wait()
+
+                    FPos(BasePart, CFrame.new(0, 1.5, TRootPart.Velocity.Magnitude / 1.25), CFrame.Angles(math.rad(90), 0, 0))
+                    task.wait()
+
+                    FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(math.rad(90), 0, 0))
+                    task.wait()
+
+                    FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(0, 0, 0))
+                    task.wait()
+
+                    FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(math.rad(-90), 0, 0))
+                    task.wait()
+
+                    FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(0, 0, 0))
+                    task.wait()
+                end
+            else
+                break
+            end
+        until BasePart.Velocity.Magnitude > 500
+            or BasePart.Parent ~= TargetPlayer.Character
+            or TargetPlayer.Parent ~= Players
+            or not TargetPlayer.Character == TCharacter
+            or THumanoid.Sit
+            or Humanoid.Health <= 0
+            or tick() > Time + TimeToWait
+    end
+
+    workspace.FallenPartsDestroyHeight = 0/0
+
+    local BV = Instance.new("BodyVelocity")
+    BV.Name = "EpixVel"
+    BV.Parent = RootPart
+    BV.Velocity = Vector3.new(9e8, 9e8, 9e8)
+    BV.MaxForce = Vector3.new(1/0, 1/0, 1/0)
+
+    Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+
+    if TRootPart and THead then
+        if (TRootPart.CFrame.p - THead.CFrame.p).Magnitude > 5 then
+            SFBasePart(THead)
+        else
+            SFBasePart(TRootPart)
+        end
+    elseif TRootPart and not THead then
+        SFBasePart(TRootPart)
+    elseif not TRootPart and THead then
+        SFBasePart(THead)
+    elseif not TRootPart and not THead and Accessory and Handle then
+        SFBasePart(Handle)
+    else
+        BV:Destroy()
+        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+        workspace.FallenPartsDestroyHeight = FPDH
+        S.flingRunning = false
+        S.flingTargetName = ""
+        notify("У цели нет частей", Color3.fromRGB(255, 60, 60))
+        return
+    end
+
+    BV:Destroy()
+    Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+    workspace.CurrentCamera.CameraSubject = Humanoid
+
+    repeat
+        RootPart.CFrame = OldPos * CFrame.new(0, .5, 0)
+        Character:SetPrimaryPartCFrame(OldPos * CFrame.new(0, .5, 0))
+        Humanoid:ChangeState("GettingUp")
+        for _, x in ipairs(Character:GetChildren()) do
+            if x:IsA("BasePart") then
+                x.Velocity = Vector3.new()
+                x.RotVelocity = Vector3.new()
+            end
+        end
+        task.wait()
+    until (RootPart.Position - OldPos.p).Magnitude < 25
+
+    workspace.FallenPartsDestroyHeight = FPDH
+    S.flingRunning = false
+    S.flingTargetName = ""
 end
 
 local function flingStart(targetName)
@@ -1163,108 +1315,7 @@ local function flingStart(targetName)
         notify("Игрок не найден", Color3.fromRGB(255, 60, 60))
         return
     end
-
-    local myChar = LP.Character
-    local myHum = myChar and myChar:FindFirstChildOfClass("Humanoid")
-    local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
-    if not (myChar and myHum and myRoot) then
-        notify("Ошибка: нет персонажа", Color3.fromRGB(255, 60, 60))
-        return
-    end
-
-    local tChar = target.Character
-    local tHum = tChar and tChar:FindFirstChildOfClass("Humanoid")
-    local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
-    local tHead = tChar and tChar:FindFirstChild("Head")
-    if not (tChar and tHum and tRoot) then
-        notify("У цели нет частей", Color3.fromRGB(255, 60, 60))
-        return
-    end
-    if tHum.Sit then
-        notify("Цель сидит", Color3.fromRGB(255, 60, 60))
-        return
-    end
-
-    S.flingRunning = true
-    S.flingTargetName = targetName
-
-    local oldPos = myRoot.CFrame
-    local oldMyAutoRotate = myHum.AutoRotate
-    local oldTargetPlatformStand = tHum.PlatformStand
-    local oldTargetAutoRotate = tHum.AutoRotate
-
-    workspace.CurrentCamera.CameraSubject = tHead or tRoot or tHum
-    pcall(function() myHum:SetStateEnabled(Enum.HumanoidStateType.Seated, false) end)
-    myHum.AutoRotate = false
-
-    for _, p in ipairs(tChar:GetDescendants()) do
-        if p:IsA("BasePart") then
-            pcall(function() p:SetNetworkOwner(LP) end)
-        end
-    end
-
-    S.flingThread = task.spawn(function()
-        pcall(function()
-            tHum.PlatformStand = true
-            tHum.AutoRotate = false
-            tHum:ChangeState(Enum.HumanoidStateType.Physics)
-        end)
-
-        local t0 = tick()
-        while tick() - t0 < 1 do
-            if not S.flingRunning then break end
-            if not tRoot or not tRoot.Parent or not tHum or tHum.Health <= 0 then
-                break
-            end
-            local rand = Vector3.new(math.random(-100, 100), math.random(0, 100), math.random(-100, 100))
-            local massiveVel = Vector3.new(9e8, 9e8, 9e8) + rand * 1e6
-            local massiveRot = Vector3.new(9e9, 9e9, 9e9)
-            pcall(function()
-                tRoot.AssemblyLinearVelocity = massiveVel
-                tRoot.AssemblyAngularVelocity = massiveRot
-            end)
-            for _, p in ipairs(tChar:GetDescendants()) do
-                if p:IsA("BasePart") and p ~= tRoot then
-                    pcall(function()
-                        p.AssemblyLinearVelocity = massiveVel
-                        p.AssemblyAngularVelocity = massiveRot
-                    end)
-                end
-            end
-            RunService.Stepped:Wait()
-        end
-
-        task.wait(0.2)
-        if myRoot and myRoot.Parent then
-            pcall(function()
-                myRoot.CFrame = oldPos
-                myRoot.AssemblyLinearVelocity = Vector3.zero
-                myRoot.AssemblyAngularVelocity = Vector3.zero
-                myRoot.Velocity = Vector3.zero
-                myRoot.RotVelocity = Vector3.zero
-            end)
-        end
-        if myHum and myHum.Parent then
-            myHum.AutoRotate = oldMyAutoRotate
-            pcall(function() myHum:SetStateEnabled(Enum.HumanoidStateType.Seated, true) end)
-        end
-        if Cam and myHum then
-            workspace.CurrentCamera.CameraSubject = myHum
-        end
-
-        task.delay(1.5, function()
-            if tHum and tHum.Parent then
-                pcall(function()
-                    tHum.PlatformStand = oldTargetPlatformStand
-                    tHum.AutoRotate = oldTargetAutoRotate
-                end)
-            end
-        end)
-
-        S.flingRunning = false
-        S.flingTargetName = ""
-        S.flingThread = nil
-    end)
+    SkidFling(target)
 end
 
 local function findCoin()
