@@ -1524,6 +1524,8 @@ end
 local function giveFakeKnife()
     local char=LP.Character
     if not char then return end
+    local hum=char:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
     local bp=LP:FindFirstChild("Backpack")
     if not bp then return end
     local knifeName=T("knife_name")
@@ -1542,49 +1544,77 @@ local function giveFakeKnife()
         return
     end
     knife.Name=knifeName
+    knife.CanBeDropped=false
+
+    local isR6=hum.RigType==Enum.HumanoidRigType.R6
+    local slashId=isR6 and "rbxassetid://522635514" or "rbxassetid://522638767"
+
     for _,d in ipairs(knife:GetDescendants()) do
-        if d:IsA("BaseScript") then d.Disabled=false end
-    end
-    knife.Parent=bp
-    local hum=char:FindFirstChildOfClass("Humanoid")
-    if not hum then notify(T("knife_given"),Color3.fromRGB(0,200,100)) return end
-    local animator=hum:FindFirstChildOfClass("Animator") or Instance.new("Animator",hum)
-    local rigType=hum.RigType
-    local animIds
-    if rigType==Enum.HumanoidRigType.R6 then
-        animIds={"rbxassetid://7469554525","rbxassetid://6750753919","rbxassetid://507765000","rbxassetid://2040625326"}
-    else
-        animIds={"rbxassetid://6750753919","rbxassetid://507765000","rbxassetid://7469554525","rbxassetid://2040625326"}
-    end
-    local slashTrack=nil
-    for _,id in ipairs(animIds) do
-        local anim=Instance.new("Animation")
-        anim.AnimationId=id
-        local ok3,track=pcall(function() return animator:LoadAnimation(anim) end)
-        if ok3 and track and track.Length>0 then
-            slashTrack=track
-            break
+        if d:IsA("Animation") then
+            d.AnimationId=slashId
         end
     end
-    if slashTrack then
-        slashTrack.Priority=Enum.AnimationPriority.Action4
-        slashTrack.Looped=false
-        local lastSlash=0
-        local SLASH_CD=0.5
-        knife.Activated:Connect(function()
-            if not knife.Parent or knife.Parent~=char then return end
-            local now=tick()
-            if now-lastSlash<SLASH_CD then return end
-            lastSlash=now
-            pcall(function()
-                slashTrack:Stop(0.05)
-                slashTrack:Play(0.1)
-            end)
-        end)
-        knife.Equipped:Connect(function()
-            pcall(function() slashTrack:Stop(0) end)
-        end)
+
+    local animator=hum:FindFirstChildOfClass("Animator") or Instance.new("Animator",hum)
+    local a=Instance.new("Animation")
+    a.AnimationId=slashId
+    local ok2,slash=pcall(function() return animator:LoadAnimation(a) end)
+    if ok2 and slash then
+        slash.Priority=Enum.AnimationPriority.Action4
+        slash.Looped=false
+    else
+        slash=nil
     end
+
+    local activatedAt=0
+    local lastSlash=0
+
+    hum.StateChanged:Connect(function(_,newState)
+        if newState==Enum.HumanoidStateType.Jumping
+        or newState==Enum.HumanoidStateType.Freefall then
+            if tick()-activatedAt<0.25 then
+                pcall(function()
+                    hum:ChangeState(Enum.HumanoidStateType.Running)
+                end)
+            end
+        end
+    end)
+
+    local function doSlash()
+        local now=tick()
+        if now-lastSlash<0.4 then return end
+        lastSlash=now
+        activatedAt=now
+        if slash then
+            pcall(function()
+                slash:Stop(0.05)
+                slash:Play(0.1)
+            end)
+        end
+    end
+
+    knife.Activated:Connect(doSlash)
+
+    knife.Equipped:Connect(function()
+        if slash then pcall(function() slash:Stop(0) end) end
+        local c
+        c=UIS.InputBegan:Connect(function(input,gp)
+            if gp then return end
+            if knife.Parent~=char then
+                pcall(function() c:Disconnect() end)
+                return
+            end
+            if input.UserInputType==Enum.UserInputType.MouseButton1
+            or input.UserInputType==Enum.UserInputType.Touch then
+                doSlash()
+            end
+        end)
+        knife.Unequipped:Once(function()
+            pcall(function() c:Disconnect() end)
+        end)
+    end)
+
+    knife.Parent=bp
     pcall(function() hum:EquipTool(knife) end)
     notify(T("knife_given"),Color3.fromRGB(0,200,100))
 end
