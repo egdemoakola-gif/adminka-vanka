@@ -418,6 +418,49 @@ local S = {
     _aimFireConn=nil,
 }
 
+local ANTI_FLING_ENABLED = false
+local antiFlingConn = nil
+
+local function applyAntiFling()
+    if not ANTI_FLING_ENABLED then return end
+    if S.flingRunning then return end
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr == LP or not plr.Character then continue end
+        local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+        if hrp and hrp:IsA("BasePart") and hrp.CanCollide then
+            pcall(function() hrp.CanCollide = false end)
+        end
+        for _, acc in ipairs(plr.Character:GetChildren()) do
+            if acc:IsA("Accessory") then
+                local handle = acc:FindFirstChild("Handle")
+                if handle and handle:IsA("BasePart") then
+                    pcall(function() handle:Destroy() end)
+                end
+            end
+        end
+    end
+end
+
+local function startAntiFling()
+    if antiFlingConn then return end
+    ANTI_FLING_ENABLED = true
+    antiFlingConn = RunService.Stepped:Connect(applyAntiFling)
+end
+
+local function stopAntiFling()
+    ANTI_FLING_ENABLED = false
+    if antiFlingConn then
+        pcall(function() antiFlingConn:Disconnect() end)
+        antiFlingConn = nil
+    end
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LP and plr.Character then
+            local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then pcall(function() hrp.CanCollide = true end) end
+        end
+    end
+end
+
 local function notify(text,color)
     color=color or Color3.fromRGB(255,0,100)
     if not S.gui then return end
@@ -2378,6 +2421,11 @@ local function createGUI()
         guideLabel.Text=T("guide_text")
     end)
 
+    addLabel(tabMain,"АНТИ-ФЛИНГ")
+    addToggle(tabMain,"Анти-флинг",false,function(v)
+        if v then startAntiFling() else stopAntiFling() end
+    end)
+
     addLabel(tabMain,T("sec_autokill"))
     addToggle(tabMain,T("autokill"),SaveData.autokill,function(v)
         S.autoKillEnabled=v
@@ -3697,6 +3745,7 @@ _G.VankaPanel = {
         stopFarm()
         stopWalkBack()
         stopTriggerbot()
+        stopAntiFling()
         if S.flyBV then pcall(function() S.flyBV:Destroy() end) S.flyBV=nil end
         if S.speedRespawnConn then pcall(function() S.speedRespawnConn:Disconnect() end) S.speedRespawnConn=nil end
         if S.flingRunning then flingStop() end
