@@ -6,9 +6,6 @@ local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
-local VIM = game:GetService("VirtualInputManager")
-local VirtualUser = game:GetService("VirtualUser")
-local CAS = game:GetService("ContextActionService")
 
 local LP = Players.LocalPlayer
 local Cam = workspace.CurrentCamera
@@ -415,7 +412,6 @@ local S = {
     triggerbot=SaveData.triggerbot, triggerDelay=SaveData.trigger_delay or 0.05,
     triggerRange=SaveData.trigger_range or 200, triggerTarget=SaveData.trigger_target or "Head",
     triggerThread=nil, triggerConn=nil,
-    _aimFireConn=nil,
 }
 
 local function notify(text,color)
@@ -524,12 +520,6 @@ local function getHandPart(plr)
         or plr.Character:FindFirstChild("Right Arm")
         or plr.Character:FindFirstChild("LeftHand")
         or plr.Character:FindFirstChild("Left Arm")
-end
-
-local function hasGunInHand()
-    if not LP.Character then return false end
-    local t=LP.Character:FindFirstChildOfClass("Tool")
-    return t and isGun(t)
 end
 
 local function hasRealGunInHand()
@@ -2216,6 +2206,29 @@ local function createGUI()
         saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
+    addLabel(tabVisual,T("sec_cross_custom"))
+    addBtn(tabVisual,T("cross_load"),Color3.fromRGB(80,60,120),function()
+        if isfile and getcustomasset then
+            local ok,exists=pcall(isfile,"vanka_crosshair.png")
+            if ok and exists then
+                local ok2,asset=pcall(getcustomasset,"vanka_crosshair.png")
+                if ok2 and asset and asset~="" then
+                    S.crossImage=asset
+                    SaveData.custom_cross="vanka_crosshair.png"
+                    saveSettings()
+                    if _G.VankaUpdateCross then _G.VankaUpdateCross() end
+                end
+            else
+                notify(T("cross_notfound"),Color3.fromRGB(255,60,60))
+            end
+        end
+    end)
+    addBtn(tabVisual,T("cross_reset"),Color3.fromRGB(120,50,50),function()
+        S.crossImage=nil
+        SaveData.custom_cross=""
+        saveSettings()
+        if _G.VankaUpdateCross then _G.VankaUpdateCross() end
+    end)
     addLabel(tabVisual,T("sec_move"))
     addToggle(tabVisual,T("fly"),SaveData.fly,function(v)
         S.fly=v
@@ -2356,6 +2369,15 @@ local function createGUI()
         hbStroke.Color=Color3.fromRGB(255,50,50)
         hbStroke.Thickness=2
         hbStroke.Parent=hbFrame
+        local hbLabel=Instance.new("TextLabel")
+        hbLabel.Size=UDim2.new(0,60,0,14)
+        hbLabel.Position=UDim2.new(0.5,-30,-0.15,0)
+        hbLabel.BackgroundTransparency=1
+        hbLabel.Text="HITBOX"
+        hbLabel.TextColor3=Color3.fromRGB(255,80,80)
+        hbLabel.TextSize=10
+        hbLabel.Font=Enum.Font.GothamBold
+        hbLabel.Parent=hbFrame
         S.previewRefs.hitbox=hbFrame
         local nameLbl=Instance.new("TextLabel")
         nameLbl.Name="PrevName"
@@ -2448,6 +2470,10 @@ local function createGUI()
         local v=tonumber(trigRangeBox.Text)
         if v and v>=5 and v<=2000 then S.triggerRange=v SaveData.trigger_range=v saveSettings() end
     end)
+    addLabel(tabRage,T("trigger_target"))
+    addBtn(tabRage,T("aim_head"),Color3.fromRGB(60,60,90),function() S.triggerTarget="Head" SaveData.trigger_target="Head" saveSettings() end)
+    addBtn(tabRage,T("aim_torso"),Color3.fromRGB(60,60,90),function() S.triggerTarget="Torso" SaveData.trigger_target="Torso" saveSettings() end)
+    addBtn(tabRage,T("aim_random"),Color3.fromRGB(60,60,90),function() S.triggerTarget="Random" SaveData.trigger_target="Random" saveSettings() end)
     addLabel(tabRage,T("sec_spin"))
     addToggle(tabRage,T("spin"),SaveData.spin,function(v) S.spin=v SaveData.spin=v saveSettings() end)
     addLabel(tabRage,T("sec_antiaim"))
