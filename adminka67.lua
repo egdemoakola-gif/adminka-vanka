@@ -22,6 +22,8 @@ local L = {
         tab_players="ИГРОКИ", tab_settings="НАСТРОЙКИ", tab_configs="КОНФИГИ",
         role_murderer="Мардер", role_sheriff="Шериф", role_innocent="Невиновный",
         sec_autokill="АВТО-КИЛЛ", autokill="Авто-нож",
+        sec_camper="АВТО-КЕМПЕР", autocamper="Убить шерифа",
+        camper_cooldown="Кулдаун (сек)",
         autoTpMurderer="Следование",
         sec_farm="ФАРМ", farm="Авто-фарм", farm_speed="Скорость фарма",
         sec_pickup="ПОДБОР", pickup="Подбор пистолета",
@@ -74,7 +76,7 @@ local L = {
         walkback_on="Ходьба задом ВКЛ", walkback_off="Ходьба задом ВЫКЛ",
         sky_cosmos="Космос", sky_galaxy="Галактика", sky_dawn="Рассвет",
         sky_sunset="Закат", sky_night="Ночное", sky_purple="Фиолет", sky_clear="Убрать небо",
-        guide_text="ГЛАВНАЯ\n— Авто-нож: работает когда ты мардер, бьёт всех подряд.\n— Следование: телепорт за мардером.\n— Авто-фарм: собирает монеты, скорость настраивается.\n— Подбор пистолета: шериф умер → тп к нему → 1 сек → тп назад.\n— Подсветка ролей: цветной контур на игроках.\n— Фейк-нож: выдаёт нож в инвентарь.\n— Инвиз: убирает твоё тело.\n— Очистить инвентарь: удаляет все тулзы.\n\nВИЗУАЛ\n— Прицел, FOV, хард-аим — настройка вида.\n— Стили прицела, свой PNG — внешний вид.\n— Флай, ноклип, беск. прыжок, спидхак, ходьба задом.\n— Небо (6 пресетов), фулбрайт.\n\nЕСП\n— Включить — главный тумблер.\n— Здоровье, имя, дистанция, оружие — что показывать над головой.\n— Радуга — цвет переливается.\n— Хитбокс, линии.\n— Превью — как выглядит ESP.\n\nРЕЙДЖ\n— Аимбот, часть тела, плавность, килл-аим.\n— Триггер-бот: клик по мардеру.\n— Спинбот, анти-аим.\n— Респавн — убить себя.\n— ВЫКЛЮЧИТЬ ВСЁ — отключить всё сразу.\n\nИГРОКИ\n— Список с аватарками.\n— ТП — телепорт к игроку.\n— ФЛИНГ — SkidFling, работает за ~1 сек.\n\nНАСТРОЙКИ\n— Язык: ru/en/zh.\n— Цвет панели: 56 цветов.\n\nКОНФИГИ\n— Имя конфига → Сохранить.\n— Имя → Загрузить.\n— Пресеты: default/aim/farm.\n\n📖 — эта инструкция.\n\nRightShift — свернуть/развернуть панель.\nКнопка «-» — свернуть в лого.\nКнопка «X» — закрыть.",
+        guide_text="ГЛАВНАЯ\n— Авто-нож: работает когда ты мардер, бьёт всех подряд.\n— Авто-кемпер: когда ты мардер, убивает только шерифа и возвращается назад.\n— Следование: телепорт за мардером.\n— Авто-фарм: собирает монеты, скорость настраивается.\n— Подбор пистолета: шериф умер → тп к нему → 1 сек → тп назад.\n— Подсветка ролей: цветной контур на игроках.\n— Фейк-нож: выдаёт нож в инвентарь.\n— Инвиз: убирает твоё тело.\n— Очистить инвентарь: удаляет все тулзы.\n\nВИЗУАЛ\n— Прицел, FOV, хард-аим — настройка вида.\n— Стили прицела, свой PNG — внешний вид.\n— Флай, ноклип, беск. прыжок, спидхак, ходьба задом.\n— Небо (6 пресетов), фулбрайт.\n\nЕСП\n— Включить — главный тумблер.\n— Здоровье, имя, дистанция, оружие — что показывать над головой.\n— Радуга — цвет переливается.\n— Хитбокс, линии.\n— Превью — как выглядит ESP.\n\nРЕЙДЖ\n— Аимбот: работает только когда пушка в руке (шериф).\n— Часть тела, плавность, килл-аим.\n— Триггер-бот: клик по мардеру (только шериф).\n— Спинбот, анти-аим.\n— Респавн — убить себя.\n— ВЫКЛЮЧИТЬ ВСЁ — отключить всё сразу.\n\nИГРОКИ\n— Список с аватарками.\n— ТП — телепорт к игроку.\n— ФЛИНГ — SkidFling, работает за ~1 сек.\n\nНАСТРОЙКИ\n— Язык: ru/en/zh.\n— Цвет панели: 56 цветов.\n\nКОНФИГИ\n— Имя конфига → Сохранить.\n— Имя → Загрузить.\n— Пресеты: default/aim/farm.\n\n📖 — эта инструкция.\n\nRightShift — свернуть/развернуть панель.\nКнопка «-» — свернуть в лого.\nКнопка «X» — закрыть.",
     },
     en = {
         title="VANKA ADMIN",
@@ -82,6 +84,8 @@ local L = {
         tab_players="PLAYERS", tab_settings="SETTINGS", tab_configs="CONFIGS",
         role_murderer="Murderer", role_sheriff="Sheriff", role_innocent="Innocent",
         sec_autokill="AUTO-KILL", autokill="Auto-knife",
+        sec_camper="AUTO-CAMPER", autocamper="Kill sheriff",
+        camper_cooldown="Cooldown (sec)",
         autoTpMurderer="Follow",
         sec_farm="FARM", farm="Auto-farm", farm_speed="Farm speed",
         sec_pickup="PICKUP", pickup="Gun pickup",
@@ -134,7 +138,7 @@ local L = {
         walkback_on="Walk back ON", walkback_off="Walk back OFF",
         sky_cosmos="Cosmos", sky_galaxy="Galaxy", sky_dawn="Dawn",
         sky_sunset="Sunset", sky_night="Night", sky_purple="Purple", sky_clear="Clear sky",
-        guide_text="MAIN\n— Auto-knife: works when you're murderer, hits everyone.\n— Follow: teleport behind murderer.\n— Auto-farm: collects coins, speed adjustable.\n— Gun pickup: sheriff died → tp to him → 1 sec → tp back.\n— Role highlight: colored outline on players.\n— Fake knife: gives knife to inventory.\n— Invisible: hides your body.\n— Clear inventory: removes all tools.\n\nVISUAL\n— Crosshair, FOV, hard aim — view settings.\n— Crosshair styles, custom PNG — appearance.\n— Fly, noclip, inf jump, speedhack, walk backwards.\n— Sky (6 presets), fullbright.\n\nESP\n— Enable — main toggle.\n— Health, name, distance, weapon — what to show above head.\n— Rainbow — color cycles.\n— Hitbox, lines.\n— Preview — how ESP looks.\n\nRAGE\n— Aimbot, aim part, smoothness, kill aim.\n— Triggerbot: click to fire at murderer.\n— Spinbot, anti-aim.\n— Respawn — kill yourself.\n— TURN OFF ALL — disable everything.\n\nPLAYERS\n— List with avatars.\n— TP — teleport to player.\n— FLING — SkidFling, works in ~1 sec.\n\nSETTINGS\n— Language: ru/en/zh.\n— Panel color: 56 colors.\n\nCONFIGS\n— Name → Save.\n— Name → Load.\n— Presets: default/aim/farm.\n\n📖 — this guide.\n\nRightShift — minimize/restore panel.\n'-' button — minimize to logo.\n'X' button — close panel.",
+        guide_text="MAIN\n— Auto-knife: works when you're murderer, hits everyone.\n— Auto-camper: when you're murderer, kills only sheriff and returns back.\n— Follow: teleport behind murderer.\n— Auto-farm: collects coins, speed adjustable.\n— Gun pickup: sheriff died → tp to him → 1 sec → tp back.\n— Role highlight: colored outline on players.\n— Fake knife: gives knife to inventory.\n— Invisible: hides your body.\n— Clear inventory: removes all tools.\n\nVISUAL\n— Crosshair, FOV, hard aim — view settings.\n— Crosshair styles, custom PNG — appearance.\n— Fly, noclip, inf jump, speedhack, walk backwards.\n— Sky (6 presets), fullbright.\n\nESP\n— Enable — main toggle.\n— Health, name, distance, weapon — what to show above head.\n— Rainbow — color cycles.\n— Hitbox, lines.\n— Preview — how ESP looks.\n\nRAGE\n— Aimbot: works only when gun is in hand (sheriff).\n— Aim part, smoothness, kill aim.\n— Triggerbot: click to fire at murderer (sheriff only).\n— Spinbot, anti-aim.\n— Respawn — kill yourself.\n— TURN OFF ALL — disable everything.\n\nPLAYERS\n— List with avatars.\n— TP — teleport to player.\n— FLING — SkidFling, works in ~1 sec.\n\nSETTINGS\n— Language: ru/en/zh.\n— Panel color: 56 colors.\n\nCONFIGS\n— Name → Save.\n— Name → Load.\n— Presets: default/aim/farm.\n\n📖 — this guide.\n\nRightShift — minimize/restore panel.\n'-' button — minimize to logo.\n'X' button — close panel.",
     },
     zh = {
         title="VANKA 管理员",
@@ -142,6 +146,8 @@ local L = {
         tab_players="玩家", tab_settings="设置", tab_configs="配置",
         role_murderer="凶手", role_sheriff="警长", role_innocent="无辜",
         sec_autokill="自动击杀", autokill="自动刀",
+        sec_camper="自动猎手", autocamper="击杀警长",
+        camper_cooldown="冷却 (秒)",
         autoTpMurderer="跟踪",
         sec_farm="农场", farm="自动农场", farm_speed="农场速度",
         sec_pickup="拾取", pickup="拾取枪支",
@@ -194,7 +200,7 @@ local L = {
         walkback_on="倒着走开", walkback_off="倒着走关",
         sky_cosmos="宇宙", sky_galaxy="银河", sky_dawn="黎明",
         sky_sunset="日落", sky_night="夜晚", sky_purple="紫色", sky_clear="清除天空",
-        guide_text="主要\n— 自动刀：当你是凶手时，攻击所有人。\n— 跟踪：传送到凶手身后。\n— 自动农场：收集金币，速度可调。\n— 拾取枪支：警长死亡 → 传送到他 → 1 秒 → 传送回来。\n— 角色高亮：玩家身上的彩色轮廓。\n— 假刀：将刀放入背包。\n— 隐身：隐藏你的身体。\n— 清空背包：删除所有工具。\n\n视觉\n— 准星、FOV、硬瞄准 — 视图设置。\n— 准星样式、自定义 PNG — 外观。\n— 飞行、穿墙、无限跳、加速、倒着走。\n— 天空（6 个预设）、全亮。\n\nESP\n— 启用 — 主开关。\n— 生命、名字、距离、武器 — 头顶显示内容。\n— 彩虹 — 颜色循环。\n— 碰撞箱、线。\n— 预览 — ESP 外观。\n\n愤怒\n— 自瞄、瞄准部位、平滑度、击杀瞄准。\n— 扳机机器人：点击射向凶手。\n— 旋转机器人、防瞄准。\n— 重生 — 自杀。\n— 关闭所有 — 一次关闭全部。\n\n玩家\n— 带头像的列表。\n— 传送 — 传送到玩家。\n— 甩飞 — SkidFling，约 1 秒完成。\n\n设置\n— 语言：ru/en/zh。\n— 面板颜色：56 种颜色。\n\n配置\n— 名字 → 保存。\n— 名字 → 加载。\n— 预设：default/aim/farm。\n\n📖 — 本指南。\n\nRightShift — 最小化/恢复面板。\n'-' 按钮 — 最小化为图标。\n'X' 按钮 — 关闭面板。",
+        guide_text="主要\n— 自动刀：当你是凶手时，攻击所有人。\n— 自动猎手：当你是凶手时，只击杀警长并返回。\n— 跟踪：传送到凶手身后。\n— 自动农场：收集金币，速度可调。\n— 拾取枪支：警长死亡 → 传送到他 → 1 秒 → 传送回来。\n— 角色高亮：玩家身上的彩色轮廓。\n— 假刀：将刀放入背包。\n— 隐身：隐藏你的身体。\n— 清空背包：删除所有工具。\n\n视觉\n— 准星、FOV、硬瞄准 — 视图设置。\n— 准星样式、自定义 PNG — 外观。\n— 飞行、穿墙、无限跳、加速、倒着走。\n— 天空（6 个预设）、全亮。\n\nESP\n— 启用 — 主开关。\n— 生命、名字、距离、武器 — 头顶显示内容。\n— 彩虹 — 颜色循环。\n— 碰撞箱、线。\n— 预览 — ESP 外观。\n\n愤怒\n— 自瞄：仅当枪在手时有效（警长）。\n— 瞄准部位、平滑度、击杀瞄准。\n— 扳机机器人：点击射向凶手（仅警长）。\n— 旋转机器人、防瞄准。\n— 重生 — 自杀。\n— 关闭所有 — 一次关闭全部。\n\n玩家\n— 带头像的列表。\n— 传送 — 传送到玩家。\n— 甩飞 — SkidFling，约 1 秒完成。\n\n设置\n— 语言：ru/en/zh。\n— 面板颜色：56 种颜色。\n\n配置\n— 名字 → 保存。\n— 名字 → 加载。\n— 预设：default/aim/farm。\n\n📖 — 本指南。\n\nRightShift — 最小化/恢复面板。\n'-' 按钮 — 最小化为图标。\n'X' 按钮 — 关闭面板。",
     }
 }
 
@@ -223,6 +229,7 @@ local SaveData = {
     speed50=false, speed_value=50, farm=false, invisible=false,
     aim_part="Head", aim_smooth=0.35, custom_cross="",
     autokill=false, autotp=false, pickup=false, roles=false,
+    autocamper=false, camper_cooldown=2,
     cross=true, fov=true, hardaim=true, fly=false, noclip=false, infjump=false,
     fullbright=false, aimbot=false, spin=false,
     hitbox=false, lines=false, antiaim=false, walkback=false, sky_name="",
@@ -232,7 +239,7 @@ local SaveData = {
 
 local function serialize()
     local s=""
-    local keys={"lang","device","panel_w","panel_h","panel_x","panel_y","esp","esp_health","esp_name","esp_dist","esp_weapon","esp_rainbow","cross_style","speed50","speed_value","farm","invisible","aim_part","aim_smooth","custom_cross","autokill","autotp","pickup","roles","cross","fov","hardaim","fly","noclip","infjump","fullbright","aimbot","spin","hitbox","lines","antiaim","walkback","sky_name","triggerbot","trigger_delay","trigger_range","trigger_target","farm_speed"}
+    local keys={"lang","device","panel_w","panel_h","panel_x","panel_y","esp","esp_health","esp_name","esp_dist","esp_weapon","esp_rainbow","cross_style","speed50","speed_value","farm","invisible","aim_part","aim_smooth","custom_cross","autokill","autotp","pickup","roles","autocamper","camper_cooldown","cross","fov","hardaim","fly","noclip","infjump","fullbright","aimbot","spin","hitbox","lines","antiaim","walkback","sky_name","triggerbot","trigger_delay","trigger_range","trigger_target","farm_speed"}
     for _,k in ipairs(keys) do
         local v=SaveData[k]
         if type(v)=="boolean" then s=s..k.."="..tostring(v).."\n"
@@ -276,6 +283,8 @@ local function loadSettings()
             elseif k=="autotp" then SaveData.autotp=(v=="true")
             elseif k=="pickup" then SaveData.pickup=(v=="true")
             elseif k=="roles" then SaveData.roles=(v=="true")
+            elseif k=="autocamper" then SaveData.autocamper=(v=="true")
+            elseif k=="camper_cooldown" then SaveData.camper_cooldown=tonumber(v) or 2
             elseif k=="cross" then SaveData.cross=(v=="true")
             elseif k=="fov" then SaveData.fov=(v=="true")
             elseif k=="hardaim" then SaveData.hardaim=(v=="true")
@@ -370,6 +379,7 @@ local S = {
     roleHighlight=SaveData.roles, roleHL={},
     aimbot=SaveData.aimbot, aimbotFOV=200, aimT=nil, hardAim=SaveData.hardaim,
     autoKillEnabled=SaveData.autokill, autoKillThread=nil, autoKillList={}, autoKillLoopThread=nil,
+    autoCamperEnabled=SaveData.autocamper, autoCamperThread=nil, autoCamperBusy=false, autoCamperCooldown=SaveData.camper_cooldown or 2,
     autoTpEnabled=SaveData.autotp, autoTpThread=nil,
     autoPickup=SaveData.pickup, sheriffThread=nil, lastSheriffPos=nil, lastSheriff=nil,
     farmEnabled=SaveData.farm, farmThread=nil,
@@ -750,6 +760,91 @@ local function killOneTarget(target)
     return targetHum and targetHum.Health<=0
 end
 
+local function killSheriffCamper()
+    if S.autoCamperBusy then return end
+    if getRole(LP)~="Murderer" then return end
+    local sheriff=nil
+    for _,plr in ipairs(Players:GetPlayers()) do
+        if plr~=LP and plr.Character and getRole(plr)=="Sheriff" then
+            local h=plr.Character:FindFirstChildOfClass("Humanoid")
+            if h and h.Health>0 then
+                sheriff=plr
+                break
+            end
+        end
+    end
+    if not sheriff then return end
+    local myChar=LP.Character
+    if not myChar then return end
+    local myHrp=myChar:FindFirstChild("HumanoidRootPart")
+    if not myHrp then return end
+    local mySavedPos=myHrp.CFrame
+    local mySavedVel=myHrp.AssemblyLinearVelocity
+    S.autoCamperBusy=true
+    local knife=equipMyKnife()
+    if not knife then S.autoCamperBusy=false return end
+    local tChar=sheriff.Character
+    if not tChar then S.autoCamperBusy=false return end
+    local tHrp=tChar:FindFirstChild("HumanoidRootPart")
+    if not tHrp then S.autoCamperBusy=false return end
+    local tHum=tChar:FindFirstChildOfClass("Humanoid")
+    if not tHum then S.autoCamperBusy=false return end
+    pcall(function()
+        myHrp.CFrame=tHrp.CFrame*CFrame.new(0,0,1.5)
+        myHrp.AssemblyLinearVelocity=Vector3.zero
+    end)
+    for _,p in ipairs(tChar:GetDescendants()) do
+        if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
+    end
+    local handle=knife:FindFirstChild("Handle")
+    for attempt=1,20 do
+        if not tHum or tHum.Health<=0 then break end
+        tHrp=tChar:FindFirstChild("HumanoidRootPart")
+        if not tHrp then break end
+        pcall(function() myHrp.CFrame=tHrp.CFrame*CFrame.new(0,0,1.5) end)
+        task.wait(0.02)
+        if handle then
+            for _,part in ipairs(tChar:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    pcall(function()
+                        firetouchinterest(handle,part,0)
+                        firetouchinterest(handle,part,1)
+                    end)
+                end
+            end
+        end
+        pcall(function() knife:Activate() end)
+        task.wait(0.05)
+    end
+    task.wait(0.15)
+    pcall(function()
+        myHrp.CFrame=mySavedPos
+        myHrp.AssemblyLinearVelocity=mySavedVel
+    end)
+    S.autoCamperBusy=false
+end
+
+local function startAutoCamper()
+    if S.autoCamperThread then return end
+    S.autoCamperThread=task.spawn(function()
+        while S.autoCamperEnabled do
+            if getRole(LP)=="Murderer" then
+                killSheriffCamper()
+                task.wait(S.autoCamperCooldown or 2)
+            else
+                task.wait(0.5)
+            end
+        end
+        S.autoCamperThread=nil
+    end)
+end
+
+local function stopAutoCamper()
+    S.autoCamperEnabled=false
+    S.autoCamperThread=nil
+    S.autoCamperBusy=false
+end
+
 local function findMurdererSilent()
     if not LP.Character then return nil end
     local myHrp=LP.Character:FindFirstChild("HumanoidRootPart")
@@ -804,10 +899,7 @@ end
 local function triggerFire()
     if not S.triggerbot then return end
     if getRole(LP)~="Sheriff" then return end
-    if not hasGunInHand() then
-        equipGun()
-        return
-    end
+    if not hasGunInHand() then return end
     local target=findMurdererSilent()
     if target then silentFire(target) end
 end
@@ -1702,6 +1794,16 @@ local function setAimbot(state,silent)
                     return
                 end
                 if S.flingRunning then return end
+                if getRole(LP)~="Sheriff" then
+                    S.aimT=nil
+                    restoreMouse()
+                    return
+                end
+                if not hasGunInHand() then
+                    S.aimT=nil
+                    restoreMouse()
+                    return
+                end
                 local ok,err=pcall(function()
                     local myChar=LP.Character
                     if not myChar or not myChar.Parent then return end
@@ -2284,6 +2386,29 @@ local function createGUI()
         if v then startAutoKillLoop() else stopAutoKillLoop() end
     end)
 
+    addLabel(tabMain,T("sec_camper"))
+    addToggle(tabMain,T("autocamper"),SaveData.autocamper,function(v)
+        S.autoCamperEnabled=v
+        SaveData.autocamper=v
+        saveSettings()
+        if v then startAutoCamper() else stopAutoCamper() end
+    end)
+
+    addLabel(tabMain,T("camper_cooldown"))
+    local camperCdBox=addTextBox(tabMain,S.autoCamperCooldown,"2")
+    camperCdBox.FocusLost:Connect(function()
+        local v=tonumber(camperCdBox.Text)
+        if v and v>=0.5 and v<=30 then
+            S.autoCamperCooldown=v
+            SaveData.camper_cooldown=v
+            saveSettings()
+            notify("Кулдаун: "..v,Color3.fromRGB(0,200,100))
+        else
+            camperCdBox.Text=tostring(S.autoCamperCooldown)
+            notify("0.5-30",Color3.fromRGB(255,60,60))
+        end
+    end)
+
     addToggle(tabMain,T("autoTpMurderer"),SaveData.autotp,function(v)
         S.autoTpEnabled=v
         SaveData.autotp=v
@@ -2707,7 +2832,7 @@ local function createGUI()
     addLabel(tabRage,T("sec_aim"))
     local aimbotRow=addToggle(tabRage,T("aimbot"),SaveData.aimbot,function(v)
         setAimbot(v)
-        if v then notify("Аим: мардер в прицеле",Color3.fromRGB(0,200,100)) end
+        if v then notify("Аим: только с пушкой в руке",Color3.fromRGB(0,200,100)) end
     end)
     aimbotRow.Name="AimToggleRow"
 
@@ -2833,6 +2958,7 @@ local function createGUI()
         S.autoPickup=false
         S.autoKillEnabled=false
         S.autoTpEnabled=false
+        S.autoCamperEnabled=false
         S.espEnabled=false
         S.speed50Enabled=false
         S.farmEnabled=false
@@ -2850,6 +2976,7 @@ local function createGUI()
         SaveData.pickup=false
         SaveData.autokill=false
         SaveData.autotp=false
+        SaveData.autocamper=false
         SaveData.esp=false
         SaveData.speed50=false
         SaveData.farm=false
@@ -2862,6 +2989,7 @@ local function createGUI()
         stopAutoKillLoop()
         stopAutoTp()
         stopAutoPickup()
+        stopAutoCamper()
         stopFarm()
         clearHL()
         stopWalkBack()
@@ -3508,6 +3636,7 @@ function showLoading()
         if S.speed50Enabled then startSpeed50Loop() end
         if S.farmEnabled then startFarm() end
         if S.autoKillEnabled then startAutoKillLoop() end
+        if S.autoCamperEnabled then startAutoCamper() end
         if S.autoTpEnabled then startAutoTp() end
         if S.autoPickup then startAutoPickup() end
         if S.roleHighlight then refreshHL() end
@@ -3564,6 +3693,7 @@ _G.VankaPanel = {
         stopAutoKillLoop()
         stopAutoTp()
         stopAutoPickup()
+        stopAutoCamper()
         stopFarm()
         stopWalkBack()
         stopTriggerbot()
