@@ -76,7 +76,7 @@ local L = {
         walkback_on="Ходьба задом ВКЛ", walkback_off="Ходьба задом ВЫКЛ",
         sky_cosmos="Космос", sky_galaxy="Галактика", sky_dawn="Рассвет",
         sky_sunset="Закат", sky_night="Ночное", sky_purple="Фиолет", sky_clear="Убрать небо",
-        guide_text="ГЛАВНАЯ\n— Авто-нож: работает когда ты мардер, бьёт всех подряд.\n— Авто-кемпер: когда ты мардер, убивает только шерифа и возвращается назад.\n— Следование: телепорт за мардером.\n— Авто-фарм: собирает монеты, скорость настраивается.\n— Подбор пистолета: шериф умер → тп к нему → 1 сек → тп назад.\n— Подсветка ролей: цветной контур на игроках.\n— Фейк-нож: выдаёт нож в инвентарь.\n— Инвиз: убирает твоё тело.\n— Очистить инвентарь: удаляет все тулзы.\n\nВИЗУАЛ\n— Прицел, FOV, хард-аим — настройка вида.\n— Стили прицела, свой PNG — внешний вид.\n— Флай, ноклип, беск. прыжок, спидхак, ходьба задом.\n— Небо (6 пресетов), фулбрайт.\n\nЕСП\n— Включить — главный тумблер.\n— Здоровье, имя, дистанция, оружие — что показывать над головой.\n— Радуга — цвет переливается.\n— Хитбокс, линии.\n— Превью — как выглядит ESP.\n\nРЕЙДЖ\n— Аимбот: работает только когда пушка в руке (шериф).\n— Часть тела, плавность, килл-аим.\n— Триггер-бот: клик по мардеру (только шериф).\n— Спинбот, анти-аим.\n— Респавн — убить себя.\n— ВЫКЛЮЧИТЬ ВСЁ — отключить всё сразу.\n\nИГРОКИ\n— Список с аватарками.\n— ТП — телепорт к игроку.\n— ФЛИНГ — SkidFling, работает за ~1 сек.\n\nНАСТРОЙКИ\n— Язык: ru/en/zh.\n— Цвет панели: 56 цветов.\n\nКОНФИГИ\n— Имя конфига → Сохранить.\n— Имя → Загрузить.\n— Пресеты: default/aim/farm.\n\n📖 — эта инструкция.\n\nRightShift — свернуть/развернуть панель.\nКнопка «-» — свернуть в лого.\nКнопка «X» — закрыть.",
+        guide_text="ГЛАВНАЯ\n— Авто-нож: мардер бьёт всех подряд.\n— Авто-кемпер: мардер убивает только шерифа и возвращается.\n— Следование: телепорт за мардером.\n— Авто-фарм: летит с места включения к монетам на скорости.\n— Подбор пистолета: шериф умер → тп → 1 сек → тп назад.\n— Подсветка ролей, фейк-нож, инвиз, очистка.\n\nВИЗУАЛ\n— Прицел, FOV, стили, свой PNG.\n— Флай, ноклип, беск. прыжок, спидхак, ходьба задом.\n— Небо (6 пресетов), фулбрайт.\n\nЕСП\n— Включить, HP, имя, дистанция, оружие, радуга.\n— Хитбокс, линии, превью.\n\nРЕЙДЖ\n— Аимбот: липнет только шериф + Gun в руке.\n— Часть тела, плавность, килл-аим.\n— Триггер-бот: клик по мардеру (шериф + Gun).\n— Спинбот, анти-аим, респавн, выкл всё.\n\nИГРОКИ\n— Список с аватарками, ТП, ФЛИНГ (SkidFling).\n\nНАСТРОЙКИ\n— Язык ru/en/zh, 56 цветов панели.\n\nКОНФИГИ\n— Имя → Сохранить / Загрузить / Пресеты.\n\n📖 — эта инструкция.\nRightShift — свернуть.\n- — в лого.\nX — закрыть.",
     },
     en = {
         title="VANKA ADMIN",
@@ -138,7 +138,7 @@ local L = {
         walkback_on="Walk back ON", walkback_off="Walk back OFF",
         sky_cosmos="Cosmos", sky_galaxy="Galaxy", sky_dawn="Dawn",
         sky_sunset="Sunset", sky_night="Night", sky_purple="Purple", sky_clear="Clear sky",
-        guide_text="MAIN\n— Auto-knife: works when you're murderer, hits everyone.\n— Auto-camper: when you're murderer, kills only sheriff and returns back.\n— Follow: teleport behind murderer.\n— Auto-farm: collects coins, speed adjustable.\n— Gun pickup: sheriff died → tp to him → 1 sec → tp back.\n— Role highlight: colored outline on players.\n— Fake knife: gives knife to inventory.\n— Invisible: hides your body.\n— Clear inventory: removes all tools.\n\nVISUAL\n— Crosshair, FOV, hard aim — view settings.\n— Crosshair styles, custom PNG — appearance.\n— Fly, noclip, inf jump, speedhack, walk backwards.\n— Sky (6 presets), fullbright.\n\nESP\n— Enable — main toggle.\n— Health, name, distance, weapon — what to show above head.\n— Rainbow — color cycles.\n— Hitbox, lines.\n— Preview — how ESP looks.\n\nRAGE\n— Aimbot: works only when gun is in hand (sheriff).\n— Aim part, smoothness, kill aim.\n— Triggerbot: click to fire at murderer (sheriff only).\n— Spinbot, anti-aim.\n— Respawn — kill yourself.\n— TURN OFF ALL — disable everything.\n\nPLAYERS\n— List with avatars.\n— TP — teleport to player.\n— FLING — SkidFling, works in ~1 sec.\n\nSETTINGS\n— Language: ru/en/zh.\n— Panel color: 56 colors.\n\nCONFIGS\n— Name → Save.\n— Name → Load.\n— Presets: default/aim/farm.\n\n📖 — this guide.\n\nRightShift — minimize/restore panel.\n'-' button — minimize to logo.\n'X' button — close panel.",
+        guide_text="MAIN\n— Auto-knife: murderer hits everyone.\n— Auto-camper: murderer kills only sheriff and returns.\n— Follow: teleport behind murderer.\n— Auto-farm: flies from your position to coins at speed.\n— Gun pickup: sheriff died → tp → 1 sec → tp back.\n— Role highlight, fake knife, invisible, clear inventory.\n\nVISUAL\n— Crosshair, FOV, styles, custom PNG.\n— Fly, noclip, inf jump, speedhack, walk backwards.\n— Sky (6 presets), fullbright.\n\nESP\n— Enable, HP, name, distance, weapon, rainbow.\n— Hitbox, lines, preview.\n\nRAGE\n— Aimbot: locks only sheriff + Gun in hand.\n— Aim part, smoothness, kill aim.\n— Triggerbot: click on murderer (sheriff + Gun).\n— Spinbot, anti-aim, respawn, turn off all.\n\nPLAYERS\n— List with avatars, TP, FLING (SkidFling).\n\nSETTINGS\n— Language ru/en/zh, 56 colors.\n\nCONFIGS\n— Name → Save / Load / Presets.\n\n📖 — this guide.\nRightShift — minimize.\n- — to logo.\nX — close.",
     },
     zh = {
         title="VANKA 管理员",
@@ -200,7 +200,7 @@ local L = {
         walkback_on="倒着走开", walkback_off="倒着走关",
         sky_cosmos="宇宙", sky_galaxy="银河", sky_dawn="黎明",
         sky_sunset="日落", sky_night="夜晚", sky_purple="紫色", sky_clear="清除天空",
-        guide_text="主要\n— 自动刀：当你是凶手时，攻击所有人。\n— 自动猎手：当你是凶手时，只击杀警长并返回。\n— 跟踪：传送到凶手身后。\n— 自动农场：收集金币，速度可调。\n— 拾取枪支：警长死亡 → 传送到他 → 1 秒 → 传送回来。\n— 角色高亮：玩家身上的彩色轮廓。\n— 假刀：将刀放入背包。\n— 隐身：隐藏你的身体。\n— 清空背包：删除所有工具。\n\n视觉\n— 准星、FOV、硬瞄准 — 视图设置。\n— 准星样式、自定义 PNG — 外观。\n— 飞行、穿墙、无限跳、加速、倒着走。\n— 天空（6 个预设）、全亮。\n\nESP\n— 启用 — 主开关。\n— 生命、名字、距离、武器 — 头顶显示内容。\n— 彩虹 — 颜色循环。\n— 碰撞箱、线。\n— 预览 — ESP 外观。\n\n愤怒\n— 自瞄：仅当枪在手时有效（警长）。\n— 瞄准部位、平滑度、击杀瞄准。\n— 扳机机器人：点击射向凶手（仅警长）。\n— 旋转机器人、防瞄准。\n— 重生 — 自杀。\n— 关闭所有 — 一次关闭全部。\n\n玩家\n— 带头像的列表。\n— 传送 — 传送到玩家。\n— 甩飞 — SkidFling，约 1 秒完成。\n\n设置\n— 语言：ru/en/zh。\n— 面板颜色：56 种颜色。\n\n配置\n— 名字 → 保存。\n— 名字 → 加载。\n— 预设：default/aim/farm。\n\n📖 — 本指南。\n\nRightShift — 最小化/恢复面板。\n'-' 按钮 — 最小化为图标。\n'X' 按钮 — 关闭面板。",
+        guide_text="主要\n— 自动刀：凶手攻击所有人。\n— 自动猎手：凶手只击杀警长并返回。\n— 跟踪：传送到凶手身后。\n— 自动农场：从你的位置飞向金币。\n— 拾取枪支：警长死亡 → 传送 → 1 秒 → 传送回来。\n— 角色高亮、假刀、隐身、清空背包。\n\n视觉\n— 准星、FOV、样式、自定义 PNG。\n— 飞行、穿墙、无限跳、加速、倒着走。\n— 天空（6 个预设）、全亮。\n\nESP\n— 启用、生命、名字、距离、武器、彩虹。\n— 碰撞箱、线、预览。\n\n愤怒\n— 自瞄：仅警长 + Gun 在手时锁定。\n— 瞄准部位、平滑度、击杀瞄准。\n— 扳机机器人：点击凶手（警长 + Gun）。\n— 旋转机器人、防瞄准、重生、关闭所有。\n\n玩家\n— 带头像列表、传送、甩飞（SkidFling）。\n\n设置\n— 语言 ru/en/zh、56 种颜色。\n\n配置\n— 名字 → 保存 / 加载 / 预设。\n\n📖 — 本指南。\nRightShift — 最小化。\n- — 图标。\nX — 关闭。",
     }
 }
 
@@ -234,7 +234,7 @@ local SaveData = {
     fullbright=false, aimbot=false, spin=false,
     hitbox=false, lines=false, antiaim=false, walkback=false, sky_name="",
     triggerbot=false, trigger_delay=0.05, trigger_range=200, trigger_target="Head",
-    farm_speed=80,
+    farm_speed=200,
 }
 
 local function serialize()
@@ -302,7 +302,7 @@ local function loadSettings()
             elseif k=="speed50" then SaveData.speed50=(v=="true")
             elseif k=="speed_value" then SaveData.speed_value=tonumber(v) or 50
             elseif k=="farm" then SaveData.farm=(v=="true")
-            elseif k=="farm_speed" then SaveData.farm_speed=tonumber(v) or 80
+            elseif k=="farm_speed" then SaveData.farm_speed=tonumber(v) or 200
             elseif k=="invisible" then SaveData.invisible=(v=="true")
             elseif k=="cross_style" then SaveData.cross_style=tonumber(v) or 1
             elseif k=="aim_smooth" then SaveData.aim_smooth=tonumber(v) or 0.35
@@ -373,7 +373,7 @@ local BTN_H=isMobile and 32 or 34
 local TOGGLE_H=isMobile and 34 or 36
 local FONT_SZ=isMobile and 11 or 12
 local HEADER_H=isMobile and 50 or 54
-local FARM_SPEED=SaveData.farm_speed or 80
+local FARM_SPEED=SaveData.farm_speed or 200
 
 local S = {
     roleHighlight=SaveData.roles, roleHL={},
@@ -498,6 +498,15 @@ local function isGun(t)
     return string.find(n,"gun") or string.find(n,"pistol") or string.find(n,"revolver")
 end
 
+local function isRealGun(t)
+    if not t or not t.Name then return false end
+    local n=string.lower(t.Name)
+    if string.find(n,"toy") or string.find(n,"water") or string.find(n,"fake") or string.find(n,"nerf") or string.find(n,"disc") then return false end
+    if n=="gun" or n=="pistol" or n=="revolver" then return true end
+    if string.find(n,"^gun") or string.find(n,"^pistol") or string.find(n,"^revolver") then return true end
+    return false
+end
+
 local function isKnife(t)
     if not t or not t.Name then return false end
     local n=string.lower(t.Name)
@@ -521,6 +530,13 @@ local function hasGunInHand()
     if not LP.Character then return false end
     local t=LP.Character:FindFirstChildOfClass("Tool")
     return t and isGun(t)
+end
+
+local function hasRealGunInHand()
+    if not LP.Character then return false end
+    local t=LP.Character:FindFirstChildOfClass("Tool")
+    if not t then return false end
+    return isRealGun(t)
 end
 
 local function hasGunAnywhere()
@@ -676,52 +692,6 @@ local function clearSky()
     end
 end
 
-local mouseHookInstalled=false
-local mouse=LP:GetMouse()
-local hookTargetPart=nil
-local hookTargetPos=nil
-
-local function installMouseHook()
-    if mouseHookInstalled then return end
-    mouseHookInstalled=true
-    local ok=pcall(function()
-        if hookmetamethod then
-            local oldIndex
-            oldIndex=hookmetamethod(game,"__index",function(self,key)
-                if self==mouse then
-                    if key=="Hit" and hookTargetPos then return CFrame.new(hookTargetPos)
-                    elseif key=="Target" and hookTargetPart then return hookTargetPart end
-                end
-                return oldIndex(self,key)
-            end)
-            return
-        end
-        if getrawmetatable and setreadonly then
-            local mt=getrawmetatable(mouse)
-            if not mt then return end
-            local oldIndex=mt.__index
-            setreadonly(mt,false)
-            mt.__index=function(self,key)
-                if key=="Hit" and hookTargetPos then return CFrame.new(hookTargetPos)
-                elseif key=="Target" and hookTargetPart then return hookTargetPart end
-                return oldIndex(self,key)
-            end
-            setreadonly(mt,true)
-        end
-    end)
-    if not ok then mouseHookInstalled=false end
-end
-
-local function fireMobileShot()
-    pcall(function()
-        local v=Cam.ViewportSize
-        local x,y=v.X/2,v.Y/2
-        VIM:SendTouchEvent(1,Enum.UserInputState.Begin,x,y,{})
-        task.wait()
-        VIM:SendTouchEvent(1,Enum.UserInputState.End,x,y,{})
-    end)
-end
-
 local function killOneTarget(target)
     if not target or target==LP or not target.Character then return false end
     local myChar=LP.Character
@@ -872,34 +842,25 @@ local function silentFire(target)
     if not target or not target.Character then return end
     local part=getTargetPartFor(target,S.triggerTarget or "Head")
     if not part then return end
-    hookTargetPart=part
-    hookTargetPos=part.Position
     local tool=LP.Character and LP.Character:FindFirstChildOfClass("Tool")
-    if not tool or not isGun(tool) then
-        hookTargetPart=nil
-        hookTargetPos=nil
-        return
-    end
-    pcall(function() tool:Activate() end)
-    if IS_MOBILE then
-        fireMobileShot()
-    else
-        pcall(function()
-            local v=Cam.ViewportSize
-            VirtualUser:Button1Down(Vector2.new(v.X/2,v.Y/2),Cam.CFrame)
-            VirtualUser:Button1Up(Vector2.new(v.X/2,v.Y/2),Cam.CFrame)
-        end)
-    end
-    task.defer(function()
-        hookTargetPart=nil
-        hookTargetPos=nil
+    if not tool or not isGun(tool) then return end
+    local tHum=target.Character:FindFirstChildOfClass("Humanoid")
+    local tHRP=target.Character:FindFirstChild("HumanoidRootPart")
+    if not tHum or not tHRP then return end
+    local args={
+        [1]=1,
+        [2]=tHRP.Position+tHum.MoveDirection*3.5,
+        [3]="AH"
+    }
+    pcall(function()
+        tool.KnifeServer.ShootGun:InvokeServer(unpack(args))
     end)
 end
 
 local function triggerFire()
     if not S.triggerbot then return end
     if getRole(LP)~="Sheriff" then return end
-    if not hasGunInHand() then return end
+    if not hasRealGunInHand() then return end
     local target=findMurdererSilent()
     if target then silentFire(target) end
 end
@@ -1177,6 +1138,14 @@ local function flingStart(targetName)
     SkidFling(target)
 end
 
+local function isCoinGone(c)
+    if not c or not c.part then return true end
+    if not c.part.Parent then return true end
+    if c.part.Transparency>=0.95 then return true end
+    if c.part.Size.Magnitude<0.1 then return true end
+    return false
+end
+
 local function findCoin()
     local myHrp=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
     if not myHrp then return nil end
@@ -1239,25 +1208,26 @@ local function startFarm()
             if not hrp then bv.Velocity=Vector3.zero return end
             if bv.Parent~=hrp then bv.Parent=hrp end
             if isBagFull() then S.farmEnabled=false return end
-            if not currentCoin or not currentCoin.part or not currentCoin.part.Parent then
+
+            if isCoinGone(currentCoin) then
                 currentCoin=findCoin()
-                if not currentCoin then bv.Velocity=Vector3.zero return end
+                if not currentCoin then
+                    bv.Velocity=Vector3.zero
+                    return
+                end
             end
+
             local targetPos=currentCoin.part.Position
             local myPos=hrp.Position
             local flatDelta=Vector3.new(targetPos.X-myPos.X,0,targetPos.Z-myPos.Z)
             local dist=flatDelta.Magnitude
-            if dist<2.5 then
+            if dist<0.1 then
                 bv.Velocity=Vector3.zero
-                currentCoin=nil
                 return
             end
             local speed=FARM_SPEED
-            if dist<8 then
-                speed=FARM_SPEED*(dist/8)
-                if speed<10 then speed=10 end
-            end
-            bv.Velocity=flatDelta.Unit*speed
+            if speed<200 then speed=200 end
+            bv.Velocity=flatDelta.Unit*speed+Vector3.new(0,-8,0)
         end)
         while S.farmEnabled do task.wait(0.1) end
         if conn then conn:Disconnect() end
@@ -1353,41 +1323,14 @@ local function updateESP()
                             if isKnife(tool) then
                                 weaponLbl.Text=tool.Name
                                 weaponLbl.TextColor3=Color3.fromRGB(255,80,80)
-                                local hand=getHandPart(plr)
-                                if hand and not hand:FindFirstChild("VankaHandHL") then
-                                    local hl=Instance.new("Highlight")
-                                    hl.Name="VankaHandHL"
-                                    hl.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
-                                    hl.FillColor=Color3.fromRGB(255,50,50)
-                                    hl.OutlineColor=Color3.fromRGB(255,255,255)
-                                    hl.FillTransparency=0.3
-                                    hl.Parent=hand
-                                end
                             elseif isGun(tool) then
                                 weaponLbl.Text=tool.Name
                                 weaponLbl.TextColor3=Color3.fromRGB(80,180,255)
-                                local hand=getHandPart(plr)
-                                if hand and not hand:FindFirstChild("VankaHandHL") then
-                                    local hl=Instance.new("Highlight")
-                                    hl.Name="VankaHandHL"
-                                    hl.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
-                                    hl.FillColor=Color3.fromRGB(50,150,255)
-                                    hl.OutlineColor=Color3.fromRGB(255,255,255)
-                                    hl.FillTransparency=0.3
-                                    hl.Parent=hand
-                                end
                             else
                                 weaponLbl.Text=tool.Name
                                 weaponLbl.TextColor3=Color3.fromRGB(255,200,80)
                             end
                         else weaponLbl.Text="" end
-                    end
-                end
-                if not S.espWeapon or not getToolInHand(plr) then
-                    local hand=getHandPart(plr)
-                    if hand then
-                        local old=hand:FindFirstChild("VankaHandHL")
-                        if old then old:Destroy() end
                     end
                 end
                 if distLbl and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
@@ -1424,12 +1367,6 @@ local function applyInvisible()
     for _,p in ipairs(LP.Character:GetDescendants()) do
         if p:IsA("BasePart") or p:IsA("Decal") then pcall(function() p.Transparency=1 end) end
     end
-    for _,acc in ipairs(LP.Character:GetChildren()) do
-        if acc:IsA("Accessory") then
-            local h=acc:FindFirstChild("Handle")
-            if h then pcall(function() h.Transparency=1 end) end
-        end
-    end
 end
 
 local function setInvisible(state)
@@ -1450,12 +1387,6 @@ local function setInvisible(state)
         if LP.Character then
             for _,p in ipairs(LP.Character:GetDescendants()) do
                 if p:IsA("BasePart") or p:IsA("Decal") then pcall(function() p.Transparency=0 end) end
-            end
-            for _,acc in ipairs(LP.Character:GetChildren()) do
-                if acc:IsA("Accessory") then
-                    local h=acc:FindFirstChild("Handle")
-                    if h then pcall(function() h.Transparency=0 end) end
-                end
             end
         end
         notify(T("inv_off"),Color3.fromRGB(150,150,150))
@@ -1733,53 +1664,12 @@ local function setAimbotVisual(state)
     end
 end
 
-local function restoreMouse()
-    pcall(function()
-        if UIS.MouseBehavior~=Enum.MouseBehavior.Default then UIS.MouseBehavior=Enum.MouseBehavior.Default end
-        if not UIS.MouseIconEnabled then UIS.MouseIconEnabled=true end
-    end)
-end
-
-local function aimFireIntercept()
-    if not S.aimbot then return end
-    if not S.aimT or not S.aimT.Character then return end
-    local tool=LP.Character and LP.Character:FindFirstChildOfClass("Tool")
-    if not tool or not isGun(tool) then return end
-    local tPart=getAimPart(S.aimT.Character)
-    if not tPart then return end
-    hookTargetPart=tPart
-    hookTargetPos=tPart.Position
-    pcall(function() tool:Activate() end)
-    if IS_MOBILE then
-        fireMobileShot()
-    else
-        pcall(function()
-            local v=Cam.ViewportSize
-            VirtualUser:Button1Down(Vector2.new(v.X/2,v.Y/2),Cam.CFrame)
-            VirtualUser:Button1Up(Vector2.new(v.X/2,v.Y/2),Cam.CFrame)
-        end)
-    end
-    task.defer(function()
-        hookTargetPart=nil
-        hookTargetPos=nil
-    end)
-end
-
 local function setAimbot(state,silent)
     S.aimbot=state
     SaveData.aimbot=state
     saveSettings()
     setAimbotVisual(state)
     if state then
-        installMouseHook()
-        if not S._aimFireConn then
-            S._aimFireConn=UIS.InputBegan:Connect(function(input,gp)
-                if gp then return end
-                if input.UserInputType~=Enum.UserInputType.MouseButton1
-                   and input.UserInputType~=Enum.UserInputType.Touch then return end
-                aimFireIntercept()
-            end)
-        end
         if not aimBound then
             aimBound=true
             local lastSeen=0
@@ -1789,19 +1679,16 @@ local function setAimbot(state,silent)
                         aimBound=false
                         pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
                     end
-                    restoreMouse()
                     S.aimT=nil
                     return
                 end
                 if S.flingRunning then return end
                 if getRole(LP)~="Sheriff" then
                     S.aimT=nil
-                    restoreMouse()
                     return
                 end
-                if not hasGunInHand() then
+                if not hasRealGunInHand() then
                     S.aimT=nil
-                    restoreMouse()
                     return
                 end
                 local ok,err=pcall(function()
@@ -1843,12 +1730,7 @@ local function setAimbot(state,silent)
                                 if camPos.X==camPos.X then
                                     local delta=(tPos-camPos).Magnitude
                                     if delta>0.5 then
-                                        local desired=CFrame.lookAt(camPos,tPos)
-                                        if S.hardAim then Cam.CFrame=desired
-                                        else
-                                            local lerp=math.clamp(1-(S.aimSmooth or 0.35),0.08,1)
-                                            Cam.CFrame=Cam.CFrame:Lerp(desired,lerp)
-                                        end
+                                        Cam.CFrame=CFrame.lookAt(camPos,tPos)
                                     end
                                 end
                             end
@@ -1859,7 +1741,6 @@ local function setAimbot(state,silent)
                                 aimBound=false
                                 pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
                             end
-                            restoreMouse()
                             S.aimT=nil
                             S.aimbot=false
                             SaveData.aimbot=false
@@ -1877,11 +1758,6 @@ local function setAimbot(state,silent)
             aimBound=false
             pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
         end
-        if S._aimFireConn then
-            pcall(function() S._aimFireConn:Disconnect() end)
-            S._aimFireConn=nil
-        end
-        restoreMouse()
         S.aimT=nil
     end
 end
@@ -2405,7 +2281,6 @@ local function createGUI()
             notify("Кулдаун: "..v,Color3.fromRGB(0,200,100))
         else
             camperCdBox.Text=tostring(S.autoCamperCooldown)
-            notify("0.5-30",Color3.fromRGB(255,60,60))
         end
     end)
 
@@ -2425,17 +2300,16 @@ local function createGUI()
     end)
 
     addLabel(tabMain,T("farm_speed"))
-    local farmSpeedBox=addTextBox(tabMain,FARM_SPEED,"80")
+    local farmSpeedBox=addTextBox(tabMain,FARM_SPEED,"200")
     farmSpeedBox.FocusLost:Connect(function()
         local v=tonumber(farmSpeedBox.Text)
-        if v and v>=10 and v<=500 then
+        if v and v>=50 and v<=1000 then
             FARM_SPEED=v
             SaveData.farm_speed=v
             saveSettings()
             notify("Скорость фарма: "..v,Color3.fromRGB(0,200,100))
         else
             farmSpeedBox.Text=tostring(FARM_SPEED)
-            notify("Скорость 10-500",Color3.fromRGB(255,60,60))
         end
     end)
 
@@ -2526,7 +2400,6 @@ local function createGUI()
                     SaveData.custom_cross="vanka_crosshair.png"
                     saveSettings()
                     if _G.VankaUpdateCross then _G.VankaUpdateCross() end
-                    notify(T("cross_loaded"),Color3.fromRGB(0,200,100))
                 end
             else
                 notify(T("cross_notfound"),Color3.fromRGB(255,60,60))
@@ -2573,10 +2446,8 @@ local function createGUI()
                 local h=LP.Character:FindFirstChildOfClass("Humanoid")
                 if h then h.WalkSpeed=v end
             end
-            notify("Скорость: "..v,Color3.fromRGB(0,200,100))
         else
             speedBox.Text=tostring(S.speedValue or 50)
-            notify("Скорость 1-500",Color3.fromRGB(255,60,60))
         end
     end)
 
@@ -2832,7 +2703,7 @@ local function createGUI()
     addLabel(tabRage,T("sec_aim"))
     local aimbotRow=addToggle(tabRage,T("aimbot"),SaveData.aimbot,function(v)
         setAimbot(v)
-        if v then notify("Аим: только с пушкой в руке",Color3.fromRGB(0,200,100)) end
+        if v then notify("Аим: только шериф + Gun в руке",Color3.fromRGB(0,200,100)) end
     end)
     aimbotRow.Name="AimToggleRow"
 
@@ -3178,7 +3049,6 @@ local function createGUI()
                 end
             end
             if S.previewRefs and S.previewRefs.noobStroke then S.previewRefs.noobStroke.Color=S.panelColor end
-            notify(T("saved_msg"),Color3.fromRGB(0,200,100))
         end)
     end
 
@@ -3202,7 +3072,6 @@ local function createGUI()
         if makefolder then pcall(makefolder,"vanka_configs") end
         local path="vanka_configs/"..nameBox.Text..".txt"
         pcall(writefile,path,serialize())
-        notify(T("cfg_saved"),Color3.fromRGB(0,200,100))
     end)
 
     addBtn(tabConfigs,T("cfg_load"),Color3.fromRGB(80,80,150),function()
@@ -3216,7 +3085,6 @@ local function createGUI()
         local ok2,data=pcall(readfile,path)
         if ok2 and data then
             pcall(writefile,SAVE_FILE,data)
-            notify(T("cfg_loaded"),Color3.fromRGB(0,200,100))
         end
     end)
 
@@ -3675,15 +3543,6 @@ _G.VankaPanel = {
             aimBound=false
             pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
         end
-        if S._aimFireConn then
-            pcall(function() S._aimFireConn:Disconnect() end)
-            S._aimFireConn=nil
-        end
-        restoreMouse()
-        pcall(function()
-            UIS.MouseBehavior=Enum.MouseBehavior.Default
-            UIS.MouseIconEnabled=true
-        end)
         for _,c in ipairs(S.conns) do
             pcall(function()
                 if c and c.Disconnect then c:Disconnect() end
