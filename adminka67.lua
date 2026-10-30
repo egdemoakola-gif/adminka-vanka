@@ -235,11 +235,12 @@ local SaveData = {
     hitbox=false, lines=false, antiaim=false, walkback=false, sky_name="",
     triggerbot=false, trigger_delay=0.05, trigger_range=200, trigger_target="Head",
     farm_speed=80,
+    antifling=false,
 }
 
 local function serialize()
     local s=""
-    local keys={"lang","device","panel_w","panel_h","panel_x","panel_y","esp","esp_health","esp_name","esp_dist","esp_weapon","esp_rainbow","cross_style","speed50","speed_value","farm","invisible","aim_part","aim_smooth","custom_cross","autokill","autotp","pickup","roles","autocamper","camper_cooldown","cross","fov","hardaim","fly","noclip","infjump","fullbright","aimbot","spin","hitbox","lines","antiaim","walkback","sky_name","triggerbot","trigger_delay","trigger_range","trigger_target","farm_speed"}
+    local keys={"lang","device","panel_w","panel_h","panel_x","panel_y","esp","esp_health","esp_name","esp_dist","esp_weapon","esp_rainbow","cross_style","speed50","speed_value","farm","invisible","aim_part","aim_smooth","custom_cross","autokill","autotp","pickup","roles","autocamper","camper_cooldown","cross","fov","hardaim","fly","noclip","infjump","fullbright","aimbot","spin","hitbox","lines","antiaim","walkback","sky_name","triggerbot","trigger_delay","trigger_range","trigger_target","farm_speed","antifling"}
     for _,k in ipairs(keys) do
         local v=SaveData[k]
         if type(v)=="boolean" then s=s..k.."="..tostring(v).."\n"
@@ -312,6 +313,7 @@ local function loadSettings()
             elseif k=="trigger_delay" then SaveData.trigger_delay=tonumber(v) or 0.05
             elseif k=="trigger_range" then SaveData.trigger_range=tonumber(v) or 200
             elseif k=="trigger_target" then SaveData.trigger_target=v
+            elseif k=="antifling" then SaveData.antifling=(v=="true")
             elseif k=="cross_color" then
                 local r,g,b=string.match(v,"(%d+),(%d+),(%d+)")
                 if r then SaveData.cross_color={tonumber(r),tonumber(g),tonumber(b)} end
@@ -418,49 +420,6 @@ local S = {
     _aimFireConn=nil,
 }
 
-local ANTI_FLING_ENABLED = false
-local antiFlingConn = nil
-
-local function applyAntiFling()
-    if not ANTI_FLING_ENABLED then return end
-    if S.flingRunning then return end
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr == LP or not plr.Character then continue end
-        local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
-        if hrp and hrp:IsA("BasePart") and hrp.CanCollide then
-            pcall(function() hrp.CanCollide = false end)
-        end
-        for _, acc in ipairs(plr.Character:GetChildren()) do
-            if acc:IsA("Accessory") then
-                local handle = acc:FindFirstChild("Handle")
-                if handle and handle:IsA("BasePart") then
-                    pcall(function() handle:Destroy() end)
-                end
-            end
-        end
-    end
-end
-
-local function startAntiFling()
-    if antiFlingConn then return end
-    ANTI_FLING_ENABLED = true
-    antiFlingConn = RunService.Stepped:Connect(applyAntiFling)
-end
-
-local function stopAntiFling()
-    ANTI_FLING_ENABLED = false
-    if antiFlingConn then
-        pcall(function() antiFlingConn:Disconnect() end)
-        antiFlingConn = nil
-    end
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= LP and plr.Character then
-            local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
-            if hrp then pcall(function() hrp.CanCollide = true end) end
-        end
-    end
-end
-
 local function notify(text,color)
     color=color or Color3.fromRGB(255,0,100)
     if not S.gui then return end
@@ -500,6 +459,65 @@ local function notify(text,color)
         t:Play()
         t.Completed:Connect(function() n:Destroy() end)
     end)
+end
+
+local FLING_MIN_DISTANCE = 8
+local FLING_CHECK_DELAY  = 1.6
+local FLING_ALERT_CD     = 2.0
+
+local antiflingConn = nil
+local lastSafeCFrame = nil
+local lastAlertAt = 0
+
+local function getHRP(plr)
+    local ch = plr and plr.Character
+    local hum = ch and ch:FindFirstChildOfClass("Humanoid")
+    return hum and hum.RootPart
+end
+
+local function detectIncomingFling()
+    if not antiflingConn then return end
+    if S.flingRunning then return end
+
+    local myRoot = getHRP(LP)
+    if not myRoot then lastSafeCFrame = nil; return end
+
+    local v = myRoot.Velocity
+    local tooFast  = v.Magnitude > 500
+    local belowMap = myRoot.Position.Y < -50
+
+    if tooFast or belowMap then
+        if lastSafeCFrame then
+            pcall(function()
+                myRoot.CFrame = lastSafeCFrame
+                myRoot.Velocity = Vector3.zero
+                myRoot.RotVelocity = Vector3.zero
+            end)
+            local now = tick()
+            if now - lastAlertAt > FLING_ALERT_CD then
+                lastAlertAt = now
+                notify("Анти-флинг: откат", Color3.fromRGB(255, 140, 0))
+            end
+        end
+    else
+        lastSafeCFrame = myRoot.CFrame
+    end
+end
+
+function startAntiFling()
+    if antiflingConn then return end
+    lastSafeCFrame = nil
+    antiflingConn = RunService.Stepped:Connect(detectIncomingFling)
+    notify("Анти-флинг включён", Color3.fromRGB(80, 220, 120))
+end
+
+function stopAntiFling()
+    if antiflingConn then
+        antiflingConn:Disconnect()
+        antiflingConn = nil
+    end
+    lastSafeCFrame = nil
+    notify("Анти-флинг выключен", Color3.fromRGB(255, 60, 60))
 end
 
 local function getRole(plr)
@@ -1206,6 +1224,124 @@ local function SkidFling(TargetPlayer)
     S.flingTargetName=""
 end
 
+local function hardFling(target)
+    if not target or target == LP then return end
+    local myChar = LP.Character
+    local myHum  = myChar and myChar:FindFirstChildOfClass("Humanoid")
+    local myRoot = myHum and myHum.RootPart
+    if not (myChar and myHum and myRoot) then return end
+
+    local tChar = target.Character
+    if not tChar then return end
+    local tHum = tChar:FindFirstChildOfClass("Humanoid")
+    if not tHum then return end
+
+    local tRoot = tChar:FindFirstChild("HumanoidRootPart")
+    local tHead = tChar:FindFirstChild("Head")
+    local basePart = tRoot or tHead
+    if not basePart then
+        local anyPart = tChar:FindFirstChildWhichIsA("BasePart")
+        if not anyPart then return end
+        basePart = anyPart
+    end
+
+    local prevFling = S.flingRunning
+    S.flingRunning = true
+
+    local ok, err = pcall(function()
+        for _, p in ipairs(tChar:GetDescendants()) do
+            if p:IsA("BasePart") then
+                pcall(function() p:SetNetworkOwner(LP) end)
+                pcall(function() p.CanCollide = true end)
+                pcall(function() p.Massless = false end)
+            end
+        end
+
+        for _, p in ipairs(tChar:GetDescendants()) do
+            if p:IsA("BodyMover") or p:IsA("AlignPosition") or p:IsA("AlignOrientation")
+               or p:IsA("BodyPosition") or p:IsA("BodyVelocity") or p:IsA("BodyGyro") then
+                pcall(function() p:Destroy() end)
+            end
+        end
+
+        pcall(function() tHum.PlatformStand = true end)
+        pcall(function() tHum:SetStateEnabled(Enum.HumanoidStateType.Seated, false) end)
+
+        local oldFPDH = workspace.FallenPartsDestroyHeight
+        workspace.FallenPartsDestroyHeight = 0/0
+
+        local function FPos(bp, pos, ang)
+            myRoot.CFrame = CFrame.new(bp.Position) * pos * ang
+            myChar:SetPrimaryPartCFrame(CFrame.new(bp.Position) * pos * ang)
+            myRoot.Velocity = Vector3.new(9e7, 9e8, 9e7)
+            myRoot.RotVelocity = Vector3.new(9e8, 9e8, 9e8)
+        end
+
+        local BV = Instance.new("BodyVelocity")
+        BV.Name = "VankaHardVel"
+        BV.Parent = myRoot
+        BV.Velocity = Vector3.new(9e8, 9e8, 9e8)
+        BV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        pcall(function() myHum:SetStateEnabled(Enum.HumanoidStateType.Seated, false) end)
+
+        local Time = tick()
+        local Angle = 0
+        local TimeToWait = 3
+
+        repeat
+            if not myRoot or not tHum or not target.Parent then break end
+            local bp = target.Character and target.Character:FindFirstChild(basePart.Name)
+            if not bp then
+                bp = target.Character and (target.Character:FindFirstChild("HumanoidRootPart") or target.Character:FindFirstChild("Head"))
+            end
+            if not bp then break end
+            Angle = Angle + 100
+            FPos(bp, CFrame.new(0, 1.5, 0), CFrame.Angles(math.rad(Angle), 0, 0))
+            task.wait()
+            FPos(bp, CFrame.new(0, -1.5, 0), CFrame.Angles(math.rad(Angle), 0, 0))
+            task.wait()
+            FPos(bp, CFrame.new(2.25, 1.5, -2.25), CFrame.Angles(math.rad(Angle), 0, 0))
+            task.wait()
+            FPos(bp, CFrame.new(-2.25, -1.5, 2.25), CFrame.Angles(math.rad(Angle), 0, 0))
+            task.wait()
+            FPos(bp, CFrame.new(0, 1.5, 0), CFrame.Angles(math.rad(Angle), 0, 0))
+            task.wait()
+            FPos(bp, CFrame.new(0, -1.5, 0), CFrame.Angles(math.rad(Angle), 0, 0))
+            task.wait()
+        until (bp.Velocity.Magnitude > 500)
+            or (bp.Parent ~= target.Character)
+            or (target.Parent ~= Players)
+            or tHum.Sit
+            or myHum.Health <= 0
+            or tick() > Time + TimeToWait
+
+        pcall(function() BV:Destroy() end)
+        pcall(function() myHum:SetStateEnabled(Enum.HumanoidStateType.Seated, true) end)
+        workspace.FallenPartsDestroyHeight = oldFPDH
+
+        local back = myRoot.CFrame
+        local tries = 0
+        repeat
+            pcall(function()
+                myRoot.CFrame = back * CFrame.new(0, 0.5, 0)
+                myChar:SetPrimaryPartCFrame(back * CFrame.new(0, 0.5, 0))
+                myHum:ChangeState(Enum.HumanoidStateType.GettingUp)
+            end)
+            for _, x in ipairs(myChar:GetChildren()) do
+                if x:IsA("BasePart") then
+                    x.Velocity = Vector3.zero
+                    x.RotVelocity = Vector3.zero
+                end
+            end
+            task.wait()
+            tries = tries + 1
+        until (myRoot.Position - back.Position).Magnitude < 25 or tries > 60
+    end)
+
+    S.flingRunning = prevFling
+    if not ok then warn("[Vanka hardFling] " .. tostring(err)) end
+end
+
 local function flingStart(targetName)
     if S.flingRunning then return end
     if not targetName or targetName=="" then
@@ -1217,7 +1353,26 @@ local function flingStart(targetName)
         notify("Игрок не найден",Color3.fromRGB(255,60,60))
         return
     end
+    local startHRP = getHRP(target)
+    if not startHRP then
+        notify("У цели нет персонажа",Color3.fromRGB(255,60,60))
+        return
+    end
+    local startPos = startHRP.Position
+
     SkidFling(target)
+
+    task.spawn(function()
+        task.wait(FLING_CHECK_DELAY)
+        if not target or not target.Parent then return end
+        local endHRP = getHRP(target)
+        if not endHRP then return end
+        local moved = (endHRP.Position - startPos).Magnitude
+        if moved < FLING_MIN_DISTANCE then
+            notify("Анти-флинг у " .. target.Name .. ", жёсткий флинг", Color3.fromRGB(255, 140, 0))
+            hardFling(target)
+        end
+    end)
 end
 
 local function findCoin()
@@ -1907,7 +2062,7 @@ local function setAimbot(state,silent)
                             S.aimbot=false
                             SaveData.aimbot=false
                             saveSettings()
-                            setAimbotVisual(false)
+                                                        setAimbotVisual(false)
                             if not silent then notify("Мардер пропал — аим ВЫКЛ",Color3.fromRGB(150,150,150)) end
                         end
                     end
@@ -2422,7 +2577,9 @@ local function createGUI()
     end)
 
     addLabel(tabMain,"АНТИ-ФЛИНГ")
-    addToggle(tabMain,"Анти-флинг",false,function(v)
+    addToggle(tabMain,"Анти-флинг",SaveData.antifling,function(v)
+        SaveData.antifling=v
+        saveSettings()
         if v then startAntiFling() else stopAntiFling() end
     end)
 
@@ -3678,6 +3835,7 @@ function showLoading()
         createGUI()
         createOverlays()
         mainLoop()
+        if SaveData.antifling then startAntiFling() end
         if S.aimbot then task.delay(0.3,function() setAimbot(true,true) end) end
         setupInfJump()
         hookSpeedRespawn()
