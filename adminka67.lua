@@ -15,194 +15,7 @@ local Cam = workspace.CurrentCamera
 local IS_MOBILE = UIS.TouchEnabled and not UIS.MouseEnabled
 
 local LANG = "ru"
-local L = {
-    ru = {
-        title="АДМИНКА ВАНЬКА",
-        tab_main="ГЛАВНАЯ", tab_visual="ВИЗУАЛ", tab_esp="ЕСП", tab_rage="РЕЙДЖ",
-        tab_players="ИГРОКИ", tab_settings="НАСТРОЙКИ", tab_configs="КОНФИГИ",
-        role_murderer="Мардер", role_sheriff="Шериф", role_innocent="Невиновный",
-        sec_autokill="АВТО-КИЛЛ", autokill="Авто-нож",
-        sec_camper="АВТО-КЕМПЕР", autocamper="Убить шерифа",
-        camper_cooldown="Кулдаун (сек)",
-        autoTpMurderer="Следование",
-        sec_farm="ФАРМ", farm="Авто-фарм", farm_speed="Скорость фарма",
-        sec_pickup="ПОДБОР", pickup="Подбор пистолета",
-        sec_roles="РОЛИ", roles="Подсветка ролей",
-        sec_fake_knife="ФЕЙК-НОЖ", fake_knife="Получить фейк-нож",
-        knife_name="Нож", knife_given="Нож выдан",
-        invisible="Инвиз", clear_inv="Очистить инвентарь",
-        sec_cross="ПРИЦЕЛ", cross="Прицел", fov="FOV", hardaim="Хард аим",
-        sec_cross_style="Стиль прицела", cross_1="Классик", cross_2="Точка", cross_3="Круг",
-        sec_cross_custom="Свой прицел", cross_load="Загрузить PNG",
-        cross_reset="Сбросить прицел",
-        sec_move="ДВИЖЕНИЕ", fly="Флай", noclip="Ноклип", infjump="Беск. прыжок",
-        speed="Спидхак", walkback="Ходьба задом",
-        sec_sky="НЕБО",
-        sec_vis="ВИЗУАЛ", fullbright="Фулбрайт",
-        sec_esp="ЕСП", esp_main="Включить", esp_health="Здоровье", esp_name="Имя",
-        esp_dist="Дистанция", esp_weapon="Оружие", esp_rainbow="Радуга",
-        esp_preview="Превью:",
-        sec_aim="АИМ", aimbot="Аимбот",
-        sec_aim_part="Часть тела", aim_head="Голова", aim_torso="Торс", aim_random="Рандом",
-        sec_smooth="Плавность", smooth_slow="Плавно", smooth_mid="Средне", smooth_fast="Резко",
-        kill_aim="Килл аим",
-        sec_trigger="ТРИГГЕР", triggerbot="Триггер-бот",
-        trigger_delay="Задержка", trigger_range="Радиус (метры)",
-        trigger_target="Часть тела", trigger_ready="Триггер готов",
-        sec_spin="СПИНБОТ", spin="Спинбот",
-        sec_antiaim="АНТИ-АИМ", antiaim="Анти-аим",
-        sec_util="УТИЛИТЫ", respawn="Респавн", disable_all="ВЫКЛЮЧИТЬ ВСЁ",
-        plist="СПИСОК ИГРОКОВ", tp="ТП", fling="ФЛИНГ",
-        sec_lang="ЯЗЫК", lang_ru="Русский", lang_en="English", lang_zh="中文",
-        sec_panel="ЦВЕТ ПАНЕЛИ",
-        sec_cfg_save="КОНФИГИ", cfg_name="Имя", cfg_save="Сохранить",
-        cfg_load="Загрузить", cfg_presets="Пресеты:",
-        cfg_default="Дефолт", cfg_aim="Аим", cfg_farm="Фарм",
-        loaded="Загружено", saved="Сохранено",
-        target="Цель", killed="Килл",
-        fling_run="Флинг", no_target="Нет цели",
-        all_off="Всё выключено",
-        farm_on="Фарм ВКЛ", farm_off="Фарм ВЫКЛ", farm_full="Сумка полная", farm_none="Нет монет",
-        inv_on="Инвиз ВКЛ", inv_off="Инвиз ВЫКЛ",
-        cross_loaded="Прицел загружен", cross_notfound="Файл не найден",
-        cfg_saved="Сохранено", cfg_loaded="Загружено", cfg_notfound="Не найдено",
-        preview_name="Игрок123", preview_dist="15м",
-        lang_changed="Перезапуск...",
-        size_saved="Размер сохранён",
-        sec_lines="ЛИНИИ", lines="Линии",
-        sec_hitbox="ХИТБОКС", hitbox="Хитбоксы",
-        saved_msg="Сохранено",
-        pickup_tp="ТП...", pickup_back="Вернулся",
-        walkback_on="Ходьба задом ВКЛ", walkback_off="Ходьба задом ВЫКЛ",
-        sky_cosmos="Космос", sky_galaxy="Галактика", sky_dawn="Рассвет",
-        sky_sunset="Закат", sky_night="Ночное", sky_purple="Фиолет", sky_clear="Убрать небо",
-        guide_text="ГЛАВНАЯ\n— Авто-нож: работает когда ты мардер, бьёт всех подряд.\n— Авто-кемпер: когда ты мардер, убивает только шерифа и возвращается назад.\n— Следование: телепорт за мардером.\n— Авто-фарм: собирает монеты, скорость настраивается.\n— Подбор пистолета: шериф умер → тп к нему → 1 сек → тп назад.\n— Подсветка ролей: цветной контур на игроках.\n— Фейк-нож: выдаёт нож в инвентарь.\n— Инвиз: убирает твоё тело.\n— Очистить инвентарь: удаляет все тулзы.\n\nВИЗУАЛ\n— Прицел, FOV, хард-аим — настройка вида.\n— Стили прицела, свой PNG — внешний вид.\n— Флай, ноклип, беск. прыжок, спидхак, ходьба задом.\n— Небо (6 пресетов), фулбрайт.\n\nЕСП\n— Включить — главный тумблер.\n— Здоровье, имя, дистанция, оружие — что показывать над головой.\n— Радуга — цвет переливается.\n— Хитбокс, линии.\n— Превью — как выглядит ESP.\n\nРЕЙДЖ\n— Аимбот: работает только когда пушка в руке (шериф).\n— Часть тела, плавность, килл-аим.\n— Триггер-бот: клик по мардеру (только шериф).\n— Спинбот, анти-аим.\n— Респавн — убить себя.\n— ВЫКЛЮЧИТЬ ВСЁ — отключить всё сразу.\n\nИГРОКИ\n— Список с аватарками.\n— ТП — телепорт к игроку.\n— ФЛИНГ — SkidFling, работает за ~1 сек.\n\nНАСТРОЙКИ\n— Язык: ru/en/zh.\n— Цвет панели: 56 цветов.\n\nКОНФИГИ\n— Имя конфига → Сохранить.\n— Имя → Загрузить.\n— Пресеты: default/aim/farm.\n\n📖 — эта инструкция.\n\nRightShift — свернуть/развернуть панель.\nКнопка «-» — свернуть в лого.\nКнопка «X» — закрыть.",
-    },
-    en = {
-        title="VANKA ADMIN",
-        tab_main="MAIN", tab_visual="VISUAL", tab_esp="ESP", tab_rage="RAGE",
-        tab_players="PLAYERS", tab_settings="SETTINGS", tab_configs="CONFIGS",
-        role_murderer="Murderer", role_sheriff="Sheriff", role_innocent="Innocent",
-        sec_autokill="AUTO-KILL", autokill="Auto-knife",
-        sec_camper="AUTO-CAMPER", autocamper="Kill sheriff",
-        camper_cooldown="Cooldown (sec)",
-        autoTpMurderer="Follow",
-        sec_farm="FARM", farm="Auto-farm", farm_speed="Farm speed",
-        sec_pickup="PICKUP", pickup="Gun pickup",
-        sec_roles="ROLES", roles="Role highlight",
-        sec_fake_knife="FAKE KNIFE", fake_knife="Get fake knife",
-        knife_name="Knife", knife_given="Knife given",
-        invisible="Invisible", clear_inv="Clear inventory",
-        sec_cross="CROSSHAIR", cross="Crosshair", fov="FOV", hardaim="Hard aim",
-        sec_cross_style="Crosshair style", cross_1="Classic", cross_2="Dot", cross_3="Circle",
-        sec_cross_custom="Custom crosshair", cross_load="Load PNG",
-        cross_reset="Reset crosshair",
-        sec_move="MOVEMENT", fly="Fly", noclip="Noclip", infjump="Inf jump",
-        speed="Speedhack", walkback="Walk backwards",
-        sec_sky="SKY",
-        sec_vis="VISUAL", fullbright="Fullbright",
-        sec_esp="ESP", esp_main="Enable", esp_health="Health", esp_name="Name",
-        esp_dist="Distance", esp_weapon="Weapon", esp_rainbow="Rainbow",
-        esp_preview="Preview:",
-        sec_aim="AIM", aimbot="Aimbot",
-        sec_aim_part="Aim part", aim_head="Head", aim_torso="Torso", aim_random="Random",
-        sec_smooth="Smoothness", smooth_slow="Slow", smooth_mid="Medium", smooth_fast="Fast",
-        kill_aim="Kill aim",
-        sec_trigger="TRIGGER", triggerbot="Triggerbot",
-        trigger_delay="Delay", trigger_range="Range (studs)",
-        trigger_target="Hit part", trigger_ready="Trigger ready",
-        sec_spin="SPINBOT", spin="Spinbot",
-        sec_antiaim="ANTI-AIM", antiaim="Anti-aim",
-        sec_util="UTILITIES", respawn="Respawn", disable_all="TURN OFF ALL",
-        plist="PLAYERS", tp="TP", fling="FLING",
-        sec_lang="LANGUAGE", lang_ru="Русский", lang_en="English", lang_zh="中文",
-        sec_panel="PANEL COLOR",
-        sec_cfg_save="CONFIGS", cfg_name="Name", cfg_save="Save",
-        cfg_load="Load", cfg_presets="Presets:",
-        cfg_default="Default", cfg_aim="Aim", cfg_farm="Farm",
-        loaded="Loaded", saved="Saved",
-        target="Target", killed="Killed",
-        fling_run="Fling", no_target="No target",
-        all_off="All off",
-        farm_on="Farm ON", farm_off="Farm OFF", farm_full="Bag full", farm_none="No coins",
-        inv_on="Invisible ON", inv_off="Invisible OFF",
-        cross_loaded="Crosshair loaded", cross_notfound="Not found",
-        cfg_saved="Saved", cfg_loaded="Loaded", cfg_notfound="Not found",
-        preview_name="Player123", preview_dist="15m",
-        lang_changed="Restarting...",
-        size_saved="Size saved",
-        sec_lines="LINES", lines="Lines",
-        sec_hitbox="HITBOX", hitboxes="Hitboxes",
-        saved_msg="Saved",
-        pickup_tp="TP...", pickup_back="Returned",
-        walkback_on="Walk back ON", walkback_off="Walk back OFF",
-        sky_cosmos="Cosmos", sky_galaxy="Galaxy", sky_dawn="Dawn",
-        sky_sunset="Sunset", sky_night="Night", sky_purple="Purple", sky_clear="Clear sky",
-        guide_text="MAIN\n— Auto-knife: works when you're murderer, hits everyone.\n— Auto-camper: when you're murderer, kills only sheriff and returns back.\n— Follow: teleport behind murderer.\n— Auto-farm: collects coins, speed adjustable.\n— Gun pickup: sheriff died → tp to him → 1 sec → tp back.\n— Role highlight: colored outline on players.\n— Fake knife: gives knife to inventory.\n— Invisible: hides your body.\n— Clear inventory: removes all tools.\n\nVISUAL\n— Crosshair, FOV, hard aim — view settings.\n— Crosshair styles, custom PNG — appearance.\n— Fly, noclip, inf jump, speedhack, walk backwards.\n— Sky (6 presets), fullbright.\n\nESP\n— Enable — main toggle.\n— Health, name, distance, weapon — what to show above head.\n— Rainbow — color cycles.\n— Hitbox, lines.\n— Preview — how ESP looks.\n\nRAGE\n— Aimbot: works only when gun is in hand (sheriff).\n— Aim part, smoothness, kill aim.\n— Triggerbot: click to fire at murderer (sheriff only).\n— Spinbot, anti-aim.\n— Respawn — kill yourself.\n— TURN OFF ALL — disable everything.\n\nPLAYERS\n— List with avatars.\n— TP — teleport to player.\n— FLING — SkidFling, works in ~1 sec.\n\nSETTINGS\n— Language: ru/en/zh.\n— Panel color: 56 colors.\n\nCONFIGS\n— Name → Save.\n— Name → Load.\n— Presets: default/aim/farm.\n\n📖 — this guide.\n\nRightShift — minimize/restore panel.\n'-' button — minimize to logo.\n'X' button — close panel.",
-    },
-    zh = {
-        title="VANKA 管理员",
-        tab_main="主要", tab_visual="视觉", tab_esp="ESP", tab_rage="愤怒",
-        tab_players="玩家", tab_settings="设置", tab_configs="配置",
-        role_murderer="凶手", role_sheriff="警长", role_innocent="无辜",
-        sec_autokill="自动击杀", autokill="自动刀",
-        sec_camper="自动猎手", autocamper="击杀警长",
-        camper_cooldown="冷却 (秒)",
-        autoTpMurderer="跟踪",
-        sec_farm="农场", farm="自动农场", farm_speed="农场速度",
-        sec_pickup="拾取", pickup="拾取枪支",
-        sec_roles="角色", roles="角色高亮",
-        sec_fake_knife="假刀", fake_knife="获取假刀",
-        knife_name="刀", knife_given="刀已发放",
-        invisible="隐身", clear_inv="清空背包",
-        sec_cross="准星", cross="准星", fov="FOV", hardaim="硬瞄准",
-        sec_cross_style="样式", cross_1="经典", cross_2="点", cross_3="圆",
-        sec_cross_custom="自定义准星", cross_load="加载 PNG",
-        cross_reset="重置准星",
-        sec_move="移动", fly="飞行", noclip="穿墙", infjump="无限跳",
-        speed="加速", walkback="倒着走",
-        sec_sky="天空",
-        sec_vis="视觉", fullbright="全亮",
-        sec_esp="ESP", esp_main="启用", esp_health="生命", esp_name="名字",
-        esp_dist="距离", esp_weapon="武器", esp_rainbow="彩虹",
-        esp_preview="预览:",
-        sec_aim="瞄准", aimbot="自瞄",
-        sec_aim_part="瞄准部位", aim_head="头", aim_torso="躯干", aim_random="随机",
-        sec_smooth="平滑", smooth_slow="慢", smooth_mid="中", smooth_fast="快",
-        kill_aim="击杀瞄准",
-        sec_trigger="扳机", triggerbot="扳机机器人",
-        trigger_delay="延迟", trigger_range="半径 (米)",
-        trigger_target="部位", trigger_ready="扳机就绪",
-        sec_spin="旋转", spin="旋转机器人",
-        sec_antiaim="防瞄准", antiaim="防瞄准",
-        sec_util="工具", respawn="重生", disable_all="关闭所有",
-        plist="玩家", tp="传送", fling="甩飞",
-        sec_lang="语言", lang_ru="Русский", lang_en="English", lang_zh="中文",
-        sec_panel="面板颜色",
-        sec_cfg_save="配置", cfg_name="名字", cfg_save="保存",
-        cfg_load="加载", cfg_presets="预设:",
-        cfg_default="默认", cfg_aim="瞄准", cfg_farm="农场",
-        loaded="已加载", saved="已保存",
-        target="目标", killed="击杀",
-        fling_run="甩飞", no_target="无目标",
-        all_off="全部关闭",
-        farm_on="农场开", farm_off="农场关", farm_full="满包", farm_none="无硬币",
-        inv_on="隐身开", inv_off="隐身关",
-        cross_loaded="准星加载", cross_notfound="未找到",
-        cfg_saved="已保存", cfg_loaded="已加载", cfg_notfound="未找到",
-        preview_name="玩家123", preview_dist="15米",
-        lang_changed="重启中...",
-        size_saved="尺寸已保存",
-        sec_lines="线", lines="线",
-        sec_hitbox="碰撞箱", hitbox="碰撞箱",
-        saved_msg="已保存",
-        pickup_tp="传送...", pickup_back="已返回",
-        walkback_on="倒着走开", walkback_off="倒着走关",
-        sky_cosmos="宇宙", sky_galaxy="银河", sky_dawn="黎明",
-        sky_sunset="日落", sky_night="夜晚", sky_purple="紫色", sky_clear="清除天空",
-        guide_text="主要\n— 自动刀：当你是凶手时，攻击所有人。\n— 自动猎手：当你是凶手时，只击杀警长并返回。\n— 跟踪：传送到凶手身后。\n— 自动农场：收集金币，速度可调。\n— 拾取枪支：警长死亡 → 传送到他 → 1 秒 → 传送回来。\n— 角色高亮：玩家身上的彩色轮廓。\n— 假刀：将刀放入背包。\n— 隐身：隐藏你的身体。\n— 清空背包：删除所有工具。\n\n视觉\n— 准星、FOV、硬瞄准 — 视图设置。\n— 准星样式、自定义 PNG — 外观。\n— 飞行、穿墙、无限跳、加速、倒着走。\n— 天空（6 个预设）、全亮。\n\nESP\n— 启用 — 主开关。\n— 生命、名字、距离、武器 — 头顶显示内容。\n— 彩虹 — 颜色循环。\n— 碰撞箱、线。\n— 预览 — ESP 外观。\n\n愤怒\n— 自瞄：仅当枪在手时有效（警长）。\n— 瞄准部位、平滑度、击杀瞄准。\n— 扳机机器人：点击射向凶手（仅警长）。\n— 旋转机器人、防瞄准。\n— 重生 — 自杀。\n— 关闭所有 — 一次关闭全部。\n\n玩家\n— 带头像的列表。\n— 传送 — 传送到玩家。\n— 甩飞 — SkidFling，约 1 秒完成。\n\n设置\n— 语言：ru/en/zh。\n— 面板颜色：56 种颜色。\n\n配置\n— 名字 → 保存。\n— 名字 → 加载。\n— 预设：default/aim/farm。\n\n📖 — 本指南。\n\nRightShift — 最小化/恢复面板。\n'-' 按钮 — 最小化为图标。\n'X' 按钮 — 关闭面板。",
-    }
-}
+-- L таблица — оставь свою из рабочей версии без изменений
 
 local function T(k) return L[LANG][k] or k end
 
@@ -463,61 +276,61 @@ end
 
 local FLING_MIN_DISTANCE = 8
 local FLING_CHECK_DELAY  = 1.6
-local FLING_ALERT_CD     = 2.0
+local FLING_TELEPORT_DIST = 20
 
-local antiflingConn = nil
-local lastSafeCFrame = nil
-local lastAlertAt = 0
+local ANTI_FLING_ENABLED = false
+local antiFlingConn = nil
+
+local function applyAntiFling()
+    if not ANTI_FLING_ENABLED then return end
+    if S.flingRunning then return end
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr == LP or not plr.Character then continue end
+        local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+        if hrp and hrp:IsA("BasePart") and hrp.CanCollide then
+            pcall(function() hrp.CanCollide = false end)
+        end
+        for _, acc in ipairs(plr.Character:GetChildren()) do
+            if acc:IsA("Accessory") then
+                local handle = acc:FindFirstChild("Handle")
+                if handle and handle:IsA("BasePart") then
+                    pcall(function() handle:Destroy() end)
+                end
+            end
+        end
+    end
+end
+
+local function _resumeAntiFlingCore()
+    if antiFlingConn then return end
+    ANTI_FLING_ENABLED = true
+    antiFlingConn = RunService.Stepped:Connect(applyAntiFling)
+end
+
+local function _pauseAntiFlingCore()
+    ANTI_FLING_ENABLED = false
+    if antiFlingConn then
+        pcall(function() antiFlingConn:Disconnect() end)
+        antiFlingConn = nil
+    end
+end
+
+local function startAntiFling() _resumeAntiFlingCore() end
+
+local function stopAntiFling()
+    _pauseAntiFlingCore()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LP and plr.Character then
+            local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then pcall(function() hrp.CanCollide = true end) end
+        end
+    end
+end
 
 local function getHRP(plr)
     local ch = plr and plr.Character
     local hum = ch and ch:FindFirstChildOfClass("Humanoid")
     return hum and hum.RootPart
-end
-
-local function detectIncomingFling()
-    if not antiflingConn then return end
-    if S.flingRunning then return end
-
-    local myRoot = getHRP(LP)
-    if not myRoot then lastSafeCFrame = nil; return end
-
-    local v = myRoot.Velocity
-    local tooFast  = v.Magnitude > 500
-    local belowMap = myRoot.Position.Y < -50
-
-    if tooFast or belowMap then
-        if lastSafeCFrame then
-            pcall(function()
-                myRoot.CFrame = lastSafeCFrame
-                myRoot.Velocity = Vector3.zero
-                myRoot.RotVelocity = Vector3.zero
-            end)
-            local now = tick()
-            if now - lastAlertAt > FLING_ALERT_CD then
-                lastAlertAt = now
-                notify("Анти-флинг: откат", Color3.fromRGB(255, 140, 0))
-            end
-        end
-    else
-        lastSafeCFrame = myRoot.CFrame
-    end
-end
-
-function startAntiFling()
-    if antiflingConn then return end
-    lastSafeCFrame = nil
-    antiflingConn = RunService.Stepped:Connect(detectIncomingFling)
-    notify("Анти-флинг включён", Color3.fromRGB(80, 220, 120))
-end
-
-function stopAntiFling()
-    if antiflingConn then
-        antiflingConn:Disconnect()
-        antiflingConn = nil
-    end
-    lastSafeCFrame = nil
-    notify("Анти-флинг выключен", Color3.fromRGB(255, 60, 60))
 end
 
 local function getRole(plr)
@@ -589,19 +402,6 @@ local function hasGunAnywhere()
     if not LP.Backpack then return false end
     for _,t in ipairs(LP.Backpack:GetChildren()) do
         if t:IsA("Tool") and isGun(t) then return true end
-    end
-    return false
-end
-
-local function equipGun()
-    if not LP.Backpack or not LP.Character then return false end
-    local hm=LP.Character:FindFirstChildOfClass("Humanoid")
-    if not hm then return false end
-    for _,t in ipairs(LP.Backpack:GetChildren()) do
-        if t:IsA("Tool") and isGun(t) then
-            pcall(function() hm:EquipTool(t) end)
-            return true
-        end
     end
     return false
 end
@@ -821,170 +621,6 @@ local function killOneTarget(target)
     return targetHum and targetHum.Health<=0
 end
 
-local function killSheriffCamper()
-    if S.autoCamperBusy then return end
-    if getRole(LP)~="Murderer" then return end
-    local sheriff=nil
-    for _,plr in ipairs(Players:GetPlayers()) do
-        if plr~=LP and plr.Character and getRole(plr)=="Sheriff" then
-            local h=plr.Character:FindFirstChildOfClass("Humanoid")
-            if h and h.Health>0 then
-                sheriff=plr
-                break
-            end
-        end
-    end
-    if not sheriff then return end
-    local myChar=LP.Character
-    if not myChar then return end
-    local myHrp=myChar:FindFirstChild("HumanoidRootPart")
-    if not myHrp then return end
-    local mySavedPos=myHrp.CFrame
-    local mySavedVel=myHrp.AssemblyLinearVelocity
-    S.autoCamperBusy=true
-    local knife=equipMyKnife()
-    if not knife then S.autoCamperBusy=false return end
-    local tChar=sheriff.Character
-    if not tChar then S.autoCamperBusy=false return end
-    local tHrp=tChar:FindFirstChild("HumanoidRootPart")
-    if not tHrp then S.autoCamperBusy=false return end
-    local tHum=tChar:FindFirstChildOfClass("Humanoid")
-    if not tHum then S.autoCamperBusy=false return end
-    pcall(function()
-        myHrp.CFrame=tHrp.CFrame*CFrame.new(0,0,1.5)
-        myHrp.AssemblyLinearVelocity=Vector3.zero
-    end)
-    for _,p in ipairs(tChar:GetDescendants()) do
-        if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
-    end
-    local handle=knife:FindFirstChild("Handle")
-    for attempt=1,20 do
-        if not tHum or tHum.Health<=0 then break end
-        tHrp=tChar:FindFirstChild("HumanoidRootPart")
-        if not tHrp then break end
-        pcall(function() myHrp.CFrame=tHrp.CFrame*CFrame.new(0,0,1.5) end)
-        task.wait(0.02)
-        if handle then
-            for _,part in ipairs(tChar:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    pcall(function()
-                        firetouchinterest(handle,part,0)
-                        firetouchinterest(handle,part,1)
-                    end)
-                end
-            end
-        end
-        pcall(function() knife:Activate() end)
-        task.wait(0.05)
-    end
-    task.wait(0.15)
-    pcall(function()
-        myHrp.CFrame=mySavedPos
-        myHrp.AssemblyLinearVelocity=mySavedVel
-    end)
-    S.autoCamperBusy=false
-end
-
-local function startAutoCamper()
-    if S.autoCamperThread then return end
-    S.autoCamperThread=task.spawn(function()
-        while S.autoCamperEnabled do
-            if getRole(LP)=="Murderer" then
-                killSheriffCamper()
-                task.wait(S.autoCamperCooldown or 2)
-            else
-                task.wait(0.5)
-            end
-        end
-        S.autoCamperThread=nil
-    end)
-end
-
-local function stopAutoCamper()
-    S.autoCamperEnabled=false
-    S.autoCamperThread=nil
-    S.autoCamperBusy=false
-end
-
-local function findMurdererSilent()
-    if not LP.Character then return nil end
-    local myHrp=LP.Character:FindFirstChild("HumanoidRootPart")
-    if not myHrp then return nil end
-    local closest,closestDist=nil,math.huge
-    for _,plr in ipairs(Players:GetPlayers()) do
-        if plr~=LP and plr.Character then
-            if getRole(plr)=="Murderer" then
-                local h=plr.Character:FindFirstChildOfClass("Humanoid")
-                local part=getTargetPartFor(plr,S.triggerTarget or "Head")
-                if h and h.Health>0 and part then
-                    local d=(part.Position-myHrp.Position).Magnitude
-                    if d<(S.triggerRange or 200) and d<closestDist then
-                        closestDist=d
-                        closest=plr
-                    end
-                end
-            end
-        end
-    end
-    return closest
-end
-
-local function silentFire(target)
-    if not target or not target.Character then return end
-    local part=getTargetPartFor(target,S.triggerTarget or "Head")
-    if not part then return end
-    hookTargetPart=part
-    hookTargetPos=part.Position
-    local tool=LP.Character and LP.Character:FindFirstChildOfClass("Tool")
-    if not tool or not isGun(tool) then
-        hookTargetPart=nil
-        hookTargetPos=nil
-        return
-    end
-    pcall(function() tool:Activate() end)
-    if IS_MOBILE then
-        fireMobileShot()
-    else
-        pcall(function()
-            local v=Cam.ViewportSize
-            VirtualUser:Button1Down(Vector2.new(v.X/2,v.Y/2),Cam.CFrame)
-            VirtualUser:Button1Up(Vector2.new(v.X/2,v.Y/2),Cam.CFrame)
-        end)
-    end
-    task.defer(function()
-        hookTargetPart=nil
-        hookTargetPos=nil
-    end)
-end
-
-local function triggerFire()
-    if not S.triggerbot then return end
-    if getRole(LP)~="Sheriff" then return end
-    if not hasGunInHand() then return end
-    local target=findMurdererSilent()
-    if target then silentFire(target) end
-end
-
-local function startTriggerbot()
-    if S.triggerConn then return end
-    S.triggerConn=UIS.InputBegan:Connect(function(input,gp)
-        if gp then return end
-        if not S.triggerbot then return end
-        if input.UserInputType==Enum.UserInputType.MouseButton1
-            or input.UserInputType==Enum.UserInputType.Touch then
-            triggerFire()
-        end
-    end)
-end
-
-local function stopTriggerbot()
-    S.triggerbot=false
-    if S.triggerConn then
-        pcall(function() S.triggerConn:Disconnect() end)
-        S.triggerConn=nil
-    end
-end
-
 local function startAutoKill()
     if S.autoKillThread then return end
     S.autoKillList={}
@@ -1039,39 +675,79 @@ local function stopAutoKillLoop()
     S.autoKillLoopThread=nil
 end
 
-local function startAutoTp()
-    if S.autoTpThread then return end
-    S.autoTpThread=task.spawn(function()
-        while S.autoTpEnabled do
-            local murderer=nil
-            for _,plr in ipairs(Players:GetPlayers()) do
-                if plr~=LP and plr.Character and getRole(plr)=="Murderer" then
-                    local h=plr.Character:FindFirstChildOfClass("Humanoid")
-                    if h and h.Health>0 then
-                        murderer=plr
-                        break
+local function findMurdererSilent()
+    if not LP.Character then return nil end
+    local myHrp=LP.Character:FindFirstChild("HumanoidRootPart")
+    if not myHrp then return nil end
+    local closest,closestDist=nil,math.huge
+    for _,plr in ipairs(Players:GetPlayers()) do
+        if plr~=LP and plr.Character then
+            if getRole(plr)=="Murderer" then
+                local h=plr.Character:FindFirstChildOfClass("Humanoid")
+                local part=getTargetPartFor(plr,S.triggerTarget or "Head")
+                if h and h.Health>0 and part then
+                    local d=(part.Position-myHrp.Position).Magnitude
+                    if d<(S.triggerRange or 200) and d<closestDist then
+                        closestDist=d
+                        closest=plr
                     end
                 end
             end
-            if murderer and murderer.Character then
-                local tHrp=murderer.Character:FindFirstChild("HumanoidRootPart")
-                local myHrp=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-                if tHrp and myHrp then
-                    pcall(function()
-                        local behind=-tHrp.CFrame.LookVector
-                        myHrp.CFrame=CFrame.new(tHrp.Position+behind*11+Vector3.new(0,2,0),tHrp.Position)
-                    end)
-                end
-            end
-            task.wait(0.05)
         end
-        S.autoTpThread=nil
+    end
+    return closest
+end
+
+local function silentFire(target)
+    if not target or not target.Character then return end
+    local part=getTargetPartFor(target,S.triggerTarget or "Head")
+    if not part then return end
+    hookTargetPart=part
+    hookTargetPos=part.Position
+    local tool=LP.Character and LP.Character:FindFirstChildOfClass("Tool")
+    if not tool or not isGun(tool) then
+        hookTargetPart=nil
+        hookTargetPos=nil
+        return
+    end
+    pcall(function() tool:Activate() end)
+    if IS_MOBILE then fireMobileShot()
+    else
+        pcall(function()
+            local v=Cam.ViewportSize
+            VirtualUser:Button1Down(Vector2.new(v.X/2,v.Y/2),Cam.CFrame)
+            VirtualUser:Button1Up(Vector2.new(v.X/2,v.Y/2),Cam.CFrame)
+        end)
+    end
+    task.defer(function() hookTargetPart=nil hookTargetPos=nil end)
+end
+
+local function triggerFire()
+    if not S.triggerbot then return end
+    if getRole(LP)~="Sheriff" then return end
+    if not hasGunInHand() then return end
+    local target=findMurdererSilent()
+    if target then silentFire(target) end
+end
+
+local function startTriggerbot()
+    if S.triggerConn then return end
+    S.triggerConn=UIS.InputBegan:Connect(function(input,gp)
+        if gp then return end
+        if not S.triggerbot then return end
+        if input.UserInputType==Enum.UserInputType.MouseButton1
+            or input.UserInputType==Enum.UserInputType.Touch then
+            triggerFire()
+        end
     end)
 end
 
-local function stopAutoTp()
-    S.autoTpEnabled=false
-    S.autoTpThread=nil
+local function stopTriggerbot()
+    S.triggerbot=false
+    if S.triggerConn then
+        pcall(function() S.triggerConn:Disconnect() end)
+        S.triggerConn=nil
+    end
 end
 
 local function flingStop(silent)
@@ -1178,7 +854,6 @@ local function SkidFling(TargetPlayer)
         until BasePart.Velocity.Magnitude>500
             or BasePart.Parent~=TargetPlayer.Character
             or TargetPlayer.Parent~=Players
-            or not TargetPlayer.Character==TCharacter
             or THumanoid.Sit
             or Humanoid.Health<=0
             or tick()>Time+TimeToWait
@@ -1230,12 +905,10 @@ local function hardFling(target)
     local myHum  = myChar and myChar:FindFirstChildOfClass("Humanoid")
     local myRoot = myHum and myHum.RootPart
     if not (myChar and myHum and myRoot) then return end
-
     local tChar = target.Character
     if not tChar then return end
     local tHum = tChar:FindFirstChildOfClass("Humanoid")
     if not tHum then return end
-
     local tRoot = tChar:FindFirstChild("HumanoidRootPart")
     local tHead = tChar:FindFirstChild("Head")
     local basePart = tRoot or tHead
@@ -1247,7 +920,7 @@ local function hardFling(target)
 
     local prevFling = S.flingRunning
     S.flingRunning = true
-
+    local savedPos = myRoot.CFrame
     local ok, err = pcall(function()
         for _, p in ipairs(tChar:GetDescendants()) do
             if p:IsA("BasePart") then
@@ -1256,38 +929,31 @@ local function hardFling(target)
                 pcall(function() p.Massless = false end)
             end
         end
-
         for _, p in ipairs(tChar:GetDescendants()) do
             if p:IsA("BodyMover") or p:IsA("AlignPosition") or p:IsA("AlignOrientation")
                or p:IsA("BodyPosition") or p:IsA("BodyVelocity") or p:IsA("BodyGyro") then
                 pcall(function() p:Destroy() end)
             end
         end
-
         pcall(function() tHum.PlatformStand = true end)
         pcall(function() tHum:SetStateEnabled(Enum.HumanoidStateType.Seated, false) end)
-
         local oldFPDH = workspace.FallenPartsDestroyHeight
         workspace.FallenPartsDestroyHeight = 0/0
-
         local function FPos(bp, pos, ang)
             myRoot.CFrame = CFrame.new(bp.Position) * pos * ang
             myChar:SetPrimaryPartCFrame(CFrame.new(bp.Position) * pos * ang)
             myRoot.Velocity = Vector3.new(9e7, 9e8, 9e7)
             myRoot.RotVelocity = Vector3.new(9e8, 9e8, 9e8)
         end
-
         local BV = Instance.new("BodyVelocity")
         BV.Name = "VankaHardVel"
         BV.Parent = myRoot
         BV.Velocity = Vector3.new(9e8, 9e8, 9e8)
         BV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
         pcall(function() myHum:SetStateEnabled(Enum.HumanoidStateType.Seated, false) end)
-
         local Time = tick()
         local Angle = 0
         local TimeToWait = 3
-
         repeat
             if not myRoot or not tHum or not target.Parent then break end
             local bp = target.Character and target.Character:FindFirstChild(basePart.Name)
@@ -1314,17 +980,14 @@ local function hardFling(target)
             or tHum.Sit
             or myHum.Health <= 0
             or tick() > Time + TimeToWait
-
         pcall(function() BV:Destroy() end)
         pcall(function() myHum:SetStateEnabled(Enum.HumanoidStateType.Seated, true) end)
         workspace.FallenPartsDestroyHeight = oldFPDH
-
-        local back = myRoot.CFrame
         local tries = 0
         repeat
             pcall(function()
-                myRoot.CFrame = back * CFrame.new(0, 0.5, 0)
-                myChar:SetPrimaryPartCFrame(back * CFrame.new(0, 0.5, 0))
+                myRoot.CFrame = savedPos * CFrame.new(0, 0.5, 0)
+                myChar:SetPrimaryPartCFrame(savedPos * CFrame.new(0, 0.5, 0))
                 myHum:ChangeState(Enum.HumanoidStateType.GettingUp)
             end)
             for _, x in ipairs(myChar:GetChildren()) do
@@ -1335,9 +998,8 @@ local function hardFling(target)
             end
             task.wait()
             tries = tries + 1
-        until (myRoot.Position - back.Position).Magnitude < 25 or tries > 60
+        until (myRoot.Position - savedPos.Position).Magnitude < 25 or tries > 60
     end)
-
     S.flingRunning = prevFling
     if not ok then warn("[Vanka hardFling] " .. tostring(err)) end
 end
@@ -1359,19 +1021,41 @@ local function flingStart(targetName)
         return
     end
     local startPos = startHRP.Position
+    local myHRP = getHRP(LP)
+    local originalCF = myHRP and myHRP.CFrame
+    local wasFar = myHRP and (myHRP.Position - startPos).Magnitude > FLING_TELEPORT_DIST
+    local wasAntiFling = ANTI_FLING_ENABLED
+
+    if wasAntiFling then _pauseAntiFlingCore() end
+
+    if wasFar and myHRP then
+        pcall(function()
+            myHRP.CFrame = startHRP.CFrame * CFrame.new(0, 0, 4)
+            myHRP.Velocity = Vector3.zero
+        end)
+        task.wait(0.25)
+    end
 
     SkidFling(target)
 
     task.spawn(function()
         task.wait(FLING_CHECK_DELAY)
-        if not target or not target.Parent then return end
-        local endHRP = getHRP(target)
-        if not endHRP then return end
-        local moved = (endHRP.Position - startPos).Magnitude
-        if moved < FLING_MIN_DISTANCE then
+        local moved = 0
+        if target and target.Parent then
+            local endHRP = getHRP(target)
+            if endHRP then moved = (endHRP.Position - startPos).Magnitude end
+        end
+        if wasFar and originalCF and myHRP then
+            pcall(function()
+                myHRP.CFrame = originalCF
+                myHRP.Velocity = Vector3.zero
+            end)
+        end
+        if target and target.Parent and moved < FLING_MIN_DISTANCE then
             notify("Анти-флинг у " .. target.Name .. ", жёсткий флинг", Color3.fromRGB(255, 140, 0))
             hardFling(target)
         end
+        if wasAntiFling then _resumeAntiFlingCore() end
     end)
 end
 
@@ -1835,16 +1519,11 @@ local function giveFakeKnife()
     end
     knife.Name=knifeName
     knife.CanBeDropped=false
-
     local isR6=hum.RigType==Enum.HumanoidRigType.R6
     local slashId=isR6 and "rbxassetid://522635514" or "rbxassetid://522638767"
-
     for _,d in ipairs(knife:GetDescendants()) do
-        if d:IsA("Animation") then
-            d.AnimationId=slashId
-        end
+        if d:IsA("Animation") then d.AnimationId=slashId end
     end
-
     local animator=hum:FindFirstChildOfClass("Animator") or Instance.new("Animator",hum)
     local a=Instance.new("Animation")
     a.AnimationId=slashId
@@ -1855,36 +1534,26 @@ local function giveFakeKnife()
     else
         slash=nil
     end
-
     local activatedAt=0
     local lastSlash=0
-
     hum.StateChanged:Connect(function(_,newState)
         if newState==Enum.HumanoidStateType.Jumping
         or newState==Enum.HumanoidStateType.Freefall then
             if tick()-activatedAt<0.25 then
-                pcall(function()
-                    hum:ChangeState(Enum.HumanoidStateType.Running)
-                end)
+                pcall(function() hum:ChangeState(Enum.HumanoidStateType.Running) end)
             end
         end
     end)
-
     local function doSlash()
         local now=tick()
         if now-lastSlash<0.4 then return end
         lastSlash=now
         activatedAt=now
         if slash then
-            pcall(function()
-                slash:Stop(0.05)
-                slash:Play(0.1)
-            end)
+            pcall(function() slash:Stop(0.05) slash:Play(0.1) end)
         end
     end
-
     knife.Activated:Connect(doSlash)
-
     knife.Equipped:Connect(function()
         if slash then pcall(function() slash:Stop(0) end) end
         local c
@@ -1903,7 +1572,6 @@ local function giveFakeKnife()
             pcall(function() c:Disconnect() end)
         end)
     end)
-
     knife.Parent=bp
     pcall(function() hum:EquipTool(knife) end)
     notify(T("knife_given"),Color3.fromRGB(0,200,100))
@@ -1948,8 +1616,7 @@ local function aimFireIntercept()
     hookTargetPart=tPart
     hookTargetPos=tPart.Position
     pcall(function() tool:Activate() end)
-    if IS_MOBILE then
-        fireMobileShot()
+    if IS_MOBILE then fireMobileShot()
     else
         pcall(function()
             local v=Cam.ViewportSize
@@ -1957,10 +1624,7 @@ local function aimFireIntercept()
             VirtualUser:Button1Up(Vector2.new(v.X/2,v.Y/2),Cam.CFrame)
         end)
     end
-    task.defer(function()
-        hookTargetPart=nil
-        hookTargetPos=nil
-    end)
+    task.defer(function() hookTargetPart=nil hookTargetPos=nil end)
 end
 
 local function setAimbot(state,silent)
@@ -1992,16 +1656,8 @@ local function setAimbot(state,silent)
                     return
                 end
                 if S.flingRunning then return end
-                if getRole(LP)~="Sheriff" then
-                    S.aimT=nil
-                    restoreMouse()
-                    return
-                end
-                if not hasGunInHand() then
-                    S.aimT=nil
-                    restoreMouse()
-                    return
-                end
+                if getRole(LP)~="Sheriff" then S.aimT=nil restoreMouse() return end
+                if not hasGunInHand() then S.aimT=nil restoreMouse() return end
                 local ok,err=pcall(function()
                     local myChar=LP.Character
                     if not myChar or not myChar.Parent then return end
@@ -2062,7 +1718,7 @@ local function setAimbot(state,silent)
                             S.aimbot=false
                             SaveData.aimbot=false
                             saveSettings()
-                                                        setAimbotVisual(false)
+                            setAimbotVisual(false)
                             if not silent then notify("Мардер пропал — аим ВЫКЛ",Color3.fromRGB(150,150,150)) end
                         end
                     end
@@ -2084,6 +1740,119 @@ local function setAimbot(state,silent)
     end
 end
 
+-- === SPECTATE ===
+local spectate = {
+    active=false, targetIdx=1, originalCF=nil,
+    floatingBV=nil, platform=nil, camConn=nil,
+}
+
+local function getSpectateTargets()
+    local list={}
+    for _,p in ipairs(Players:GetPlayers()) do
+        if p~=LP and p.Character and p.Character:FindFirstChild("Head") then
+            list[#list+1]=p
+        end
+    end
+    return list
+end
+
+local function stopSpectate()
+    if not spectate.active then return end
+    spectate.active=false
+    if spectate.camConn then pcall(function() spectate.camConn:Disconnect() end) end
+    spectate.camConn=nil
+    if spectate.floatingBV then pcall(function() spectate.floatingBV:Destroy() end) end
+    spectate.floatingBV=nil
+    if spectate.platform then pcall(function() spectate.platform:Destroy() end) end
+    spectate.platform=nil
+    pcall(function()
+        Cam.CameraType=Enum.CameraType.Custom
+        local hum=LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+        if hum then Cam.CameraSubject=hum end
+    end)
+    local hrp=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+    if hrp and spectate.originalCF then
+        pcall(function()
+            hrp.CFrame=spectate.originalCF
+            hrp.Velocity=Vector3.zero
+            hrp.AssemblyLinearVelocity=Vector3.zero
+        end)
+    end
+    spectate.originalCF=nil
+    notify("Слежка выкл",Color3.fromRGB(150,150,150))
+end
+
+local function startSpectate()
+    if spectate.active then return end
+    local targets=getSpectateTargets()
+    if #targets==0 then notify("Нет цели",Color3.fromRGB(255,60,60)) return end
+    local hrp=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then notify("Нет персонажа",Color3.fromRGB(255,60,60)) return end
+    spectate.active=true
+    spectate.targetIdx=1
+    spectate.originalCF=hrp.CFrame
+
+    local bv=Instance.new("BodyVelocity")
+    bv.MaxForce=Vector3.new(math.huge,math.huge,math.huge)
+    bv.Velocity=Vector3.zero
+    bv.Parent=hrp
+    spectate.floatingBV=bv
+
+    local plat=Instance.new("Part")
+    plat.Size=Vector3.new(8,1,8)
+    plat.Anchored=true
+    plat.CanCollide=true
+    plat.Transparency=0.7
+    plat.Color=Color3.fromRGB(255,100,200)
+    plat.Material=Enum.Material.Neon
+    plat.CFrame=CFrame.new(hrp.Position-Vector3.new(0,3,0))
+    plat.Parent=workspace
+    spectate.platform=plat
+
+    Cam.CameraType=Enum.CameraType.Scriptable
+    spectate.camConn=RunService.RenderStepped:Connect(function()
+        if not spectate.active then return end
+        local t=getSpectateTargets()
+        if #t==0 then stopSpectate() return end
+        if spectate.targetIdx>#t then spectate.targetIdx=1 end
+        if spectate.targetIdx<1 then spectate.targetIdx=#t end
+        local target=t[spectate.targetIdx]
+        if target and target.Character then
+            local th=target.Character:FindFirstChild("Head")
+            if th then
+                local pos=th.Position
+                Cam.CFrame=CFrame.lookAt(pos+Vector3.new(0,6,10),pos)
+            end
+        end
+        local myHrp=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+        if myHrp and spectate.platform then
+            spectate.platform.CFrame=CFrame.new(myHrp.Position-Vector3.new(0,3,0))
+        end
+    end)
+    notify("Слежка: "..(targets[1] and targets[1].Name or ""),Color3.fromRGB(255,100,200))
+end
+
+local function spectateNext()
+    if not spectate.active then return end
+    local t=getSpectateTargets()
+    if #t==0 then return end
+    spectate.targetIdx=spectate.targetIdx+1
+    if spectate.targetIdx>#t then spectate.targetIdx=1 end
+    local tar=t[spectate.targetIdx]
+    if tar then notify("Слежка: "..tar.Name,Color3.fromRGB(255,100,200)) end
+end
+
+local function spectatePrev()
+    if not spectate.active then return end
+    local t=getSpectateTargets()
+    if #t==0 then return end
+    spectate.targetIdx=spectate.targetIdx-1
+    if spectate.targetIdx<1 then spectate.targetIdx=#t end
+    local tar=t[spectate.targetIdx]
+    if tar then notify("Слежка: "..tar.Name,Color3.fromRGB(255,100,200)) end
+end
+-- === /SPECTATE ===
+
 local function createGuideOverlay()
     local overlay=Instance.new("Frame")
     overlay.Name="VankaGuide"
@@ -2094,7 +1863,6 @@ local function createGuideOverlay()
     overlay.ZIndex=600
     overlay.Visible=false
     overlay.Parent=S.gui
-
     local closeBtn=Instance.new("TextButton")
     closeBtn.Name="GuideClose"
     closeBtn.Size=UDim2.new(0,44,0,44)
@@ -2108,7 +1876,6 @@ local function createGuideOverlay()
     closeBtn.Parent=overlay
     Instance.new("UICorner",closeBtn).CornerRadius=UDim.new(0,10)
     closeBtn.MouseButton1Click:Connect(function() overlay.Visible=false end)
-
     local scroll=Instance.new("ScrollingFrame")
     scroll.Size=UDim2.new(1,-120,1,-100)
     scroll.Position=UDim2.new(0,60,0,80)
@@ -2119,7 +1886,6 @@ local function createGuideOverlay()
     scroll.CanvasSize=UDim2.new(0,0,0,0)
     scroll.ZIndex=601
     scroll.Parent=overlay
-
     local label=Instance.new("TextLabel")
     label.Name="GuideText"
     label.Size=UDim2.new(1,0,0,0)
@@ -2134,11 +1900,9 @@ local function createGuideOverlay()
     label.TextWrapped=true
     label.ZIndex=601
     label.Parent=scroll
-
     label:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
         scroll.CanvasSize=UDim2.new(0,0,0,label.AbsoluteSize.Y+20)
     end)
-
     return overlay,label
 end
 
@@ -2198,7 +1962,6 @@ local function createGUI()
     local resizing=false
     local resizeStartMouse
     local resizeStartSize
-
     resizeHandle.InputBegan:Connect(function(input)
         if input.UserInputType==Enum.UserInputType.MouseButton1
             or input.UserInputType==Enum.UserInputType.Touch then
@@ -2208,7 +1971,6 @@ local function createGUI()
             resizeHandle.BackgroundTransparency=0.05
         end
     end)
-
     UIS.InputChanged:Connect(function(input)
         if resizing and (input.UserInputType==Enum.UserInputType.MouseMovement
             or input.UserInputType==Enum.UserInputType.Touch) then
@@ -2220,7 +1982,6 @@ local function createGUI()
             main.Size=UDim2.new(0,newW,0,newH)
         end
     end)
-
     UIS.InputEnded:Connect(function(input)
         if resizing and (input.UserInputType==Enum.UserInputType.MouseButton1
             or input.UserInputType==Enum.UserInputType.Touch) then
@@ -2239,19 +2000,14 @@ local function createGUI()
     local function debouncedSave()
         if saveLock then return end
         saveLock=true
-        task.delay(0.4,function()
-            saveLock=false
-            pcall(saveSettings)
-        end)
+        task.delay(0.4,function() saveLock=false pcall(saveSettings) end)
     end
-
     main:GetPropertyChangedSignal("Position"):Connect(function()
         if resizing or not panelReady then return end
         SaveData.panel_x=main.Position.X.Offset
         SaveData.panel_y=main.Position.Y.Offset+(main.AbsoluteSize.Y/2)
         debouncedSave()
     end)
-
     main:GetPropertyChangedSignal("Size"):Connect(function()
         if resizing or not panelReady then return end
         SaveData.panel_w=main.AbsoluteSize.X
@@ -2456,11 +2212,8 @@ local function createGUI()
         Instance.new("UICorner",b).CornerRadius=UDim.new(0,7)
         b.MouseButton1Click:Connect(function()
             local ok,err=pcall(cb,b)
-            if not ok then
-                notify("Err: "..tostring(err),Color3.fromRGB(255,60,60))
-            else
-                notify(T("saved_msg"),Color3.fromRGB(0,200,100))
-            end
+            if not ok then notify("Err: "..tostring(err),Color3.fromRGB(255,60,60))
+            else notify(T("saved_msg"),Color3.fromRGB(0,200,100)) end
         end)
         return b
     end
@@ -2570,7 +2323,6 @@ local function createGUI()
     switchTab("main")
 
     local guideOverlay,guideLabel=createGuideOverlay()
-
     tabs["guide"].MouseButton1Click:Connect(function()
         guideOverlay.Visible=true
         guideLabel.Text=T("guide_text")
@@ -2665,9 +2417,7 @@ local function createGUI()
         giveFakeKnife()
     end)
 
-    addToggle(tabMain,T("invisible"),S.invisibleEnabled,function(v)
-        setInvisible(v)
-    end)
+    addToggle(tabMain,T("invisible"),S.invisibleEnabled,function(v) setInvisible(v) end)
 
     addBtn(tabMain,T("clear_inv"),Color3.fromRGB(60,60,70),function()
         if LP.Backpack then
@@ -2684,39 +2434,27 @@ local function createGUI()
 
     addLabel(tabVisual,T("sec_cross"))
     addToggle(tabVisual,T("cross"),SaveData.cross,function(v)
-        S.crosshair=v
-        SaveData.cross=v
-        saveSettings()
+        S.crosshair=v SaveData.cross=v saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
     addToggle(tabVisual,T("fov"),SaveData.fov,function(v)
-        S.fovCircle=v
-        SaveData.fov=v
-        saveSettings()
+        S.fovCircle=v SaveData.fov=v saveSettings()
     end)
     addToggle(tabVisual,T("hardaim"),SaveData.hardaim,function(v)
-        S.hardAim=v
-        SaveData.hardaim=v
-        saveSettings()
+        S.hardAim=v SaveData.hardaim=v saveSettings()
     end)
 
     addLabel(tabVisual,T("sec_cross_style"))
     addBtn(tabVisual,T("cross_1"),Color3.fromRGB(60,60,90),function()
-        S.crossStyle=1
-        SaveData.cross_style=1
-        saveSettings()
+        S.crossStyle=1 SaveData.cross_style=1 saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
     addBtn(tabVisual,T("cross_2"),Color3.fromRGB(60,60,90),function()
-        S.crossStyle=2
-        SaveData.cross_style=2
-        saveSettings()
+        S.crossStyle=2 SaveData.cross_style=2 saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
     addBtn(tabVisual,T("cross_3"),Color3.fromRGB(60,60,90),function()
-        S.crossStyle=3
-        SaveData.cross_style=3
-        saveSettings()
+        S.crossStyle=3 SaveData.cross_style=3 saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
 
@@ -2733,47 +2471,28 @@ local function createGUI()
                     if _G.VankaUpdateCross then _G.VankaUpdateCross() end
                     notify(T("cross_loaded"),Color3.fromRGB(0,200,100))
                 end
-            else
-                notify(T("cross_notfound"),Color3.fromRGB(255,60,60))
-            end
+            else notify(T("cross_notfound"),Color3.fromRGB(255,60,60)) end
         end
     end)
     addBtn(tabVisual,T("cross_reset"),Color3.fromRGB(120,50,50),function()
-        S.crossImage=nil
-        SaveData.custom_cross=""
-        saveSettings()
+        S.crossImage=nil SaveData.custom_cross="" saveSettings()
         if _G.VankaUpdateCross then _G.VankaUpdateCross() end
     end)
 
     addLabel(tabVisual,T("sec_move"))
     addToggle(tabVisual,T("fly"),SaveData.fly,function(v)
-        S.fly=v
-        SaveData.fly=v
-        saveSettings()
-        if not v and S.flyBV then
-            pcall(function() S.flyBV:Destroy() end)
-            S.flyBV=nil
-        end
+        S.fly=v SaveData.fly=v saveSettings()
+        if not v and S.flyBV then pcall(function() S.flyBV:Destroy() end) S.flyBV=nil end
     end)
-    addToggle(tabVisual,T("noclip"),SaveData.noclip,function(v)
-        S.noclip=v
-        SaveData.noclip=v
-        saveSettings()
-    end)
-    addToggle(tabVisual,T("infjump"),SaveData.infjump,function(v)
-        S.infjump=v
-        SaveData.infjump=v
-        saveSettings()
-    end)
+    addToggle(tabVisual,T("noclip"),SaveData.noclip,function(v) S.noclip=v SaveData.noclip=v saveSettings() end)
+    addToggle(tabVisual,T("infjump"),SaveData.infjump,function(v) S.infjump=v SaveData.infjump=v saveSettings() end)
 
     addLabel(tabVisual,T("speed"))
     local speedBox=addTextBox(tabVisual,S.speedValue or 50,"Скорость 16-500")
     speedBox.FocusLost:Connect(function()
         local v=tonumber(speedBox.Text)
         if v and v>0 and v<=500 then
-            S.speedValue=v
-            SaveData.speed_value=v
-            saveSettings()
+            S.speedValue=v SaveData.speed_value=v saveSettings()
             if S.speed50Enabled and LP.Character then
                 local h=LP.Character:FindFirstChildOfClass("Humanoid")
                 if h then h.WalkSpeed=v end
@@ -2786,9 +2505,7 @@ local function createGUI()
     end)
 
     addToggle(tabVisual,T("speed"),S.speed50Enabled,function(v)
-        S.speed50Enabled=v
-        SaveData.speed50=v
-        saveSettings()
+        S.speed50Enabled=v SaveData.speed50=v saveSettings()
         if v then
             startSpeed50Loop()
             if LP.Character then
@@ -2804,62 +2521,25 @@ local function createGUI()
     end)
 
     addToggle(tabVisual,T("walkback"),SaveData.walkback,function(v)
-        S.walkBack=v
-        SaveData.walkback=v
-        saveSettings()
+        S.walkBack=v SaveData.walkback=v saveSettings()
         if v then startWalkBack() else stopWalkBack() end
     end)
 
     addLabel(tabVisual,T("sec_sky"))
-    addBtn(tabVisual,T("sky_cosmos"),Color3.fromRGB(40,40,80),function()
-        applySky(SKY_PRESETS[1])
-        SaveData.sky_name="sky_cosmos"
-        saveSettings()
-    end)
-    addBtn(tabVisual,T("sky_galaxy"),Color3.fromRGB(60,30,90),function()
-        applySky(SKY_PRESETS[2])
-        SaveData.sky_name="sky_galaxy"
-        saveSettings()
-    end)
-    addBtn(tabVisual,T("sky_dawn"),Color3.fromRGB(120,70,60),function()
-        applySky(SKY_PRESETS[3])
-        SaveData.sky_name="sky_dawn"
-        saveSettings()
-    end)
-    addBtn(tabVisual,T("sky_sunset"),Color3.fromRGB(140,80,50),function()
-        applySky(SKY_PRESETS[4])
-        SaveData.sky_name="sky_sunset"
-        saveSettings()
-    end)
-    addBtn(tabVisual,T("sky_night"),Color3.fromRGB(30,30,60),function()
-        applySky(SKY_PRESETS[5])
-        SaveData.sky_name="sky_night"
-        saveSettings()
-    end)
-    addBtn(tabVisual,T("sky_purple"),Color3.fromRGB(80,40,120),function()
-        applySky(SKY_PRESETS[6])
-        SaveData.sky_name="sky_purple"
-        saveSettings()
-    end)
-    addBtn(tabVisual,T("sky_clear"),Color3.fromRGB(80,40,40),function()
-        clearSky()
-        SaveData.sky_name=""
-        saveSettings()
-    end)
+    addBtn(tabVisual,T("sky_cosmos"),Color3.fromRGB(40,40,80),function() applySky(SKY_PRESETS[1]) SaveData.sky_name="sky_cosmos" saveSettings() end)
+    addBtn(tabVisual,T("sky_galaxy"),Color3.fromRGB(60,30,90),function() applySky(SKY_PRESETS[2]) SaveData.sky_name="sky_galaxy" saveSettings() end)
+    addBtn(tabVisual,T("sky_dawn"),Color3.fromRGB(120,70,60),function() applySky(SKY_PRESETS[3]) SaveData.sky_name="sky_dawn" saveSettings() end)
+    addBtn(tabVisual,T("sky_sunset"),Color3.fromRGB(140,80,50),function() applySky(SKY_PRESETS[4]) SaveData.sky_name="sky_sunset" saveSettings() end)
+    addBtn(tabVisual,T("sky_night"),Color3.fromRGB(30,30,60),function() applySky(SKY_PRESETS[5]) SaveData.sky_name="sky_night" saveSettings() end)
+    addBtn(tabVisual,T("sky_purple"),Color3.fromRGB(80,40,120),function() applySky(SKY_PRESETS[6]) SaveData.sky_name="sky_purple" saveSettings() end)
+    addBtn(tabVisual,T("sky_clear"),Color3.fromRGB(80,40,40),function() clearSky() SaveData.sky_name="" saveSettings() end)
 
     addLabel(tabVisual,T("sec_vis"))
     addToggle(tabVisual,T("fullbright"),SaveData.fullbright,function(v)
-        S.fullbright=v
-        SaveData.fullbright=v
-        saveSettings()
+        S.fullbright=v SaveData.fullbright=v saveSettings()
         if v then
             if not S.oldLighting then
-                S.oldLighting={
-                    Brightness=Lighting.Brightness,
-                    ClockTime=Lighting.ClockTime,
-                    Ambient=Lighting.Ambient,
-                    OutdoorAmbient=Lighting.OutdoorAmbient
-                }
+                S.oldLighting={Brightness=Lighting.Brightness,ClockTime=Lighting.ClockTime,Ambient=Lighting.Ambient,OutdoorAmbient=Lighting.OutdoorAmbient}
             end
             Lighting.Brightness=2
             Lighting.ClockTime=14
@@ -2877,55 +2557,21 @@ local function createGUI()
     end)
 
     addLabel(tabESP,T("sec_esp"))
-    addToggle(tabESP,T("esp_main"),S.espEnabled,function(v)
-        S.espEnabled=v
-        SaveData.esp=v
-        saveSettings()
-    end)
-    addToggle(tabESP,T("esp_health"),S.espHealth,function(v)
-        S.espHealth=v
-        SaveData.esp_health=v
-        saveSettings()
-        updatePreview()
-    end)
-    addToggle(tabESP,T("esp_name"),S.espName,function(v)
-        S.espName=v
-        SaveData.esp_name=v
-        saveSettings()
-        updatePreview()
-    end)
-    addToggle(tabESP,T("esp_dist"),S.espDist,function(v)
-        S.espDist=v
-        SaveData.esp_dist=v
-        saveSettings()
-        updatePreview()
-    end)
-    addToggle(tabESP,T("esp_weapon"),S.espWeapon,function(v)
-        S.espWeapon=v
-        SaveData.esp_weapon=v
-        saveSettings()
-        updatePreview()
-    end)
-    addToggle(tabESP,T("esp_rainbow"),S.espRainbow,function(v)
-        S.espRainbow=v
-        SaveData.esp_rainbow=v
-        saveSettings()
-    end)
+    addToggle(tabESP,T("esp_main"),S.espEnabled,function(v) S.espEnabled=v SaveData.esp=v saveSettings() end)
+    addToggle(tabESP,T("esp_health"),S.espHealth,function(v) S.espHealth=v SaveData.esp_health=v saveSettings() updatePreview() end)
+    addToggle(tabESP,T("esp_name"),S.espName,function(v) S.espName=v SaveData.esp_name=v saveSettings() updatePreview() end)
+    addToggle(tabESP,T("esp_dist"),S.espDist,function(v) S.espDist=v SaveData.esp_dist=v saveSettings() updatePreview() end)
+    addToggle(tabESP,T("esp_weapon"),S.espWeapon,function(v) S.espWeapon=v SaveData.esp_weapon=v saveSettings() updatePreview() end)
+    addToggle(tabESP,T("esp_rainbow"),S.espRainbow,function(v) S.espRainbow=v SaveData.esp_rainbow=v saveSettings() end)
 
     addLabel(tabESP,T("sec_hitbox"))
     addToggle(tabESP,T("hitbox"),SaveData.hitbox,function(v)
-        S.hitbox=v
-        SaveData.hitbox=v
-        saveSettings()
+        S.hitbox=v SaveData.hitbox=v saveSettings()
         if S.previewRefs.hitbox then S.previewRefs.hitbox.Visible=v end
     end)
 
     addLabel(tabESP,T("sec_lines"))
-    addToggle(tabESP,T("lines"),SaveData.lines,function(v)
-        S.lines=v
-        SaveData.lines=v
-        saveSettings()
-    end)
+    addToggle(tabESP,T("lines"),SaveData.lines,function(v) S.lines=v SaveData.lines=v saveSettings() end)
 
     addLabel(tabESP,T("esp_preview"))
     local previewFrame=Instance.new("Frame")
@@ -2935,8 +2581,6 @@ local function createGUI()
     previewFrame.Parent=tabESP
     Instance.new("UICorner",previewFrame).CornerRadius=UDim.new(0,10)
     if IMG_NOOB then
-        local oldHb=previewFrame:FindFirstChild("PrevHitbox")
-        if oldHb then oldHb:Destroy() end
         local noobImg=Instance.new("ImageLabel")
         noobImg.Size=UDim2.new(0,130,0,130)
         noobImg.Position=UDim2.new(0.5,-65,0.5,-20)
@@ -2951,7 +2595,6 @@ local function createGUI()
         noobStroke.Parent=noobImg
         S.previewRefs.noob=noobImg
         S.previewRefs.noobStroke=noobStroke
-
         local hbFrame=Instance.new("Frame")
         hbFrame.Name="PrevHitbox"
         hbFrame.AnchorPoint=Vector2.new(0.5,0.5)
@@ -2976,7 +2619,6 @@ local function createGUI()
         hbLabel.Font=Enum.Font.GothamBold
         hbLabel.Parent=hbFrame
         S.previewRefs.hitbox=hbFrame
-
         local nameLbl=Instance.new("TextLabel")
         nameLbl.Name="PrevName"
         nameLbl.Size=UDim2.new(0,180,0,18)
@@ -2989,7 +2631,6 @@ local function createGUI()
         nameLbl.Font=Enum.Font.GothamBold
         nameLbl.Parent=previewFrame
         S.previewRefs.nameLbl=nameLbl
-
         local weaponLbl=Instance.new("TextLabel")
         weaponLbl.Name="PrevWeapon"
         weaponLbl.Size=UDim2.new(0,180,0,18)
@@ -3002,7 +2643,6 @@ local function createGUI()
         weaponLbl.Font=Enum.Font.GothamBold
         weaponLbl.Parent=previewFrame
         S.previewRefs.weaponLbl=weaponLbl
-
         local hpBg=Instance.new("Frame")
         hpBg.Name="PrevHpBg"
         hpBg.Size=UDim2.new(0,120,0,8)
@@ -3018,7 +2658,6 @@ local function createGUI()
         hpFill.Parent=hpBg
         Instance.new("UICorner",hpFill).CornerRadius=UDim.new(0,4)
         S.previewRefs.hpBg=hpBg
-
         local distLbl=Instance.new("TextLabel")
         distLbl.Name="PrevDist"
         distLbl.Size=UDim2.new(0,180,0,16)
@@ -3042,38 +2681,14 @@ local function createGUI()
     aimbotRow.Name="AimToggleRow"
 
     addLabel(tabRage,T("sec_aim_part"))
-    addBtn(tabRage,T("aim_head"),Color3.fromRGB(60,60,90),function()
-        S.aimPart="Head"
-        SaveData.aim_part="Head"
-        saveSettings()
-    end)
-    addBtn(tabRage,T("aim_torso"),Color3.fromRGB(60,60,90),function()
-        S.aimPart="Torso"
-        SaveData.aim_part="Torso"
-        saveSettings()
-    end)
-    addBtn(tabRage,T("aim_random"),Color3.fromRGB(60,60,90),function()
-        S.aimPart="Random"
-        SaveData.aim_part="Random"
-        saveSettings()
-    end)
+    addBtn(tabRage,T("aim_head"),Color3.fromRGB(60,60,90),function() S.aimPart="Head" SaveData.aim_part="Head" saveSettings() end)
+    addBtn(tabRage,T("aim_torso"),Color3.fromRGB(60,60,90),function() S.aimPart="Torso" SaveData.aim_part="Torso" saveSettings() end)
+    addBtn(tabRage,T("aim_random"),Color3.fromRGB(60,60,90),function() S.aimPart="Random" SaveData.aim_part="Random" saveSettings() end)
 
     addLabel(tabRage,T("sec_smooth"))
-    addBtn(tabRage,T("smooth_slow"),Color3.fromRGB(60,60,90),function()
-        S.aimSmooth=0.5
-        SaveData.aim_smooth=0.5
-        saveSettings()
-    end)
-    addBtn(tabRage,T("smooth_mid"),Color3.fromRGB(60,60,90),function()
-        S.aimSmooth=0.35
-        SaveData.aim_smooth=0.35
-        saveSettings()
-    end)
-    addBtn(tabRage,T("smooth_fast"),Color3.fromRGB(60,60,90),function()
-        S.aimSmooth=0.15
-        SaveData.aim_smooth=0.15
-        saveSettings()
-    end)
+    addBtn(tabRage,T("smooth_slow"),Color3.fromRGB(60,60,90),function() S.aimSmooth=0.5 SaveData.aim_smooth=0.5 saveSettings() end)
+    addBtn(tabRage,T("smooth_mid"),Color3.fromRGB(60,60,90),function() S.aimSmooth=0.35 SaveData.aim_smooth=0.35 saveSettings() end)
+    addBtn(tabRage,T("smooth_fast"),Color3.fromRGB(60,60,90),function() S.aimSmooth=0.15 SaveData.aim_smooth=0.15 saveSettings() end)
 
     addBtn(tabRage,T("kill_aim"),Color3.fromRGB(170,20,30),function()
         if S.aimT and S.aimT.Character then
@@ -3084,15 +2699,9 @@ local function createGUI()
 
     addLabel(tabRage,T("sec_trigger"))
     addToggle(tabRage,T("triggerbot"),SaveData.triggerbot,function(v)
-        S.triggerbot=v
-        SaveData.triggerbot=v
-        saveSettings()
-        if v then
-            startTriggerbot()
-            notify(T("trigger_ready"),Color3.fromRGB(0,200,100))
-        else
-            stopTriggerbot()
-        end
+        S.triggerbot=v SaveData.triggerbot=v saveSettings()
+        if v then startTriggerbot() notify(T("trigger_ready"),Color3.fromRGB(0,200,100))
+        else stopTriggerbot() end
     end)
 
     addLabel(tabRage,T("trigger_delay"))
@@ -3100,9 +2709,7 @@ local function createGUI()
     trigDelayBox.FocusLost:Connect(function()
         local v=tonumber(trigDelayBox.Text)
         if v and v>=0 and v<=2 then
-            S.triggerDelay=v
-            SaveData.trigger_delay=v
-            saveSettings()
+            S.triggerDelay=v SaveData.trigger_delay=v saveSettings()
         end
     end)
 
@@ -3111,42 +2718,20 @@ local function createGUI()
     trigRangeBox.FocusLost:Connect(function()
         local v=tonumber(trigRangeBox.Text)
         if v and v>=5 and v<=2000 then
-            S.triggerRange=v
-            SaveData.trigger_range=v
-            saveSettings()
+            S.triggerRange=v SaveData.trigger_range=v saveSettings()
         end
     end)
 
     addLabel(tabRage,T("trigger_target"))
-    addBtn(tabRage,T("aim_head"),Color3.fromRGB(60,60,90),function()
-        S.triggerTarget="Head"
-        SaveData.trigger_target="Head"
-        saveSettings()
-    end)
-    addBtn(tabRage,T("aim_torso"),Color3.fromRGB(60,60,90),function()
-        S.triggerTarget="Torso"
-        SaveData.trigger_target="Torso"
-        saveSettings()
-    end)
-    addBtn(tabRage,T("aim_random"),Color3.fromRGB(60,60,90),function()
-        S.triggerTarget="Random"
-        SaveData.trigger_target="Random"
-        saveSettings()
-    end)
+    addBtn(tabRage,T("aim_head"),Color3.fromRGB(60,60,90),function() S.triggerTarget="Head" SaveData.trigger_target="Head" saveSettings() end)
+    addBtn(tabRage,T("aim_torso"),Color3.fromRGB(60,60,90),function() S.triggerTarget="Torso" SaveData.trigger_target="Torso" saveSettings() end)
+    addBtn(tabRage,T("aim_random"),Color3.fromRGB(60,60,90),function() S.triggerTarget="Random" SaveData.trigger_target="Random" saveSettings() end)
 
     addLabel(tabRage,T("sec_spin"))
-    addToggle(tabRage,T("spin"),SaveData.spin,function(v)
-        S.spin=v
-        SaveData.spin=v
-        saveSettings()
-    end)
+    addToggle(tabRage,T("spin"),SaveData.spin,function(v) S.spin=v SaveData.spin=v saveSettings() end)
 
     addLabel(tabRage,T("sec_antiaim"))
-    addToggle(tabRage,T("antiaim"),SaveData.antiaim,function(v)
-        S.antiAim=v
-        SaveData.antiaim=v
-        saveSettings()
-    end)
+    addToggle(tabRage,T("antiaim"),SaveData.antiaim,function(v) S.antiAim=v SaveData.antiaim=v saveSettings() end)
 
     addLabel(tabRage,T("sec_util"))
     addBtn(tabRage,T("respawn"),Color3.fromRGB(100,60,150),function()
@@ -3155,65 +2740,31 @@ local function createGUI()
 
     addBtn(tabRage,T("disable_all"),Color3.fromRGB(180,0,100),function()
         setAimbot(false,true)
-        S.roleHighlight=false
-        S.fly=false
-        S.noclip=false
-        S.infjump=false
-        S.spin=false
-        S.autoPickup=false
-        S.autoKillEnabled=false
-        S.autoTpEnabled=false
-        S.autoCamperEnabled=false
-        S.espEnabled=false
-        S.speed50Enabled=false
-        S.farmEnabled=false
-        S.hitbox=false
-        S.lines=false
-        S.antiAim=false
-        S.walkBack=false
-        S.triggerbot=false
-        SaveData.aimbot=false
-        SaveData.roles=false
-        SaveData.fly=false
-        SaveData.noclip=false
-        SaveData.infjump=false
-        SaveData.spin=false
-        SaveData.pickup=false
-        SaveData.autokill=false
-        SaveData.autotp=false
-        SaveData.autocamper=false
-        SaveData.esp=false
-        SaveData.speed50=false
-        SaveData.farm=false
-        SaveData.hitbox=false
-        SaveData.lines=false
-        SaveData.antiaim=false
-        SaveData.walkback=false
-        SaveData.triggerbot=false
+        S.roleHighlight=false S.fly=false S.noclip=false S.infjump=false S.spin=false
+        S.autoPickup=false S.autoKillEnabled=false S.autoTpEnabled=false S.autoCamperEnabled=false
+        S.espEnabled=false S.speed50Enabled=false S.farmEnabled=false S.hitbox=false
+        S.lines=false S.antiAim=false S.walkBack=false S.triggerbot=false
+        SaveData.aimbot=false SaveData.roles=false SaveData.fly=false SaveData.noclip=false
+        SaveData.infjump=false SaveData.spin=false SaveData.pickup=false SaveData.autokill=false
+        SaveData.autotp=false SaveData.autocamper=false SaveData.esp=false SaveData.speed50=false
+        SaveData.farm=false SaveData.hitbox=false SaveData.lines=false SaveData.antiaim=false
+        SaveData.walkback=false SaveData.triggerbot=false
         saveSettings()
-        stopAutoKillLoop()
-        stopAutoTp()
-        stopAutoPickup()
-        stopAutoCamper()
-        stopFarm()
-        clearHL()
-        stopWalkBack()
-        stopTriggerbot()
+        stopAutoKillLoop() stopAutoTp() stopAutoPickup() stopAutoCamper()
+        stopFarm() clearHL() stopWalkBack() stopTriggerbot()
         if S.flyBV then pcall(function() S.flyBV:Destroy() end) S.flyBV=nil end
         if S.flingRunning then flingStop() end
         if LP.Character then
             local h=LP.Character:FindFirstChildOfClass("Humanoid")
-            if h then
-                h.WalkSpeed=16
-                h.JumpPower=50
-            end
+            if h then h.WalkSpeed=16 h.JumpPower=50 end
         end
         notify(T("all_off"),Color3.fromRGB(255,60,60))
     end)
 
+    -- === PLAYERS TAB ===
     addLabel(tabPlayers,T("plist"))
     local pList=Instance.new("Frame")
-    pList.Size=UDim2.new(1,0,0,420)
+    pList.Size=UDim2.new(1,0,0,380)
     pList.BackgroundColor3=Color3.fromRGB(16,16,24)
     pList.BorderSizePixel=0
     pList.Parent=tabPlayers
@@ -3262,7 +2813,7 @@ local function createGUI()
                 tag.Parent=row
                 Instance.new("UICorner",tag).CornerRadius=UDim.new(1,0)
                 local nm=Instance.new("TextLabel")
-                nm.Size=UDim2.new(1,-170,1,0)
+                nm.Size=UDim2.new(1,-200,1,0)
                 nm.Position=UDim2.new(0,52,0,0)
                 nm.BackgroundTransparency=1
                 nm.Text=plr.Name
@@ -3274,7 +2825,7 @@ local function createGUI()
                 nm.Parent=row
                 local tpB=Instance.new("TextButton")
                 tpB.Size=UDim2.new(0,36,0,26)
-                tpB.Position=UDim2.new(1,-120,0.5,-13)
+                tpB.Position=UDim2.new(1,-150,0.5,-13)
                 tpB.BackgroundColor3=Color3.fromRGB(40,100,200)
                 tpB.Text=T("tp")
                 tpB.TextColor3=Color3.new(1,1,1)
@@ -3292,9 +2843,27 @@ local function createGUI()
                         end
                     end
                 end)
+                local specBtn=Instance.new("TextButton")
+                specBtn.Size=UDim2.new(0,36,0,26)
+                specBtn.Position=UDim2.new(1,-110,0.5,-13)
+                specBtn.BackgroundColor3=Color3.fromRGB(120,40,180)
+                specBtn.Text="👁"
+                specBtn.TextColor3=Color3.new(1,1,1)
+                specBtn.TextSize=12
+                specBtn.Font=Enum.Font.GothamBold
+                specBtn.Parent=row
+                Instance.new("UICorner",specBtn).CornerRadius=UDim.new(0,6)
+                specBtn.MouseButton1Click:Connect(function()
+                    stopSpectate()
+                    startSpectate()
+                    local t=getSpectateTargets()
+                    for i,p in ipairs(t) do
+                        if p==plr then spectate.targetIdx=i break end
+                    end
+                end)
                 local flB=Instance.new("TextButton")
                 flB.Size=UDim2.new(0,76,0,26)
-                flB.Position=UDim2.new(1,-80,0.5,-13)
+                flB.Position=UDim2.new(1,-70,0.5,-13)
                 flB.BackgroundColor3=Color3.fromRGB(180,20,100)
                 flB.Text=T("fling")
                 flB.TextColor3=Color3.new(1,1,1)
@@ -3314,6 +2883,42 @@ local function createGUI()
     rebuild()
     Players.PlayerAdded:Connect(function() task.wait(1) rebuild() end)
     Players.PlayerRemoving:Connect(function() task.wait(0.3) rebuild() end)
+
+    -- === SPECTATE CONTROL ===
+    addLabel(tabPlayers,"СЛЕЖКА")
+    local specCtl=Instance.new("Frame")
+    specCtl.Size=UDim2.new(1,0,0,48)
+    specCtl.BackgroundColor3=Color3.fromRGB(26,20,40)
+    specCtl.BorderSizePixel=0
+    specCtl.Parent=tabPlayers
+    Instance.new("UICorner",specCtl).CornerRadius=UDim.new(0,8)
+    local specLay=Instance.new("UIListLayout")
+    specLay.FillDirection=Enum.FillDirection.Horizontal
+    specLay.Padding=UDim.new(0,4)
+    specLay.VerticalAlignment=Enum.VerticalAlignment.Center
+    specLay.HorizontalAlignment=Enum.HorizontalAlignment.Center
+    specLay.Parent=specCtl
+
+    local function specCell(txt,col,w,cb)
+        local b=Instance.new("TextButton")
+        b.Size=UDim2.new(0,w,0,36)
+        b.BackgroundColor3=col
+        b.Text=txt
+        b.TextColor3=Color3.new(1,1,1)
+        b.TextSize=14
+        b.Font=Enum.Font.GothamBold
+        b.Parent=specCtl
+        Instance.new("UICorner",b).CornerRadius=UDim.new(0,7)
+        b.MouseButton1Click:Connect(function() pcall(cb) end)
+        return b
+    end
+
+    specCell("◀",Color3.fromRGB(70,70,120),48,function() spectatePrev() end)
+    specCell("СЛЕЖКА",Color3.fromRGB(120,40,180),0,function()
+        if spectate.active then stopSpectate() else startSpectate() end
+    end).Size=UDim2.new(1,-180,0,36)
+    specCell("▶",Color3.fromRGB(70,70,120),48,function() spectateNext() end)
+    specCell("X",Color3.fromRGB(180,40,60),60,function() stopSpectate() end)
 
     addLabel(tabSettings,T("sec_lang"))
     local function changeLang(newLang)
@@ -3414,10 +3019,7 @@ local function createGUI()
         if not readfile or nameBox.Text=="" then return end
         local path="vanka_configs/"..nameBox.Text..".txt"
         local ok,exists=pcall(isfile,path)
-        if not ok or not exists then
-            notify(T("cfg_notfound"),Color3.fromRGB(255,60,60))
-            return
-        end
+        if not ok or not exists then notify(T("cfg_notfound"),Color3.fromRGB(255,60,60)) return end
         local ok2,data=pcall(readfile,path)
         if ok2 and data then
             pcall(writefile,SAVE_FILE,data)
@@ -3426,40 +3028,22 @@ local function createGUI()
     end)
 
     addLabel(tabConfigs,T("cfg_presets"))
-    addBtn(tabConfigs,T("cfg_default"),Color3.fromRGB(60,60,90),function()
-        nameBox.Text="default"
-    end)
-    addBtn(tabConfigs,T("cfg_aim"),Color3.fromRGB(60,90,60),function()
-        nameBox.Text="aim"
-    end)
-    addBtn(tabConfigs,T("cfg_farm"),Color3.fromRGB(90,90,60),function()
-        nameBox.Text="farm"
-    end)
+    addBtn(tabConfigs,T("cfg_default"),Color3.fromRGB(60,60,90),function() nameBox.Text="default" end)
+    addBtn(tabConfigs,T("cfg_aim"),Color3.fromRGB(60,90,60),function() nameBox.Text="aim" end)
+    addBtn(tabConfigs,T("cfg_farm"),Color3.fromRGB(90,90,60),function() nameBox.Text="farm" end)
 
     closeB.MouseButton1Click:Connect(function()
         if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
     end)
 
-    minB.MouseButton1Click:Connect(function()
-        main.Visible=false
-        openB.Visible=true
-    end)
-
-    openB.MouseButton1Click:Connect(function()
-        main.Visible=true
-        openB.Visible=false
-    end)
+    minB.MouseButton1Click:Connect(function() main.Visible=false openB.Visible=true end)
+    openB.MouseButton1Click:Connect(function() main.Visible=true openB.Visible=false end)
 
     UIS.InputBegan:Connect(function(input,gp)
         if gp then return end
         if input.KeyCode==Enum.KeyCode.RightShift then
-            if main.Visible then
-                main.Visible=false
-                openB.Visible=true
-            else
-                main.Visible=true
-                openB.Visible=false
-            end
+            if main.Visible then main.Visible=false openB.Visible=true
+            else main.Visible=true openB.Visible=false end
         end
     end)
 
@@ -3489,8 +3073,7 @@ local function updateCrosshair()
     end
     if not S.crosshair then return end
     if S.crossStyle==1 then
-        crossH.Visible=true
-        crossV.Visible=true
+        crossH.Visible=true crossV.Visible=true
         crossH.BackgroundColor3=S.crossColor
         crossV.BackgroundColor3=S.crossColor
     elseif S.crossStyle==2 then
@@ -3511,14 +3094,12 @@ local function createOverlays()
     crossH.BackgroundColor3=S.crossColor
     crossH.BorderSizePixel=0
     crossH.Parent=S.gui
-
     crossV=Instance.new("Frame")
     crossV.Size=UDim2.new(0,2,0,20)
     crossV.Position=UDim2.new(0.5,-1,0.5,-10)
     crossV.BackgroundColor3=S.crossColor
     crossV.BorderSizePixel=0
     crossV.Parent=S.gui
-
     crossDot=Instance.new("Frame")
     crossDot.Size=UDim2.new(0,5,0,5)
     crossDot.Position=UDim2.new(0.5,-2.5,0.5,-2.5)
@@ -3527,7 +3108,6 @@ local function createOverlays()
     crossDot.Visible=false
     crossDot.Parent=S.gui
     Instance.new("UICorner",crossDot).CornerRadius=UDim.new(1,0)
-
     crossCircle=Instance.new("Frame")
     crossCircle.Size=UDim2.new(0,30,0,30)
     crossCircle.Position=UDim2.new(0.5,-15,0.5,-15)
@@ -3539,7 +3119,6 @@ local function createOverlays()
     ccStroke.Color=S.crossColor
     ccStroke.Thickness=2
     ccStroke.Parent=crossCircle
-
     fovCircle=Instance.new("Frame")
     fovCircle.AnchorPoint=Vector2.new(0.5,0.5)
     fovCircle.Size=UDim2.new(0,400,0,400)
@@ -3553,7 +3132,6 @@ local function createOverlays()
     fs.Thickness=1.5
     fs.Transparency=0.35
     fs.Parent=fovCircle
-
     updateCrosshair()
 end
 
@@ -3562,7 +3140,7 @@ local function mainLoop()
         if not S.gui then return end
         updateCrosshair()
         if fovCircle then fovCircle.Visible=false end
-        if S.spin and LP.Character then
+        if S.spin and LP.Character and not spectate.active then
             local hrp=LP.Character:FindFirstChild("HumanoidRootPart")
             if hrp then hrp.CFrame=hrp.CFrame*CFrame.Angles(0,math.rad(S.spinSpeed*dt*60),0) end
         end
@@ -3659,12 +3237,9 @@ local function mainLoop()
         else
             for plr,line in pairs(S.espLines) do line:Destroy() end
             S.espLines={}
-            if S.linesHolder then
-                S.linesHolder:Destroy()
-                S.linesHolder=nil
-            end
+            if S.linesHolder then S.linesHolder:Destroy() S.linesHolder=nil end
         end
-        if S.antiAim and LP.Character and not S.flingRunning then
+        if S.antiAim and LP.Character and not S.flingRunning and not spectate.active then
             local myHrp=LP.Character:FindFirstChild("HumanoidRootPart")
             local myHum=LP.Character:FindFirstChildOfClass("Humanoid")
             if myHrp and myHum and myHum.Health>0 then
@@ -3704,7 +3279,7 @@ local function mainLoop()
             end
         end
         if S.invisibleEnabled then applyInvisible() end
-        if S.fly and LP.Character and not S.flingRunning then
+        if S.fly and LP.Character and not S.flingRunning and not spectate.active then
             local hrp=LP.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
                 if not S.flyBV or S.flyBV.Parent~=hrp then
@@ -3731,10 +3306,7 @@ local function mainLoop()
                 else S.flyBV.Velocity=Vector3.new(0,0,0) end
             end
         else
-            if S.flyBV then
-                pcall(function() S.flyBV:Destroy() end)
-                S.flyBV=nil
-            end
+            if S.flyBV then pcall(function() S.flyBV:Destroy() end) S.flyBV=nil end
         end
         if S.noclip and LP.Character then
             for _,p in ipairs(LP.Character:GetDescendants()) do
@@ -3877,6 +3449,7 @@ end
 
 _G.VankaPanel = {
     Destroy = function()
+        if spectate.active then pcall(stopSpectate) end
         if aimBound then
             aimBound=false
             pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
