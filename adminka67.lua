@@ -2452,15 +2452,14 @@ local function createGUI()
         debouncedSave()
     end)
 
-    local bgGrad=Instance.new("UIGradient")
+        local bgGrad=Instance.new("UIGradient")
     bgGrad.Color=ColorSequence.new{
-        ColorSequenceKeypoint.new(
-                ColorSequenceKeypoint.new(0,Color3.fromRGB(20,15,30)),
+        ColorSequenceKeypoint.new(0,Color3.fromRGB(20,15,30)),
         ColorSequenceKeypoint.new(1,Color3.fromRGB(8,8,14)),
     }
     bgGrad.Rotation=45
-    bgGrad.Parent=main
-
+    bgGrad.Parent=main 
+    
     local mstk=Instance.new("UIStroke")
     mstk.Name="MainStroke"
     mstk.Color=S.panelColor
