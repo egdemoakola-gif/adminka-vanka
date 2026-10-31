@@ -76,7 +76,7 @@ local L = {
         walkback_on="Ходьба задом ВКЛ", walkback_off="Ходьба задом ВЫКЛ",
         sky_cosmos="Космос", sky_galaxy="Галактика", sky_dawn="Рассвет",
         sky_sunset="Закат", sky_night="Ночное", sky_purple="Фиолет", sky_clear="Убрать небо",
-        guide_text="ГЛАВНАЯ\n— Авто-нож: работает когда ты мардер, бьёт всех подряд.\n— Авто-кемпер: когда ты мардер, убивает только шерифа и возвращается назад.\n— Следование: телепорт за мардером.\n— Авто-фарм: собирает монеты, скорость настраивается.\n— Подбор пистолета: шериф умер → тп к нему → 1 сек → тп назад.\n— Подсветка ролей: цветной контур на игроках.\n— Фейк-нож: выдаёт нож в инвентарь.\n— Инвиз: убирает твоё тело.\n— Очистить инвентарь: удаляет все тулзы.\n\nВИЗУАЛ\n— Прицел, FOV, хард-аим — настройка вида.\n— Стили прицела, свой PNG — внешний вид.\n— Флай, ноклип, беск. прыжок, спидхак, ходьба задом.\n— Небо (6 пресетов), фулбрайт.\n\nЕСП\n— Включить — главный тумблер.\n— Здоровье, имя, дистанция, оружие — что показывать над головой.\n— Радуга — цвет переливается.\n— Хитбокс, линии.\n— Превью — как выглядит ESP.\n\nРЕЙДЖ\n— Аимбот: работает только когда пушка в руке (шериф).\n— Часть тела, плавность, килл-аим.\n— Триггер-бот: клик по мардеру (только шериф).\n— Спинбот, анти-аим.\n— Респавн — убить себя.\n— ВЫКЛЮЧИТЬ ВСЁ — отключить всё сразу.\n\nИГРОКИ\n— Список с аватарками.\n— ТП — телепорт к игроку.\n— ФЛИНГ — SkidFling, работает за ~1 сек.\n\nНАСТРОЙКИ\n— Язык: ru/en/zh.\n— Цвет панели: 56 цветов.\n\nКОНФИГИ\n— Имя конфига → Сохранить.\n— Имя → Загрузить.\n— Пресеты: default/aim/farm.\n\n📖 — эта инструкция.\n\nRightShift — свернуть/развернуть панель.\nКнопка «-» — свернуть в лого.\nКнопка «X» — закрыть.",
+        guide_text="ГЛАВНАЯ\n— Авто-нож: работает когда ты мардер, бьёт всех подряд.\n— Авто-кемпер: когда ты мардер, убивает только шерифа и возвращается назад.\n— Следование: телепорт за мардером.\n— Авто-фарм: собирает монеты, скорость настраивается.\n— Подбор пистолета: шериф умер → тп к нему → 1 сек → тп назад.\n— Подсветка ролей: цветной контур на игроках.\n— Фейк-нож: выдаёт нож в инвентарь.\n— Инвиз: убирает твоё тело.\n— Очистить инвентарь: удаляет все тулзы.\n\nВИЗУАЛ\n— Прицел, FOV, хард-аим — настройка вида.\n— Стили прицела, свой PNG — внешний вид.\n— Флай, ноклип, беск. прыжок, спидхак, ходьба задом.\n— Небо (6 пресетов), фулбрайт.\n\nЕСП\n— Включить — главный тумблер.\n— Здоровье, имя, дистанция, оружие — что показывать над головой.\n— Радуга — цвет переливается.\n— Хитбокс, линии.\n— Превью — как выглядит ESP.\n\nРЕЙДЖ\n— Аимбот: только когда шериф и пушка в руке. Авто-выстрел с проверкой стен.\n— Часть тела, плавность, килл-аим.\n— Триггер-бот: клик по мардеру (только шериф).\n— Спинбот, анти-аим.\n— Респавн — убить себя.\n— ВЫКЛЮЧИТЬ ВСЁ — отключить всё сразу.\n\nИГРОКИ\n— Список с аватарками.\n— ТП — телепорт к игроку.\n— 👁 — слежка (орбита вокруг цели, RMB/WASD/скролл).\n— ФЛИНГ — SkidFling, работает за ~1 сек.\n\nНАСТРОЙКИ\n— Язык: ru/en/zh.\n— Цвет панели: 56 цветов.\n\nКОНФИГИ\n— Имя конфига → Сохранить.\n— Имя → Загрузить.\n— Пресеты: default/aim/farm.\n\n📖 — эта инструкция.\n\nRightShift — свернуть/развернуть панель.\nКнопка «-» — свернуть в лого.\nКнопка «X» — закрыть.",
     },
     en = {
         title="VANKA ADMIN",
@@ -138,7 +138,7 @@ local L = {
         walkback_on="Walk back ON", walkback_off="Walk back OFF",
         sky_cosmos="Cosmos", sky_galaxy="Galaxy", sky_dawn="Dawn",
         sky_sunset="Sunset", sky_night="Night", sky_purple="Purple", sky_clear="Clear sky",
-        guide_text="MAIN\n— Auto-knife: works when you're murderer, hits everyone.\n— Auto-camper: when you're murderer, kills only sheriff and returns back.\n— Follow: teleport behind murderer.\n— Auto-farm: collects coins, speed adjustable.\n— Gun pickup: sheriff died → tp to him → 1 sec → tp back.\n— Role highlight: colored outline on players.\n— Fake knife: gives knife to inventory.\n— Invisible: hides your body.\n— Clear inventory: removes all tools.\n\nVISUAL\n— Crosshair, FOV, hard aim — view settings.\n— Crosshair styles, custom PNG — appearance.\n— Fly, noclip, inf jump, speedhack, walk backwards.\n— Sky (6 presets), fullbright.\n\nESP\n— Enable — main toggle.\n— Health, name, distance, weapon — what to show above head.\n— Rainbow — color cycles.\n— Hitbox, lines.\n— Preview — how ESP looks.\n\nRAGE\n— Aimbot: works only when gun is in hand (sheriff).\n— Aim part, smoothness, kill aim.\n— Triggerbot: click to fire at murderer (sheriff only).\n— Spinbot, anti-aim.\n— Respawn — kill yourself.\n— TURN OFF ALL — disable everything.\n\nPLAYERS\n— List with avatars.\n— TP — teleport to player.\n— FLING — SkidFling, works in ~1 sec.\n\nSETTINGS\n— Language: ru/en/zh.\n— Panel color: 56 colors.\n\nCONFIGS\n— Name → Save.\n— Name → Load.\n— Presets: default/aim/farm.\n\n📖 — this guide.\n\nRightShift — minimize/restore panel.\n'-' button — minimize to logo.\n'X' button — close panel.",
+        guide_text="MAIN\n— Auto-knife: works when you're murderer, hits everyone.\n— Auto-camper: when you're murderer, kills only sheriff and returns back.\n— Follow: teleport behind murderer.\n— Auto-farm: collects coins, speed adjustable.\n— Gun pickup: sheriff died → tp to him → 1 sec → tp back.\n— Role highlight: colored outline on players.\n— Fake knife: gives knife to inventory.\n— Invisible: hides your body.\n— Clear inventory: removes all tools.\n\nVISUAL\n— Crosshair, FOV, hard aim — view settings.\n— Crosshair styles, custom PNG — appearance.\n— Fly, noclip, inf jump, speedhack, walk backwards.\n— Sky (6 presets), fullbright.\n\nESP\n— Enable — main toggle.\n— Health, name, distance, weapon — what to show above head.\n— Rainbow — color cycles.\n— Hitbox, lines.\n— Preview — how ESP looks.\n\nRAGE\n— Aimbot: only sheriff + gun in hand. Auto-shot with wall check.\n— Aim part, smoothness, kill aim.\n— Triggerbot: click to fire at murderer (sheriff only).\n— Spinbot, anti-aim.\n— Respawn — kill yourself.\n— TURN OFF ALL — disable everything.\n\nPLAYERS\n— List with avatars.\n— TP — teleport to player.\n— 👁 — spectate (orbit around target, RMB/WASD/scroll).\n— FLING — SkidFling, works in ~1 sec.\n\nSETTINGS\n— Language: ru/en/zh.\n— Panel color: 56 colors.\n\nCONFIGS\n— Name → Save.\n— Name → Load.\n— Presets: default/aim/farm.\n\n📖 — this guide.\n\nRightShift — minimize/restore panel.\n'-' button — minimize to logo.\n'X' button — close panel.",
     },
     zh = {
         title="VANKA 管理员",
@@ -200,10 +200,9 @@ local L = {
         walkback_on="倒着走开", walkback_off="倒着走关",
         sky_cosmos="宇宙", sky_galaxy="银河", sky_dawn="黎明",
         sky_sunset="日落", sky_night="夜晚", sky_purple="紫色", sky_clear="清除天空",
-        guide_text="主要\n— 自动刀：当你是凶手时，攻击所有人。\n— 自动猎手：当你是凶手时，只击杀警长并返回。\n— 跟踪：传送到凶手身后。\n— 自动农场：收集金币，速度可调。\n— 拾取枪支：警长死亡 → 传送到他 → 1 秒 → 传送回来。\n— 角色高亮：玩家身上的彩色轮廓。\n— 假刀：将刀放入背包。\n— 隐身：隐藏你的身体。\n— 清空背包：删除所有工具。\n\n视觉\n— 准星、FOV、硬瞄准 — 视图设置。\n— 准星样式、自定义 PNG — 外观。\n— 飞行、穿墙、无限跳、加速、倒着走。\n— 天空（6 个预设）、全亮。\n\nESP\n— 启用 — 主开关。\n— 生命、名字、距离、武器 — 头顶显示内容。\n— 彩虹 — 颜色循环。\n— 碰撞箱、线。\n— 预览 — ESP 外观。\n\n愤怒\n— 自瞄：仅当枪在手时有效（警长）。\n— 瞄准部位、平滑度、击杀瞄准。\n— 扳机机器人：点击射向凶手（仅警长）。\n— 旋转机器人、防瞄准。\n— 重生 — 自杀。\n— 关闭所有 — 一次关闭全部。\n\n玩家\n— 带头像的列表。\n— 传送 — 传送到玩家。\n— 甩飞 — SkidFling，约 1 秒完成。\n\n设置\n— 语言：ru/en/zh。\n— 面板颜色：56 种颜色。\n\n配置\n— 名字 → 保存。\n— 名字 → 加载。\n— 预设：default/aim/farm。\n\n📖 — 本指南。\n\nRightShift — 最小化/恢复面板。\n'-' 按钮 — 最小化为图标。\n'X' 按钮 — 关闭面板。",
+        guide_text="主要\n— 自动刀：当你是凶手时，攻击所有人。\n— 自动猎手：当你是凶手时，只击杀警长并返回。\n— 跟踪：传送到凶手身后。\n— 自动农场：收集金币，速度可调。\n— 拾取枪支：警长死亡 → 传送到他 → 1 秒 → 传送回来。\n— 角色高亮：玩家身上的彩色轮廓。\n— 假刀：将刀放入背包。\n— 隐身：隐藏你的身体。\n— 清空背包：删除所有工具。\n\n视觉\n— 准星、FOV、硬瞄准 — 视图设置。\n— 准星样式、自定义 PNG — 外观。\n— 飞行、穿墙、无限跳、加速、倒着走。\n— 天空（6 个预设）、全亮。\n\nESP\n— 启用 — 主开关。\n— 生命、名字、距离、武器 — 头顶显示内容。\n— 彩虹 — 颜色循环。\n— 碰撞箱、线。\n— 预览 — ESP 外观。\n\n愤怒\n— 自瞄：仅警长 + 手枪在手。带墙壁检查的自动射击。\n— 瞄准部位、平滑度、击杀瞄准。\n— 扳机机器人：点击射向凶手（仅警长）。\n— 旋转机器人、防瞄准。\n— 重生 — 自杀。\n— 关闭所有 — 一次关闭全部。\n\n玩家\n— 带头像的列表。\n— 传送 — 传送到玩家。\n— 👁 — 观察（围绕目标轨道，RMB/WASD/滚轮）。\n— 甩飞 — SkidFling，约 1 秒完成。\n\n设置\n— 语言：ru/en/zh。\n— 面板颜色：56 种颜色。\n\n配置\n— 名字 → 保存。\n— 名字 → 加载。\n— 预设：default/aim/farm。\n\n📖 — 本指南。\n\nRightShift — 最小化/恢复面板。\n'-' 按钮 — 最小化为图标。\n'X' 按钮 — 关闭面板。",
     }
 }
-
 
 local function T(k) return L[LANG][k] or k end
 
@@ -381,6 +380,7 @@ local FARM_SPEED=SaveData.farm_speed or 80
 local S = {
     roleHighlight=SaveData.roles, roleHL={},
     aimbot=SaveData.aimbot, aimbotFOV=200, aimT=nil, hardAim=SaveData.hardaim,
+    aimLastShot=0,
     autoKillEnabled=SaveData.autokill, autoKillThread=nil, autoKillList={}, autoKillLoopThread=nil,
     autoCamperEnabled=SaveData.autocamper, autoCamperThread=nil, autoCamperBusy=false, autoCamperCooldown=SaveData.camper_cooldown or 2,
     autoTpEnabled=SaveData.autotp, autoTpThread=nil,
@@ -585,15 +585,6 @@ local function hasGunInHand()
     return t and isGun(t)
 end
 
-local function hasGunAnywhere()
-    if hasGunInHand() then return true end
-    if not LP.Backpack then return false end
-    for _,t in ipairs(LP.Backpack:GetChildren()) do
-        if t:IsA("Tool") and isGun(t) then return true end
-    end
-    return false
-end
-
 local function findMyKnife()
     if LP.Character then
         for _,t in ipairs(LP.Character:GetChildren()) do
@@ -771,6 +762,22 @@ local function fireMobileShot()
     end)
 end
 
+local function hasClearShot(fromPos,toPos)
+    local params=RaycastParams.new()
+    params.FilterType=Enum.RaycastFilterType.Exclude
+    local exclude={}
+    if LP.Character then table.insert(exclude,LP.Character) end
+    params.FilterDescendantsInstances=exclude
+    params.IgnoreWater=true
+    local dir=toPos-fromPos
+    if dir.Magnitude<0.01 then return false end
+    local ray=workspace:Raycast(fromPos,dir,params)
+    if ray and (ray.Position-fromPos).Magnitude < dir.Magnitude-1.5 then
+        return false
+    end
+    return true
+end
+
 local function killOneTarget(target)
     if not target or target==LP or not target.Character then return false end
     local myChar=LP.Character
@@ -809,58 +816,89 @@ local function killOneTarget(target)
     return targetHum and targetHum.Health<=0
 end
 
-local function startAutoKill()
-    if S.autoKillThread then return end
-    S.autoKillList={}
-    S.autoKillThread=task.spawn(function()
-        if getRole(LP)~="Murderer" then
-            S.autoKillThread=nil
-            return
+local function killSheriffCamper()
+    if S.autoCamperBusy then return end
+    if getRole(LP)~="Murderer" then return end
+    local sheriff=nil
+    for _,plr in ipairs(Players:GetPlayers()) do
+        if plr~=LP and plr.Character and getRole(plr)=="Sheriff" then
+            local h=plr.Character:FindFirstChildOfClass("Humanoid")
+            if h and h.Health>0 then
+                sheriff=plr
+                break
+            end
         end
-        while S.autoKillEnabled do
-            local target=nil
-            for _,plr in ipairs(Players:GetPlayers()) do
-                if plr~=LP and plr.Character then
-                    local h=plr.Character:FindFirstChildOfClass("Humanoid")
-                    if h and h.Health>0 and not S.autoKillList[plr] then
-                        target=plr
-                        break
-                    end
+    end
+    if not sheriff then return end
+    local myChar=LP.Character
+    if not myChar then return end
+    local myHrp=myChar:FindFirstChild("HumanoidRootPart")
+    if not myHrp then return end
+    local mySavedPos=myHrp.CFrame
+    local mySavedVel=myHrp.AssemblyLinearVelocity
+    S.autoCamperBusy=true
+    local knife=equipMyKnife()
+    if not knife then S.autoCamperBusy=false return end
+    local tChar=sheriff.Character
+    if not tChar then S.autoCamperBusy=false return end
+    local tHrp=tChar:FindFirstChild("HumanoidRootPart")
+    if not tHrp then S.autoCamperBusy=false return end
+    local tHum=tChar:FindFirstChildOfClass("Humanoid")
+    if not tHum then S.autoCamperBusy=false return end
+    pcall(function()
+        myHrp.CFrame=tHrp.CFrame*CFrame.new(0,0,1.5)
+        myHrp.AssemblyLinearVelocity=Vector3.zero
+    end)
+    for _,p in ipairs(tChar:GetDescendants()) do
+        if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
+    end
+    local handle=knife:FindFirstChild("Handle")
+    for attempt=1,20 do
+        if not tHum or tHum.Health<=0 then break end
+        tHrp=tChar:FindFirstChild("HumanoidRootPart")
+        if not tHrp then break end
+        pcall(function() myHrp.CFrame=tHrp.CFrame*CFrame.new(0,0,1.5) end)
+        task.wait(0.02)
+        if handle then
+            for _,part in ipairs(tChar:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    pcall(function()
+                        firetouchinterest(handle,part,0)
+                        firetouchinterest(handle,part,1)
+                    end)
                 end
             end
-            if not target then break end
-            killOneTarget(target)
-            S.autoKillList[target]=true
-            task.wait(0.3)
         end
-        S.autoKillThread=nil
+        pcall(function() knife:Activate() end)
+        task.wait(0.05)
+    end
+    task.wait(0.15)
+    pcall(function()
+        myHrp.CFrame=mySavedPos
+        myHrp.AssemblyLinearVelocity=mySavedVel
     end)
+    S.autoCamperBusy=false
 end
 
-local function stopAutoKill()
-    S.autoKillList={}
-    S.autoKillThread=nil
-end
-
-local function startAutoKillLoop()
-    if S.autoKillLoopThread then return end
-    S.autoKillLoopThread=task.spawn(function()
-        while S.autoKillEnabled do
+local function startAutoCamper()
+    if S.autoCamperThread then return end
+    S.autoCamperThread=task.spawn(function()
+        while S.autoCamperEnabled do
             if getRole(LP)=="Murderer" then
-                if not S.autoKillThread then startAutoKill() end
+                killSheriffCamper()
+                task.wait(S.autoCamperCooldown or 2)
             else
-                if S.autoKillThread then stopAutoKill() end
+                task.wait(0.5)
             end
-            task.wait(1)
         end
-        S.autoKillLoopThread=nil
+        S.autoCamperThread=nil
     end)
 end
 
-local function stopAutoKillLoop()
-    S.autoKillEnabled=false
-    stopAutoKill()
-    S.autoKillLoopThread=nil
+local function stopAutoCamper()
+    S.autoCamperEnabled=false
+    S.autoCamperThread=nil
+    S.autoCamperBusy=false
 end
 
 local function findMurdererSilent()
@@ -936,6 +974,95 @@ local function stopTriggerbot()
         pcall(function() S.triggerConn:Disconnect() end)
         S.triggerConn=nil
     end
+end
+
+local function startAutoKill()
+    if S.autoKillThread then return end
+    S.autoKillList={}
+    S.autoKillThread=task.spawn(function()
+        if getRole(LP)~="Murderer" then
+            S.autoKillThread=nil
+            return
+        end
+        while S.autoKillEnabled do
+            local target=nil
+            for _,plr in ipairs(Players:GetPlayers()) do
+                if plr~=LP and plr.Character then
+                    local h=plr.Character:FindFirstChildOfClass("Humanoid")
+                    if h and h.Health>0 and not S.autoKillList[plr] then
+                        target=plr
+                        break
+                    end
+                end
+            end
+            if not target then break end
+            killOneTarget(target)
+            S.autoKillList[target]=true
+            task.wait(0.3)
+        end
+        S.autoKillThread=nil
+    end)
+end
+
+local function stopAutoKill()
+    S.autoKillList={}
+    S.autoKillThread=nil
+end
+
+local function startAutoKillLoop()
+    if S.autoKillLoopThread then return end
+    S.autoKillLoopThread=task.spawn(function()
+        while S.autoKillEnabled do
+            if getRole(LP)=="Murderer" then
+                if not S.autoKillThread then startAutoKill() end
+            else
+                if S.autoKillThread then stopAutoKill() end
+            end
+            task.wait(1)
+        end
+        S.autoKillLoopThread=nil
+    end)
+end
+
+local function stopAutoKillLoop()
+    S.autoKillEnabled=false
+    stopAutoKill()
+    S.autoKillLoopThread=nil
+end
+
+local function startAutoTp()
+    if S.autoTpThread then return end
+    S.autoTpThread=task.spawn(function()
+        while S.autoTpEnabled do
+            local murderer=nil
+            for _,plr in ipairs(Players:GetPlayers()) do
+                if plr~=LP and plr.Character and getRole(plr)=="Murderer" then
+                    local h=plr.Character:FindFirstChildOfClass("Humanoid")
+                    if h and h.Health>0 then
+                        murderer=plr
+                        break
+                    end
+                end
+            end
+            if murderer and murderer.Character then
+                local tHrp=murderer.Character:FindFirstChild("HumanoidRootPart")
+                local myHrp=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                if tHrp and myHrp then
+                    pcall(function()
+                        local behind=-tHrp.CFrame.LookVector
+                        myHrp.CFrame=CFrame.new(tHrp.Position+behind*11+Vector3.new(0,2,0),tHrp.Position)
+                    end)
+                end
+            end
+            task.wait(0.05)
+        end
+        S.autoTpThread=nil
+    end)
+end
+
+local function stopAutoTp()
+    S.autoTpEnabled=false
+    S.autoTpThread=nil
 end
 
 local function flingStop(silent)
@@ -1105,7 +1232,6 @@ local function hardFling(target)
         if not anyPart then return end
         basePart = anyPart
     end
-
     local prevFling = S.flingRunning
     S.flingRunning = true
     local savedPos = myRoot.CFrame
@@ -1213,9 +1339,7 @@ local function flingStart(targetName)
     local originalCF = myHRP and myHRP.CFrame
     local wasFar = myHRP and (myHRP.Position - startPos).Magnitude > FLING_TELEPORT_DIST
     local wasAntiFling = ANTI_FLING_ENABLED
-
     if wasAntiFling then _pauseAntiFlingCore() end
-
     if wasFar and myHRP then
         pcall(function()
             myHRP.CFrame = startHRP.CFrame * CFrame.new(0, 0, 4)
@@ -1223,9 +1347,7 @@ local function flingStart(targetName)
         end)
         task.wait(0.25)
     end
-
     SkidFling(target)
-
     task.spawn(function()
         task.wait(FLING_CHECK_DELAY)
         local moved = 0
@@ -1423,41 +1545,14 @@ local function updateESP()
                             if isKnife(tool) then
                                 weaponLbl.Text=tool.Name
                                 weaponLbl.TextColor3=Color3.fromRGB(255,80,80)
-                                local hand=getHandPart(plr)
-                                if hand and not hand:FindFirstChild("VankaHandHL") then
-                                    local hl=Instance.new("Highlight")
-                                    hl.Name="VankaHandHL"
-                                    hl.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
-                                    hl.FillColor=Color3.fromRGB(255,50,50)
-                                    hl.OutlineColor=Color3.fromRGB(255,255,255)
-                                    hl.FillTransparency=0.3
-                                    hl.Parent=hand
-                                end
                             elseif isGun(tool) then
                                 weaponLbl.Text=tool.Name
                                 weaponLbl.TextColor3=Color3.fromRGB(80,180,255)
-                                local hand=getHandPart(plr)
-                                if hand and not hand:FindFirstChild("VankaHandHL") then
-                                    local hl=Instance.new("Highlight")
-                                    hl.Name="VankaHandHL"
-                                    hl.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
-                                    hl.FillColor=Color3.fromRGB(50,150,255)
-                                    hl.OutlineColor=Color3.fromRGB(255,255,255)
-                                    hl.FillTransparency=0.3
-                                    hl.Parent=hand
-                                end
                             else
                                 weaponLbl.Text=tool.Name
                                 weaponLbl.TextColor3=Color3.fromRGB(255,200,80)
                             end
                         else weaponLbl.Text="" end
-                    end
-                end
-                if not S.espWeapon or not getToolInHand(plr) then
-                    local hand=getHandPart(plr)
-                    if hand then
-                        local old=hand:FindFirstChild("VankaHandHL")
-                        if old then old:Destroy() end
                     end
                 end
                 if distLbl and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
@@ -1768,6 +1863,7 @@ end
 local showLoading
 local AIM_BIND="VankaAimLock"
 local aimBound=false
+local aimPrevActive=false
 
 local function setAimbotVisual(state)
     if not S.gui then return end
@@ -1794,6 +1890,13 @@ local function restoreMouse()
     end)
 end
 
+local function enableShiftLock()
+    pcall(function()
+        if UIS.MouseBehavior~=Enum.MouseBehavior.LockCenter then UIS.MouseBehavior=Enum.MouseBehavior.LockCenter end
+        if UIS.MouseIconEnabled then UIS.MouseIconEnabled=false end
+    end)
+end
+
 local function aimFireIntercept()
     if not S.aimbot then return end
     if not S.aimT or not S.aimT.Character then return end
@@ -1801,6 +1904,26 @@ local function aimFireIntercept()
     if not tool or not isGun(tool) then return end
     local tPart=getAimPart(S.aimT.Character)
     if not tPart then return end
+    hookTargetPart=tPart
+    hookTargetPos=tPart.Position
+    pcall(function() tool:Activate() end)
+    if IS_MOBILE then fireMobileShot()
+    else
+        pcall(function()
+            local v=Cam.ViewportSize
+            VirtualUser:Button1Down(Vector2.new(v.X/2,v.Y/2),Cam.CFrame)
+            VirtualUser:Button1Up(Vector2.new(v.X/2,v.Y/2),Cam.CFrame)
+        end)
+    end
+    task.defer(function() hookTargetPart=nil hookTargetPos=nil end)
+end
+
+local function autoFireAtTarget(target)
+    if not target or not target.Character then return end
+    local tPart=getAimPart(target.Character)
+    if not tPart then return end
+    local tool=LP.Character and LP.Character:FindFirstChildOfClass("Tool")
+    if not tool or not isGun(tool) then return end
     hookTargetPart=tPart
     hookTargetPos=tPart.Position
     pcall(function() tool:Activate() end)
@@ -1832,20 +1955,34 @@ local function setAimbot(state,silent)
         end
         if not aimBound then
             aimBound=true
-            local lastSeen=0
             RunService:BindToRenderStep(AIM_BIND,Enum.RenderPriority.Camera.Value+1,function(dt)
                 if not S.aimbot then
                     if aimBound then
                         aimBound=false
                         pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
                     end
-                    restoreMouse()
+                    if aimPrevActive then
+                        restoreMouse()
+                        aimPrevActive=false
+                    end
                     S.aimT=nil
                     return
                 end
                 if S.flingRunning then return end
-                if getRole(LP)~="Sheriff" then S.aimT=nil restoreMouse() return end
-                if not hasGunInHand() then S.aimT=nil restoreMouse() return end
+
+                local isSheriff = (getRole(LP)=="Sheriff")
+                local gunOk     = hasGunInHand()
+                if not (isSheriff and gunOk) then
+                    S.aimT=nil
+                    if aimPrevActive then
+                        restoreMouse()
+                        aimPrevActive=false
+                    end
+                    return
+                end
+                aimPrevActive=true
+                enableShiftLock()
+
                 local ok,err=pcall(function()
                     local myChar=LP.Character
                     if not myChar or not myChar.Parent then return end
@@ -1853,21 +1990,23 @@ local function setAimbot(state,silent)
                     if not myHrp or not myHrp.Parent then return end
                     local myHrpPos=myHrp.Position
                     if myHrpPos.X~=myHrpPos.X then return end
-                    local closest,closestDist=nil,math.huge
+                    local camPos=Cam.CFrame.Position
+                    if camPos.X~=camPos.X then return end
+
+                    local closest,closestDist,closestPart=nil,math.huge,nil
                     for _,plr in ipairs(Players:GetPlayers()) do
                         if plr~=LP and plr.Character then
                             local pHum=plr.Character:FindFirstChildOfClass("Humanoid")
-                            if pHum and pHum.Health>0 then
-                                if getRole(plr)=="Murderer" then
-                                    local part=getAimPart(plr.Character)
-                                    if part and part.Parent then
-                                        local pPos=part.Position
-                                        if pPos.X==pPos.X then
-                                            local d=(pPos-myHrpPos).Magnitude
-                                            if d<closestDist then
-                                                closestDist=d
-                                                closest=plr
-                                            end
+                            if pHum and pHum.Health>0 and getRole(plr)=="Murderer" then
+                                local part=getAimPart(plr.Character)
+                                if part and part.Parent then
+                                    local pPos=part.Position
+                                    if pPos.X==pPos.X then
+                                        local d=(pPos-myHrpPos).Magnitude
+                                        if d<closestDist then
+                                            closestDist=d
+                                            closest=plr
+                                            closestPart=part
                                         end
                                     end
                                 end
@@ -1875,39 +2014,21 @@ local function setAimbot(state,silent)
                         end
                     end
                     S.aimT=closest
-                    if closest and closest.Character then
-                        lastSeen=os.clock()
-                        local tPart=getAimPart(closest.Character)
-                        if tPart and tPart.Parent then
-                            local tPos=tPart.Position
-                            if tPos.X==tPos.X then
-                                local camPos=Cam.CFrame.Position
-                                if camPos.X==camPos.X then
-                                    local delta=(tPos-camPos).Magnitude
-                                    if delta>0.5 then
-                                        local desired=CFrame.lookAt(camPos,tPos)
-                                        if S.hardAim then Cam.CFrame=desired
-                                        else
-                                            local lerp=math.clamp(1-(S.aimSmooth or 0.35),0.08,1)
-                                            Cam.CFrame=Cam.CFrame:Lerp(desired,lerp)
-                                        end
-                                    end
+                    if closest and closestPart then
+                        local tPos=closestPart.Position
+                        if tPos.X==tPos.X then
+                            local delta=(tPos-camPos).Magnitude
+                            if delta>0.5 then
+                                Cam.CFrame=CFrame.lookAt(camPos,tPos)
+                            end
+                            local now=tick()
+                            if now-(S.aimLastShot or 0) > 0.08 then
+                                local myMuzzle = myHrp.Position + Vector3.new(0,1.5,0)
+                                if hasClearShot(myMuzzle, tPos) then
+                                    S.aimLastShot = now
+                                    autoFireAtTarget(closest)
                                 end
                             end
-                        end
-                    else
-                        if lastSeen>0 and (os.clock()-lastSeen)>2 then
-                            if aimBound then
-                                aimBound=false
-                                pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
-                            end
-                            restoreMouse()
-                            S.aimT=nil
-                            S.aimbot=false
-                            SaveData.aimbot=false
-                            saveSettings()
-                            setAimbotVisual(false)
-                            if not silent then notify("Мардер пропал — аим ВЫКЛ",Color3.fromRGB(150,150,150)) end
                         end
                     end
                 end)
@@ -1923,15 +2044,19 @@ local function setAimbot(state,silent)
             pcall(function() S._aimFireConn:Disconnect() end)
             S._aimFireConn=nil
         end
-        restoreMouse()
+        if aimPrevActive then
+            restoreMouse()
+            aimPrevActive=false
+        end
         S.aimT=nil
     end
 end
 
--- === SPECTATE ===
+-- === SPECTATE (orbit + HUD outside panel) ===
 local spectate = {
-    active=false, targetIdx=1, originalCF=nil,
-    floatingBV=nil, platform=nil, camConn=nil,
+    active=false, idx=1, yaw=0, pitch=math.rad(15), dist=14,
+    camConn=nil, floatBV=nil, hud=nil, hudName=nil,
+    dragging=false, lastMouse=Vector2.new(), touchId=nil,
 }
 
 local function getSpectateTargets()
@@ -1944,30 +2069,123 @@ local function getSpectateTargets()
     return list
 end
 
+local function specHUDUpdateName()
+    if not spectate.hudName then return end
+    local t=getSpectateTargets()
+    if #t==0 then spectate.hudName.Text="—" return end
+    if spectate.idx<1 then spectate.idx=#t end
+    if spectate.idx>#t then spectate.idx=1 end
+    local tar=t[spectate.idx]
+    spectate.hudName.Text=tar and tar.Name or "—"
+end
+
 local function stopSpectate()
     if not spectate.active then return end
     spectate.active=false
-    if spectate.camConn then pcall(function() spectate.camConn:Disconnect() end) end
-    spectate.camConn=nil
-    if spectate.floatingBV then pcall(function() spectate.floatingBV:Destroy() end) end
-    spectate.floatingBV=nil
-    if spectate.platform then pcall(function() spectate.platform:Destroy() end) end
-    spectate.platform=nil
+    if spectate.camConn then pcall(function() spectate.camConn:Disconnect() end) spectate.camConn=nil end
+    if spectate.floatBV then pcall(function() spectate.floatBV:Destroy() end) spectate.floatBV=nil end
+    if spectate.hud then pcall(function() spectate.hud:Destroy() end) spectate.hud=nil end
+    spectate.hudName=nil
+    spectate.dragging=false
+    spectate.touchId=nil
     pcall(function()
         Cam.CameraType=Enum.CameraType.Custom
         local hum=LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
         if hum then Cam.CameraSubject=hum end
     end)
-    local hrp=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-    if hrp and spectate.originalCF then
-        pcall(function()
-            hrp.CFrame=spectate.originalCF
-            hrp.Velocity=Vector3.zero
-            hrp.AssemblyLinearVelocity=Vector3.zero
-        end)
+end
+
+local function specBuildHUD()
+    local parent=(gethui and gethui()) or game:GetService("CoreGui")
+    local hud=Instance.new("ScreenGui")
+    hud.Name="VankaSpecHUD_"..tostring(math.random(1000,9999))
+    hud.ResetOnSpawn=false
+    hud.IgnoreGuiInset=true
+    hud.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+    hud.DisplayOrder=999
+    hud.Parent=parent
+    spectate.hud=hud
+
+    local bar=Instance.new("Frame")
+    bar.AnchorPoint=Vector2.new(0.5,1)
+    bar.Size=UDim2.new(0,420,0,54)
+    bar.Position=UDim2.new(0.5,0,1,-24)
+    bar.BackgroundColor3=Color3.fromRGB(14,14,20)
+    bar.BorderSizePixel=0
+    bar.Parent=hud
+    Instance.new("UICorner",bar).CornerRadius=UDim.new(0,12)
+    local stroke=Instance.new("UIStroke")
+    stroke.Color=S.panelColor
+    stroke.Thickness=1.5
+    stroke.Transparency=0.2
+    stroke.Parent=bar
+
+    local function hudBtn(txt,col,w,px)
+        local b=Instance.new("TextButton")
+        b.Size=UDim2.new(0,w,0,38)
+        b.Position=UDim2.new(0,px,0.5,-19)
+        b.BackgroundColor3=col
+        b.Text=txt
+        b.TextColor3=Color3.new(1,1,1)
+        b.TextSize=16
+        b.Font=Enum.Font.GothamBold
+        b.AutoButtonColor=false
+        b.Parent=bar
+        Instance.new("UICorner",b).CornerRadius=UDim.new(0,8)
+        return b
     end
-    spectate.originalCF=nil
-    notify("Слежка выкл",Color3.fromRGB(150,150,150))
+
+    local prevB=hudBtn("◀",Color3.fromRGB(70,70,120),40,8)
+    prevB.MouseButton1Click:Connect(function()
+        local t=getSpectateTargets()
+        if #t==0 then return end
+        spectate.idx=spectate.idx-1
+        specHUDUpdateName()
+    end)
+
+    local nextB=hudBtn("▶",Color3.fromRGB(70,70,120),40,54)
+    nextB.MouseButton1Click:Connect(function()
+        local t=getSpectateTargets()
+        if #t==0 then return end
+        spectate.idx=spectate.idx+1
+        specHUDUpdateName()
+    end)
+
+    local nameFrame=Instance.new("Frame")
+    nameFrame.Size=UDim2.new(1,-220,0,38)
+    nameFrame.Position=UDim2.new(0,100,0.5,-19)
+    nameFrame.BackgroundColor3=Color3.fromRGB(24,24,34)
+    nameFrame.BorderSizePixel=0
+    nameFrame.Parent=bar
+    Instance.new("UICorner",nameFrame).CornerRadius=UDim.new(0,8)
+
+    local nameLbl=Instance.new("TextLabel")
+    nameLbl.Size=UDim2.new(1,-10,1,0)
+    nameLbl.Position=UDim2.new(0,5,0,0)
+    nameLbl.BackgroundTransparency=1
+    nameLbl.Text="—"
+    nameLbl.TextColor3=Color3.new(1,1,1)
+    nameLbl.TextSize=14
+    nameLbl.Font=Enum.Font.GothamBold
+    nameLbl.TextXAlignment=Enum.TextXAlignment.Left
+    nameLbl.TextTruncate=Enum.TextTruncate.AtEnd
+    nameLbl.Parent=nameFrame
+    spectate.hudName=nameLbl
+
+    local closeB=hudBtn("X",Color3.fromRGB(200,40,70),40,372)
+    closeB.MouseButton1Click:Connect(function() stopSpectate() end)
+
+    local hint=Instance.new("TextLabel")
+    hint.Size=UDim2.new(0,420,0,18)
+    hint.Position=UDim2.new(0.5,-210,0,-26)
+    hint.BackgroundTransparency=1
+    hint.Text="RMB drag — поворот • Скролл — зум • WASD — орбита"
+    hint.TextColor3=Color3.fromRGB(200,200,220)
+    hint.TextSize=11
+    hint.Font=Enum.Font.GothamMedium
+    hint.Parent=bar
+
+    specHUDUpdateName()
 end
 
 local function startSpectate()
@@ -1977,67 +2195,98 @@ local function startSpectate()
     local hrp=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then notify("Нет персонажа",Color3.fromRGB(255,60,60)) return end
     spectate.active=true
-    spectate.targetIdx=1
-    spectate.originalCF=hrp.CFrame
+    spectate.idx=1
+    spectate.yaw=0
+    spectate.pitch=math.rad(15)
+    spectate.dist=14
 
     local bv=Instance.new("BodyVelocity")
     bv.MaxForce=Vector3.new(math.huge,math.huge,math.huge)
     bv.Velocity=Vector3.zero
     bv.Parent=hrp
-    spectate.floatingBV=bv
+    spectate.floatBV=bv
+    hrp.CFrame=hrp.CFrame + Vector3.new(0,5,0)
 
-    local plat=Instance.new("Part")
-    plat.Size=Vector3.new(8,1,8)
-    plat.Anchored=true
-    plat.CanCollide=true
-    plat.Transparency=0.7
-    plat.Color=Color3.fromRGB(255,100,200)
-    plat.Material=Enum.Material.Neon
-    plat.CFrame=CFrame.new(hrp.Position-Vector3.new(0,3,0))
-    plat.Parent=workspace
-    spectate.platform=plat
+    specBuildHUD()
 
     Cam.CameraType=Enum.CameraType.Scriptable
-    spectate.camConn=RunService.RenderStepped:Connect(function()
+
+    local dragSens=0.006
+    local conn1=UIS.InputBegan:Connect(function(input,gp)
+        if not spectate.active then return end
+        if gp then return end
+        if input.UserInputType==Enum.UserInputType.MouseButton2 then
+            spectate.dragging=true
+            spectate.lastMouse=UIS:GetMouseLocation()
+        elseif input.UserInputType==Enum.UserInputType.Touch then
+            spectate.dragging=true
+            spectate.touchId=input
+            spectate.lastMouse=UIS:GetMouseLocation()
+        end
+    end)
+    local conn2=UIS.InputChanged:Connect(function(input,gp)
+        if not spectate.active then return end
+        if gp then return end
+        local isDrag=(input.UserInputType==Enum.UserInputType.MouseMovement and spectate.dragging)
+            or (input.UserInputType==Enum.UserInputType.Touch and input==spectate.touchId)
+        if isDrag then
+            local cur=UIS:GetMouseLocation()
+            local dx=cur.X-spectate.lastMouse.X
+            local dy=cur.Y-spectate.lastMouse.Y
+            spectate.lastMouse=cur
+            spectate.yaw=spectate.yaw - dx*dragSens
+            spectate.pitch=math.clamp(spectate.pitch + dy*dragSens, math.rad(-70), math.rad(70))
+        end
+        if input.UserInputType==Enum.UserInputType.MouseWheel then
+            spectate.dist=math.clamp(spectate.dist - input.Position.Z*2, 4, 60)
+        end
+    end)
+    local conn3=UIS.InputEnded:Connect(function(input)
+        if not spectate.active then return end
+        if input.UserInputType==Enum.UserInputType.MouseButton2 then
+            spectate.dragging=false
+        elseif input.UserInputType==Enum.UserInputType.Touch and input==spectate.touchId then
+            spectate.dragging=false
+            spectate.touchId=nil
+        end
+    end)
+
+    spectate.camConn=RunService.RenderStepped:Connect(function(dt)
         if not spectate.active then return end
         local t=getSpectateTargets()
         if #t==0 then stopSpectate() return end
-        if spectate.targetIdx>#t then spectate.targetIdx=1 end
-        if spectate.targetIdx<1 then spectate.targetIdx=#t end
-        local target=t[spectate.targetIdx]
-        if target and target.Character then
-            local th=target.Character:FindFirstChild("Head")
+        if spectate.idx<1 then spectate.idx=#t end
+        if spectate.idx>#t then spectate.idx=1 end
+        local tar=t[spectate.idx]
+
+        local rate=2.5*dt
+        if UIS:IsKeyDown(Enum.KeyCode.A) then spectate.yaw=spectate.yaw+rate end
+        if UIS:IsKeyDown(Enum.KeyCode.D) then spectate.yaw=spectate.yaw-rate end
+        if UIS:IsKeyDown(Enum.KeyCode.W) then spectate.pitch=math.clamp(spectate.pitch+rate,math.rad(-70),math.rad(70)) end
+        if UIS:IsKeyDown(Enum.KeyCode.S) then spectate.pitch=math.clamp(spectate.pitch-rate,math.rad(-70),math.rad(70)) end
+        if UIS:IsKeyDown(Enum.KeyCode.Q) then spectate.dist=math.clamp(spectate.dist-rate*10,4,60) end
+        if UIS:IsKeyDown(Enum.KeyCode.E) then spectate.dist=math.clamp(spectate.dist+rate*10,4,60) end
+
+        if tar and tar.Character then
+            local th=tar.Character:FindFirstChild("Head")
             if th then
-                local pos=th.Position
-                Cam.CFrame=CFrame.lookAt(pos+Vector3.new(0,6,10),pos)
+                local pivot=th.Position
+                local cp=math.cos(spectate.pitch)
+                local offset=Vector3.new(
+                    spectate.dist*cp*math.sin(spectate.yaw),
+                    spectate.dist*math.sin(spectate.pitch)+1.5,
+                    spectate.dist*cp*math.cos(spectate.yaw)
+                )
+                local camPos=pivot+offset
+                Cam.CFrame=CFrame.lookAt(camPos,pivot)
             end
         end
-        local myHrp=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-        if myHrp and spectate.platform then
-            spectate.platform.CFrame=CFrame.new(myHrp.Position-Vector3.new(0,3,0))
-        end
+        specHUDUpdateName()
     end)
+    table.insert(S.conns,conn1)
+    table.insert(S.conns,conn2)
+    table.insert(S.conns,conn3)
     notify("Слежка: "..(targets[1] and targets[1].Name or ""),Color3.fromRGB(255,100,200))
-end
-
-local function spectateNext()
-    if not spectate.active then return end
-    local t=getSpectateTargets()
-    if #t==0 then return end
-    spectate.targetIdx=spectate.targetIdx+1
-    if spectate.targetIdx>#t then spectate.targetIdx=1 end
-    local tar=t[spectate.targetIdx]
-    if tar then notify("Слежка: "..tar.Name,Color3.fromRGB(255,100,200)) end
-end
-
-local function spectatePrev()
-    if not spectate.active then return end
-    local t=getSpectateTargets()
-    if #t==0 then return end
-    spectate.targetIdx=spectate.targetIdx-1
-    if spectate.targetIdx<1 then spectate.targetIdx=#t end
-    local tar=t[spectate.targetIdx]
-    if tar then notify("Слежка: "..tar.Name,Color3.fromRGB(255,100,200)) end
 end
 -- === /SPECTATE ===
 
@@ -2205,7 +2454,8 @@ local function createGUI()
 
     local bgGrad=Instance.new("UIGradient")
     bgGrad.Color=ColorSequence.new{
-        ColorSequenceKeypoint.new(0,Color3.fromRGB(20,15,30)),
+        ColorSequenceKeypoint.new(
+                ColorSequenceKeypoint.new(0,Color3.fromRGB(20,15,30)),
         ColorSequenceKeypoint.new(1,Color3.fromRGB(8,8,14)),
     }
     bgGrad.Rotation=45
@@ -2864,7 +3114,6 @@ local function createGUI()
     addLabel(tabRage,T("sec_aim"))
     local aimbotRow=addToggle(tabRage,T("aimbot"),SaveData.aimbot,function(v)
         setAimbot(v)
-        if v then notify("Аим: только с пушкой в руке",Color3.fromRGB(0,200,100)) end
     end)
     aimbotRow.Name="AimToggleRow"
 
@@ -2949,10 +3198,9 @@ local function createGUI()
         notify(T("all_off"),Color3.fromRGB(255,60,60))
     end)
 
-    -- === PLAYERS TAB ===
     addLabel(tabPlayers,T("plist"))
     local pList=Instance.new("Frame")
-    pList.Size=UDim2.new(1,0,0,380)
+    pList.Size=UDim2.new(1,0,0,470)
     pList.BackgroundColor3=Color3.fromRGB(16,16,24)
     pList.BorderSizePixel=0
     pList.Parent=tabPlayers
@@ -3046,8 +3294,9 @@ local function createGUI()
                     startSpectate()
                     local t=getSpectateTargets()
                     for i,p in ipairs(t) do
-                        if p==plr then spectate.targetIdx=i break end
+                        if p==plr then spectate.idx=i break end
                     end
+                    specHUDUpdateName()
                 end)
                 local flB=Instance.new("TextButton")
                 flB.Size=UDim2.new(0,76,0,26)
@@ -3071,42 +3320,6 @@ local function createGUI()
     rebuild()
     Players.PlayerAdded:Connect(function() task.wait(1) rebuild() end)
     Players.PlayerRemoving:Connect(function() task.wait(0.3) rebuild() end)
-
-    -- === SPECTATE CONTROL ===
-    addLabel(tabPlayers,"СЛЕЖКА")
-    local specCtl=Instance.new("Frame")
-    specCtl.Size=UDim2.new(1,0,0,48)
-    specCtl.BackgroundColor3=Color3.fromRGB(26,20,40)
-    specCtl.BorderSizePixel=0
-    specCtl.Parent=tabPlayers
-    Instance.new("UICorner",specCtl).CornerRadius=UDim.new(0,8)
-    local specLay=Instance.new("UIListLayout")
-    specLay.FillDirection=Enum.FillDirection.Horizontal
-    specLay.Padding=UDim.new(0,4)
-    specLay.VerticalAlignment=Enum.VerticalAlignment.Center
-    specLay.HorizontalAlignment=Enum.HorizontalAlignment.Center
-    specLay.Parent=specCtl
-
-    local function specCell(txt,col,w,cb)
-        local b=Instance.new("TextButton")
-        b.Size=UDim2.new(0,w,0,36)
-        b.BackgroundColor3=col
-        b.Text=txt
-        b.TextColor3=Color3.new(1,1,1)
-        b.TextSize=14
-        b.Font=Enum.Font.GothamBold
-        b.Parent=specCtl
-        Instance.new("UICorner",b).CornerRadius=UDim.new(0,7)
-        b.MouseButton1Click:Connect(function() pcall(cb) end)
-        return b
-    end
-
-    specCell("◀",Color3.fromRGB(70,70,120),48,function() spectatePrev() end)
-    specCell("СЛЕЖКА",Color3.fromRGB(120,40,180),0,function()
-        if spectate.active then stopSpectate() else startSpectate() end
-    end).Size=UDim2.new(1,-180,0,36)
-    specCell("▶",Color3.fromRGB(70,70,120),48,function() spectateNext() end)
-    specCell("X",Color3.fromRGB(180,40,60),60,function() stopSpectate() end)
 
     addLabel(tabSettings,T("sec_lang"))
     local function changeLang(newLang)
@@ -3221,6 +3434,7 @@ local function createGUI()
     addBtn(tabConfigs,T("cfg_farm"),Color3.fromRGB(90,90,60),function() nameBox.Text="farm" end)
 
     closeB.MouseButton1Click:Connect(function()
+        if S.gui then pcall(function() S.gui:Destroy() end) S.gui=nil end
         if _G.VankaPanel and _G.VankaPanel.Destroy then pcall(_G.VankaPanel.Destroy) end
     end)
 
@@ -3328,7 +3542,7 @@ local function mainLoop()
         if not S.gui then return end
         updateCrosshair()
         if fovCircle then fovCircle.Visible=false end
-        if S.spin and LP.Character and not spectate.active then
+        if S.spin and LP.Character and not spectate.active and not S.flingRunning then
             local hrp=LP.Character:FindFirstChild("HumanoidRootPart")
             if hrp then hrp.CFrame=hrp.CFrame*CFrame.Angles(0,math.rad(S.spinSpeed*dt*60),0) end
         end
@@ -3637,53 +3851,63 @@ end
 
 _G.VankaPanel = {
     Destroy = function()
-        if spectate.active then pcall(stopSpectate) end
-        if aimBound then
-            aimBound=false
-            pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
-        end
-        if S._aimFireConn then
-            pcall(function() S._aimFireConn:Disconnect() end)
-            S._aimFireConn=nil
-        end
-        restoreMouse()
-        pcall(function()
-            UIS.MouseBehavior=Enum.MouseBehavior.Default
-            UIS.MouseIconEnabled=true
-        end)
-        for _,c in ipairs(S.conns) do
+        local ok, err = pcall(function()
+            if spectate and spectate.active then pcall(stopSpectate) end
+            if aimBound then
+                aimBound=false
+                pcall(function() RunService:UnbindFromRenderStep(AIM_BIND) end)
+            end
+            if aimPrevActive then
+                restoreMouse()
+                aimPrevActive=false
+            end
+            if S._aimFireConn then
+                pcall(function() S._aimFireConn:Disconnect() end)
+                S._aimFireConn=nil
+            end
+            restoreMouse()
             pcall(function()
-                if c and c.Disconnect then c:Disconnect() end
+                UIS.MouseBehavior=Enum.MouseBehavior.Default
+                UIS.MouseIconEnabled=true
             end)
-        end
-        clearHL()
-        stopAutoKillLoop()
-        stopAutoTp()
-        stopAutoPickup()
-        stopAutoCamper()
-        stopFarm()
-        stopWalkBack()
-        stopTriggerbot()
-        stopAntiFling()
-        if S.flyBV then pcall(function() S.flyBV:Destroy() end) S.flyBV=nil end
-        if S.speedRespawnConn then pcall(function() S.speedRespawnConn:Disconnect() end) S.speedRespawnConn=nil end
-        if S.flingRunning then flingStop() end
-        if S.flingCamConn then pcall(function() S.flingCamConn:Disconnect() end) end
-        if S.invisibleConn then pcall(function() S.invisibleConn:Disconnect() end) end
-        for _,bb in pairs(S.espBillboards) do pcall(function() bb:Destroy() end) end
-        for _,line in pairs(S.espLines) do pcall(function() line:Destroy() end) end
-        if S.linesHolder then pcall(function() S.linesHolder:Destroy() end) end
-        for _,plr in ipairs(Players:GetPlayers()) do
-            if plr.Character then
-                local hrp=plr.Character:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    local hb=hrp:FindFirstChild("VankaHitbox")
-                    if hb then pcall(function() hb:Destroy() end) end
+            for _,c in ipairs(S.conns) do
+                pcall(function()
+                    if c and c.Disconnect then c:Disconnect() end
+                end)
+            end
+            S.conns={}
+            pcall(clearHL)
+            pcall(stopAutoKillLoop)
+            pcall(stopAutoTp)
+            pcall(stopAutoPickup)
+            pcall(stopAutoCamper)
+            pcall(stopFarm)
+            pcall(stopWalkBack)
+            pcall(stopTriggerbot)
+            pcall(stopAntiFling)
+            if S.flyBV then pcall(function() S.flyBV:Destroy() end) S.flyBV=nil end
+            if S.speedRespawnConn then pcall(function() S.speedRespawnConn:Disconnect() end) S.speedRespawnConn=nil end
+            if S.flingRunning then pcall(flingStop, true) end
+            if S.flingCamConn then pcall(function() S.flingCamConn:Disconnect() end) S.flingCamConn=nil end
+            if S.invisibleConn then pcall(function() S.invisibleConn:Disconnect() end) S.invisibleConn=nil end
+            for _,bb in pairs(S.espBillboards) do pcall(function() bb:Destroy() end) end
+            S.espBillboards={}
+            for _,line in pairs(S.espLines) do pcall(function() line:Destroy() end) end
+            S.espLines={}
+            if S.linesHolder then pcall(function() S.linesHolder:Destroy() end) S.linesHolder=nil end
+            for _,plr in ipairs(Players:GetPlayers()) do
+                if plr.Character then
+                    local hrp=plr.Character:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        local hb=hrp:FindFirstChild("VankaHitbox")
+                        if hb then pcall(function() hb:Destroy() end) end
+                    end
                 end
             end
-        end
-        clearSky()
-        if S.gui then pcall(function() S.gui:Destroy() end) end
+            pcall(clearSky)
+        end)
+        if not ok then warn("[Vanka] Destroy: "..tostring(err)) end
+        if S.gui then pcall(function() S.gui:Destroy() end) S.gui=nil end
         _G.VankaPanel=nil
     end
 }
