@@ -419,6 +419,7 @@ local S = {
     espLines={}, linesHolder=nil,
     antiAim=SaveData.antiaim or false,
     pickupBusy=false,
+    antiFlingGraceUntil=0,
     walkBack=SaveData.walkback or false, walkBackThread=nil,
     skyData=nil, skyAtmo=nil,
     triggerbot=SaveData.triggerbot, triggerDelay=SaveData.trigger_delay or 0.05,
@@ -478,8 +479,7 @@ local lastSafeCFrame = nil
 local lastSafeAlertAt = 0
 local ANTIFLING_VEL       = 350
 local ANTIFLING_Y         = -50
-local ANTIFLING_TELEPORT  = 40
-local ANTIFLING_SUSPECT_RADIUS = 200
+local ANTIFLING_SUSPECT_RADIUS = 80
 
 local function getMyHRP()
     local ch = LP.Character
@@ -487,35 +487,201 @@ local function getMyHRP()
     return hum and hum.RootPart
 end
 
-local function findFlingerSuspect()
-    if not lastSafeCFrame then return nil end
-    local anchor = lastSafeCFrame.Position
-    local best, bestDist = nil, ANTIFLING_SUSPECT_RADIUS
+local OUR_MOVERS = {VankaFly=true, VankaFarmBV=true, VankaHardVel=true, EpixVel=true}
+local flingOriginalFPDH = nil
+local lastOwnerSuspect = nil
+local lastOwnerAt = 0
+
+local function is_our_mover(mover)
+    return OUR_MOVERS[mover.Name] == true
+end
+
+local FLINGER_CONTACT_RANGE  = 4
+local FLINGER_CONTACT_WINDOW = 0.5
+local FLINGER_VEL_SMOKING    = 200
+local contactHistory = {}
+
+local function scanContacts()
+    if not ANTI_FLING_ENABLED then return end
+    local myRoot = getMyHRP()
+    if not myRoot then return end
+    local now = tick()
+    for plr, rec in pairs(contactHistory) do
+        if now - rec.t > FLINGER_CONTACT_WINDOW then contactHistory[plr] = nil end
+    end
+    local myPos = myRoot.Position
+
+    local overlap = {}
+    local ok, parts = pcall(function() return workspace:GetPartsInPart(myRoot) end)
+    if ok and parts then
+        for _, p in ipairs(parts) do
+            local model = p:FindFirstAncestorOfClass("Model")
+            local plr = model and Players:GetPlayerFromCharacter(model)
+            if plr and plr ~= LP then overlap[plr] = true end
+        end
+    end
+
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr ~= LP and plr.Character then
             local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
-                local d = (hrp.Position - anchor).Magnitude
-                if d < bestDist then
-                    bestDist = d
-                    best = plr
+                local d = (hrp.Position - myPos).Magnitude
+                if overlap[plr] or d < FLINGER_CONTACT_RANGE then
+                    local sv = hrp.AssemblyLinearVelocity
+                    local toward = 0
+                    local toMe = (myPos - hrp.Position)
+                    if toMe.Magnitude > 0.1 then
+                        toward = sv:Dot(toMe.Unit)
+                    end
+                    local score = (FLINGER_CONTACT_RANGE - d)
+                                + math.max(0, toward) * 0.1
+                                + sv.Magnitude * 0.01
+                    local prev = contactHistory[plr]
+                    if not prev or score > prev.score or sv.Magnitude > prev.vel then
+                        contactHistory[plr] = {t = now, dist = d, score = score, vel = sv.Magnitude}
+                    end
                 end
             end
         end
     end
-    return best
+end
+RunService.Stepped:Connect(scanContacts)
+
+local function scanFlingSignatures()
+    if not ANTI_FLING_ENABLED then return nil end
+    if S.flingRunning then return nil end
+    local char = LP.Character
+    if not char then return nil end
+    local myRoot = char:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return nil end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+
+    if flingOriginalFPDH == nil then
+        flingOriginalFPDH = workspace.FallenPartsDestroyHeight
+        if flingOriginalFPDH ~= flingOriginalFPDH then flingOriginalFPDH = -500 end
+    end
+    local fpdh = workspace.FallenPartsDestroyHeight
+    if fpdh ~= fpdh then
+        workspace.FallenPartsDestroyHeight = flingOriginalFPDH
+        return "FPDH", nil
+    end
+
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then
+            local ok, owner = pcall(function() return part:GetNetworkOwner() end)
+            if ok and owner and owner ~= LP then
+                for _, pp in ipairs(char:GetDescendants()) do
+                    if pp:IsA("BasePart") then
+                        pcall(function() pp:SetNetworkOwner(LP) end)
+                    end
+                end
+                return "OWNER", owner
+            end
+        end
+    end
+
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then
+            for _, mover in ipairs(part:GetChildren()) do
+                if mover:IsA("BodyMover") or mover:IsA("AlignPosition")
+                or mover:IsA("AlignOrientation") or mover:IsA("LinearVelocity") then
+                    if not is_our_mover(mover) then
+                        local mag = 0
+                        if mover:IsA("BodyVelocity") then mag = mover.Velocity.Magnitude
+                        elseif mover:IsA("BodyPosition") then mag = 1e6
+                        elseif mover:IsA("LinearVelocity") then mag = mover.Velocity.Magnitude
+                        elseif mover:IsA("BodyGyro") then mag = mover.MaxTorque.Magnitude
+                        end
+                        if mag > 500 then
+                            pcall(function() mover:Destroy() end)
+                            return "MOVER", nil
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    if hum and hum.PlatformStand then
+        pcall(function() hum.PlatformStand = false end)
+        return "PLATFORM", nil
+    end
+
+    return nil
+end
+
+local function findFlingerSuspect()
+    if lastOwnerSuspect and (tick() - lastOwnerAt) < 1 then
+        return lastOwnerSuspect
+    end
+    local now = tick()
+    local smoking, best, bestScore = nil, nil, -math.huge
+    for plr, rec in pairs(contactHistory) do
+        if now - rec.t <= FLINGER_CONTACT_WINDOW then
+            if rec.vel > FLINGER_VEL_SMOKING then
+                smoking = plr
+                break
+            end
+            if rec.score > bestScore then
+                bestScore = rec.score
+                best = plr
+            end
+        end
+    end
+    if smoking then return smoking end
+    if best then return best end
+    if not lastSafeCFrame then return nil end
+    local anchor = lastSafeCFrame.Position
+    local near, nearDist = nil, ANTIFLING_SUSPECT_RADIUS
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LP and plr.Character then
+            local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local dd = (hrp.Position - anchor).Magnitude
+                if dd < nearDist then
+                    nearDist = dd
+                    near = plr
+                end
+            end
+        end
+    end
+    return near
 end
 
 local function revertMyRoot(reason, suspect)
     local myRoot = getMyHRP()
     if not myRoot then return end
-    if lastSafeCFrame then
-        pcall(function()
-            myRoot.CFrame = lastSafeCFrame
-            myRoot.Velocity = Vector3.zero
-            myRoot.RotVelocity = Vector3.zero
-        end)
+    pcall(function()
+        if lastSafeCFrame then myRoot.CFrame = lastSafeCFrame end
+        myRoot.Velocity = Vector3.zero
+        myRoot.RotVelocity = Vector3.zero
+    end)
+    local char = LP.Character
+    if char then
+        for _, p in ipairs(char:GetDescendants()) do
+            if p:IsA("BasePart") then
+                pcall(function() p:SetNetworkOwner(LP) end)
+            end
+        end
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum and hum.PlatformStand then
+            pcall(function() hum.PlatformStand = false end)
+        end
+        for _, p in ipairs(char:GetDescendants()) do
+            if p:IsA("BasePart") then
+                for _, m in ipairs(p:GetChildren()) do
+                    if (m:IsA("BodyMover") or m:IsA("AlignPosition")
+                    or m:IsA("LinearVelocity")) and not is_our_mover(m) then
+                        pcall(function() m:Destroy() end)
+                    end
+                end
+            end
+        end
     end
+    if flingOriginalFPDH then
+        pcall(function() workspace.FallenPartsDestroyHeight = flingOriginalFPDH end)
+    end
+
     local now = tick()
     if now - lastSafeAlertAt > 1.2 then
         lastSafeAlertAt = now
@@ -529,22 +695,45 @@ local function applyAntiFling()
     if S.flingRunning then return end
     local myRoot = getMyHRP()
     if not myRoot then lastSafeCFrame = nil; return end
+
+    if tick() < (S.antiFlingGraceUntil or 0) then
+        lastSafeCFrame = myRoot.CFrame
+        return
+    end
+
+    local sigReason, sigSuspect = scanFlingSignatures()
+    if sigReason then
+        if sigReason == "OWNER" and sigSuspect then
+            lastOwnerSuspect = sigSuspect
+            lastOwnerAt = tick()
+        end
+        revertMyRoot("флинг", findFlingerSuspect())
+        return
+    end
+
     local pos = myRoot.Position
     local vel = myRoot.Velocity
-    local dTeleport = lastSafeCFrame and (pos - lastSafeCFrame.Position).Magnitude or 0
-    local tooFast = vel.Magnitude > ANTIFLING_VEL
     local belowMap = pos.Y < ANTIFLING_Y
-    local teleported = dTeleport > ANTIFLING_TELEPORT
-    if tooFast or belowMap or teleported then
-        local reason = "флинг"
-        if teleported then reason = "телепорт"
-        elseif tooFast then reason = "скорость"
-        elseif belowMap then reason = "за карту" end
-        local suspect = findFlingerSuspect()
-        revertMyRoot(reason, suspect)
-    else
-        lastSafeCFrame = myRoot.CFrame
+    local veryFast = vel.Magnitude > ANTIFLING_VEL
+
+    if belowMap then
+        revertMyRoot("за карту", findFlingerSuspect())
+        return
     end
+    if veryFast then
+        local suspect = findFlingerSuspect()
+        if suspect then
+            revertMyRoot("скорость", suspect)
+        else
+            lastSafeCFrame = myRoot.CFrame
+        end
+        return
+    end
+    lastSafeCFrame = myRoot.CFrame
+end
+
+local function suppressAntiFling(seconds)
+    S.antiFlingGraceUntil = tick() + (seconds or 2)
 end
 
 local function _resumeAntiFlingCore()
@@ -565,6 +754,12 @@ end
 
 local function startAntiFling() _resumeAntiFlingCore() end
 local function stopAntiFling() _pauseAntiFlingCore() end
+
+suppressAntiFling(3)
+LP.CharacterAdded:Connect(function()
+    suppressAntiFling(4)
+    lastSafeCFrame = nil
+end)
 
 local function prepareForFling(target)
     if target and target.Character then
@@ -966,13 +1161,15 @@ local function installSilentAim()
                                 origin = char.HumanoidRootPart.Position
                             end
                             if origin then
-                                args[1] = CFrame.new(origin, tHrp.Position)
+                                local spoof = tHrp.Position + Vector3.new(0, 1, 0) - (tHrp.CFrame.LookVector * 2)
+                                args[1] = CFrame.new(spoof, tHrp.Position)
                                 args[2] = tHrp.Position
                                 return silentAimOldNamecall(self, unpack(args))
                             end
                         end
                     elseif method == "InvokeServer" and self.Name == "ShootGun" then
-                        args[2] = tHrp.Position
+                        local spoof = tHrp.Position + Vector3.new(0, 1, 0) - (tHrp.CFrame.LookVector * 2)
+                        args[2] = spoof
                         args[3] = tHrp.Position
                         return silentAimOldNamecall(self, unpack(args))
                     end
@@ -1004,6 +1201,7 @@ local function hasClearShot(fromPos,toPos)
     end
     return true
 end
+
 local function killOneTarget(target)
     if not target or target==LP or not target.Character then return false end
     local myChar=LP.Character
@@ -1019,6 +1217,7 @@ local function killOneTarget(target)
     for _,p in ipairs(target.Character:GetDescendants()) do
         if p:IsA("BasePart") then pcall(function() p:SetNetworkOwner(LP) end) end
     end
+    suppressAntiFling(5)
     for attempt=1,15 do
         if targetHum.Health<=0 then return true end
         targetHrp=target.Character and target.Character:FindFirstChild("HumanoidRootPart")
@@ -1060,6 +1259,7 @@ local function killSheriffCamper()
     if not myChar then return end
     local myHrp=myChar:FindFirstChild("HumanoidRootPart")
     if not myHrp then return end
+    suppressAntiFling(5)
     local mySavedPos=myHrp.CFrame
     local mySavedVel=myHrp.AssemblyLinearVelocity
     S.autoCamperBusy=true
@@ -1127,7 +1327,7 @@ local function stopAutoCamper()
     S.autoCamperBusy=false
 end
 
-local function findMurdererSilent()
+local function findMurdererSilent(noRange)
     if not LP.Character then return nil end
     local myHrp=LP.Character:FindFirstChild("HumanoidRootPart")
     if not myHrp then return nil end
@@ -1141,7 +1341,7 @@ local function findMurdererSilent()
                 local part=getTargetPartFor(plr,S.triggerTarget or "Head")
                 if h and h.Health>0 and part then
                     local d=(part.Position-myHrp.Position).Magnitude
-                    if d<(S.triggerRange or 200) and d<closestDist then
+                    if d < (noRange and math.huge or (S.triggerRange or 200)) and d<closestDist then
                         closestDist=d
                         closest=plr
                     end
@@ -1276,6 +1476,7 @@ local function startAutoTp()
                 local tHrp=murderer.Character:FindFirstChild("HumanoidRootPart")
                 local myHrp=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
                 if tHrp and myHrp then
+                    suppressAntiFling(0.3)
                     pcall(function()
                         local behind=-tHrp.CFrame.LookVector
                         myHrp.CFrame=CFrame.new(tHrp.Position+behind*11+Vector3.new(0,2,0),tHrp.Position)
@@ -1553,6 +1754,7 @@ end
 
 local function flingStart(targetName)
     if S.flingRunning then return end
+    suppressAntiFling(6)
     if not targetName or targetName=="" then
         notify(T("no_target"),Color3.fromRGB(255,60,60))
         return
@@ -1945,6 +2147,7 @@ local function startAutoPickup()
                     local myHrp=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
                     if not myHrp then S.pickupBusy=false return end
                     local mySavedPos=myHrp.CFrame
+                    suppressAntiFling(3)
                     pcall(function()
                         myHrp.CFrame=CFrame.new(deathPos+Vector3.new(0,2,0))
                         myHrp.AssemblyLinearVelocity=Vector3.zero
@@ -2303,11 +2506,8 @@ local function wallShootFire()
     if not S.wallShoot then return end
     if S.aimbot then return end
     if getRole(LP)~="Sheriff" and not hasGunAnywhere() then return end
-    local target = findMurdererSilent()
-    if not target then
-        notify("Стрельба через стены: мардер не найден", Color3.fromRGB(255,140,0))
-        return
-    end
+    local target = findMurdererSilent(true)
+    if not target then return end
     silentAimActive = true
     silentAimTarget = target
     local packetOk = fireGunAt(target)
@@ -2355,6 +2555,30 @@ local function setWallShoot(state)
         notify("Стрельба через стены ВЫКЛ", Color3.fromRGB(150,150,150))
     end
 end
+
+-- ===== NOCLIP (fixed) =====
+local noclipOrig = {}
+local function noclipTick()
+    if S.noclip then
+        local ch = LP.Character
+        if ch then
+            for _, p in ipairs(ch:GetDescendants()) do
+                if p:IsA("BasePart") then
+                    if noclipOrig[p] == nil then noclipOrig[p] = p.CanCollide end
+                    if p.CanCollide then pcall(function() p.CanCollide = false end) end
+                end
+            end
+        end
+    elseif next(noclipOrig) ~= nil then
+        for part, orig in pairs(noclipOrig) do
+            if part and part.Parent then pcall(function() part.CanCollide = orig end) end
+        end
+        noclipOrig = {}
+    end
+end
+RunService.Stepped:Connect(noclipTick)
+LP.CharacterAdded:Connect(function() noclipOrig = {} end)
+
 -- === SPECTATE ===
 local spectate = {
     active=false, idx=1, yaw=0, pitch=math.rad(15), dist=14,
@@ -2384,6 +2608,7 @@ end
 
 local function stopSpectate()
     if not spectate.active then return end
+    suppressAntiFling(2)
     spectate.active=false
     if spectate.camConn then pcall(function() spectate.camConn:Disconnect() end) spectate.camConn=nil end
     if spectate.floatBV then pcall(function() spectate.floatBV:Destroy() end) spectate.floatBV=nil end
@@ -2447,7 +2672,7 @@ local function specBuildHUD()
     end)
 
     local nextB=hudBtn("▶",Color3.fromRGB(70,70,120),40,54)
-    nextB.MouseButton1Click:Connect(function()
+        nextB.MouseButton1Click:Connect(function()
         local t=getSpectateTargets()
         if #t==0 then return end
         spectate.idx=spectate.idx+1
@@ -2509,6 +2734,7 @@ local function startSpectate()
     bv.Parent=hrp
     spectate.floatBV=bv
     hrp.CFrame=hrp.CFrame + Vector3.new(0,5,0)
+    suppressAntiFling(3)
 
     specBuildHUD()
 
@@ -3582,6 +3808,7 @@ local function createGUI()
                         local t=plr.Character:FindFirstChild("HumanoidRootPart")
                         local m=LP.Character:FindFirstChild("HumanoidRootPart")
                         if t and m then
+                            suppressAntiFling(3)
                             pcall(function() m.CFrame=t.CFrame*CFrame.new(0,0,4) end)
                             notify(T("saved_msg"),Color3.fromRGB(0,200,100))
                         end
@@ -3749,13 +3976,14 @@ local function createGUI()
     minB.MouseButton1Click:Connect(function() main.Visible=false openB.Visible=true end)
     openB.MouseButton1Click:Connect(function() main.Visible=true openB.Visible=false end)
 
-    UIS.InputBegan:Connect(function(input,gp)
+    local rsConn = UIS.InputBegan:Connect(function(input,gp)
         if gp then return end
         if input.KeyCode==Enum.KeyCode.RightShift then
             if main.Visible then main.Visible=false openB.Visible=true
             else main.Visible=true openB.Visible=false end
         end
     end)
+    table.insert(S.conns, rsConn)
 
     return gui
 end
@@ -4017,11 +4245,6 @@ local function mainLoop()
             end
         else
             if S.flyBV then pcall(function() S.flyBV:Destroy() end) S.flyBV=nil end
-        end
-        if S.noclip and LP.Character and not spectate.active then
-            for _,p in ipairs(LP.Character:GetDescendants()) do
-                if p:IsA("BasePart") and p.CanCollide then p.Collide=false end
-            end
         end
     end)
     table.insert(S.conns,conn)
