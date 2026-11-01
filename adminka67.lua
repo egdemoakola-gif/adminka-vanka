@@ -77,7 +77,7 @@ local L = {
         sky_cosmos="Космос", sky_galaxy="Галактика", sky_dawn="Рассвет",
         sky_sunset="Закат", sky_night="Ночное", sky_purple="Фиолет", sky_clear="Убрать небо",
         wall_shoot="Стрельба через стены",
-        guide_text="ГЛАВНАЯ\n— Авто-нож: работает когда ты мардер, бьёт всех подряд.\n— Авто-кемпер: когда ты мардер, убивает только шерифа и возвращается назад.\n— Следование: телепорт за мардером.\n— Авто-фарм: собирает монеты, скорость настраивается.\n— Подбор пистолета: шериф умер → тп к нему → 1 сек → тп назад.\n— Подсветка ролей: цветной контур на игроках.\n— Фейк-нож: выдаёт нож в инвентарь.\n— Инвиз: убирает твоё тело.\n— Очистить инвентарь: удаляет все тулзы.\n\nВИЗУАЛ\n— Прицел, FOV, хард-аим — настройка вида.\n— Стили прицела, свой PNG — внешний вид.\n— Флай, ноклип, беск. прыжок, спидхак, ходьба задом.\n— Небо (6 пресетов), фулбрайт.\n\nЕСП\n— Включить — главный тумблер.\n— Здоровье, имя, дистанция, оружие — что показывать над головой.\n— Радуга — цвет переливается.\n— Хитбокс, линии.\n— Превью — как выглядит ESP.\n\nРЕЙДЖ\n— Стрельба через стены: включи, кликни в ЛЮБУЮ точку — мардер умрёт сквозь стены на любой дистанции.\n— Аимбот: только когда шериф и пушка в руке. Авто-выстрел С ПРОВЕРКОЙ СТЕН.\n— Часть тела, плавность, килл-аим.\n— Триггер-бот: клик по мардеру (только шериф).\n— Спинбот, анти-аим.\n— Респавн — убить себя.\n— ВЫКЛЮЧИТЬ ВСЁ — отключить всё сразу.\n\nИГРОКИ\n— Список с аватарками.\n— ТП — телепорт к игроку.\n— 👁 — слежка (орбита вокруг цели, RMB/WASD/скролл).\n— ФЛИНГ — SkidFling, работает за ~1 сек.\n\nНАСТРОЙКИ\n— Язык: ru/en/zh.\n— Цвет панели: 56 цветов.\n\nКОНФИГИ\n— Имя конфига → Сохранить.\n— Имя → Загрузить.\n— Пресеты: default/aim/farm.\n\n📖 — эта инструкция.\n\nRightShift — свернуть/развернуть панель.\nКнопка «-» — свернуть в лого.\nКнопка «X» — закрыть.",
+        guide_text="ГЛАВНАЯ\n— Авто-нож: работает когда ты мардер, бьёт всех подряд.\n— Авто-кемпер: когда ты мардер, убивает только шерифа и возвращается назад.\n— Следование: телепорт за мардером.\n— Авто-фарм: собирает монеты, скорость настраивается.\n— Подбор пистолета: шериф умер → тп к нему → 1 сек → тп назад.\n— Подсветка ролей: цветной контур на игроках.\n— Фейк-нож: выдаёт нож в инвентарь.\n— Инвиз: убирает твоё тело.\n— Очистить инвентарь: удаляет все тулзы.\n\nВИЗУАЛ\n— Прицел, FOV, хард-аим — настройка вида.\n— Стили прицела, свой PNG — внешний вид.\n— Флай, ноклип, беск. прыжок, спидхак, ходьба задом.\n— Небо (6 пресетов), фулбрайт.\n\nЕСП\n— Включить — главный тумблер.\n— Здоровье, имя, дистанция, оружие — что показывать над головой.\n— Радуга — цвет переливается.\n— Хитбокс, линии.\n— Превью — как выглядит ESP.\n\nРЕЙДЖ\n— Стрельба через стены: включи, кликни в игре — мардер умрёт сквозь стены.\n— Аимбот: только когда шериф и пушка в руке. Авто-выстрел с проверкой стен.\n— Часть тела, плавность, килл-аим.\n— Триггер-бот: клик по мардеру (только шериф).\n— Спинбот, анти-аим.\n— Респавн — убить себя.\n— ВЫКЛЮЧИТЬ ВСЁ — отключить всё сразу.\n\nИГРОКИ\n— Список с аватарками.\n— ТП — телепорт к игроку.\n— 👁 — слежка (орбита вокруг цели, RMB/WASD/скролл).\n— ФЛИНГ — SkidFling, работает за ~1 сек.\n\nНАСТРОЙКИ\n— Язык: ru/en/zh.\n— Цвет панели: 56 цветов.\n\nКОНФИГИ\n— Имя конфига → Сохранить.\n— Имя → Загрузить.\n— Пресеты: default/aim/farm.\n\n📖 — эта инструкция.\n\nRightShift — свернуть/развернуть панель.\nКнопка «-» — свернуть в лого.\nКнопка «X» — закрыть.",
     },
     en = {
         title="VANKA ADMIN",
@@ -140,7 +140,7 @@ local L = {
         sky_cosmos="Cosmos", sky_galaxy="Galaxy", sky_dawn="Dawn",
         sky_sunset="Sunset", sky_night="Night", sky_purple="Purple", sky_clear="Clear sky",
         wall_shoot="Wall Shoot",
-        guide_text="MAIN\n— Auto-knife: works when you're murderer, hits everyone.\n— Auto-camper: when you're murderer, kills only sheriff and returns back.\n— Follow: teleport behind murderer.\n— Auto-farm: collects coins, speed adjustable.\n— Gun pickup: sheriff died → tp to him → 1 sec → tp back.\n— Role highlight: colored outline on players.\n— Fake knife: gives knife to inventory.\n— Invisible: hides your body.\n— Clear inventory: removes all tools.\n\nVISUAL\n— Crosshair, FOV, hard aim — view settings.\n— Crosshair styles, custom PNG — appearance.\n— Fly, noclip, inf jump, speedhack, walk backwards.\n— Sky (6 presets), fullbright.\n\nESP\n— Enable — main toggle.\n— Health, name, distance, weapon — what to show above head.\n— Rainbow — color cycles.\n— Hitbox, lines.\n— Preview — how ESP looks.\n\nRAGE\n— Wall shoot: enable, click ANY point — murderer dies through walls at any distance.\n— Aimbot: only sheriff + gun in hand. Auto-shot WITH WALL CHECK.\n— Aim part, smoothness, kill aim.\n— Triggerbot: click to fire at murderer (sheriff only).\n— Spinbot, anti-aim.\n— Respawn — kill yourself.\n— TURN OFF ALL — disable everything.\n\nPLAYERS\n— List with avatars.\n— TP — teleport to player.\n— 👁 — spectate (orbit around target, RMB/WASD/scroll).\n— FLING — SkidFling, works in ~1 sec.\n\nSETTINGS\n— Language: ru/en/zh.\n— Panel color: 56 colors.\n\nCONFIGS\n— Name → Save.\n— Name → Load.\n— Presets: default/aim/farm.\n\n📖 — this guide.\n\nRightShift — minimize/restore panel.\n'-' button — minimize to logo.\n'X' button — close panel.",
+        guide_text="MAIN\n— Auto-knife: works when you're murderer, hits everyone.\n— Auto-camper: when you're murderer, kills only sheriff and returns back.\n— Follow: teleport behind murderer.\n— Auto-farm: collects coins, speed adjustable.\n— Gun pickup: sheriff died → tp to him → 1 sec → tp back.\n— Role highlight: colored outline on players.\n— Fake knife: gives knife to inventory.\n— Invisible: hides your body.\n— Clear inventory: removes all tools.\n\nVISUAL\n— Crosshair, FOV, hard aim — view settings.\n— Crosshair styles, custom PNG — appearance.\n— Fly, noclip, inf jump, speedhack, walk backwards.\n— Sky (6 presets), fullbright.\n\nESP\n— Enable — main toggle.\n— Health, name, distance, weapon — what to show above head.\n— Rainbow — color cycles.\n— Hitbox, lines.\n— Preview — how ESP looks.\n\nRAGE\n— Wall shoot: enable, click in game — murderer dies through walls.\n— Aimbot: only sheriff + gun in hand. Auto-shot with wall check.\n— Aim part, smoothness, kill aim.\n— Triggerbot: click to fire at murderer (sheriff only).\n— Spinbot, anti-aim.\n— Respawn — kill yourself.\n— TURN OFF ALL — disable everything.\n\nPLAYERS\n— List with avatars.\n— TP — teleport to player.\n— 👁 — spectate (orbit around target, RMB/WASD/scroll).\n— FLING — SkidFling, works in ~1 sec.\n\nSETTINGS\n— Language: ru/en/zh.\n— Panel color: 56 colors.\n\nCONFIGS\n— Name → Save.\n— Name → Load.\n— Presets: default/aim/farm.\n\n📖 — this guide.\n\nRightShift — minimize/restore panel.\n'-' button — minimize to logo.\n'X' button — close panel.",
     },
     zh = {
         title="VANKA 管理员",
@@ -1082,17 +1082,14 @@ end
 local function fireGunAt(target)
     if not target or not target.Character then return false end
     local tHrp = target.Character:FindFirstChild("HumanoidRootPart")
-    local tHead = target.Character:FindFirstChild("Head")
-    if not tHrp or not tHead then return false end
+    if not tHrp then return false end
+    local targetPos = tHrp.Position
 
     local char = LP.Character
     if not char then return false end
-    local myHrp = char:FindFirstChild("HumanoidRootPart")
-    if not myHrp then return false end
-
     local bp = LP:FindFirstChild("Backpack")
-    local gun = char:FindFirstChild("Gun") or char:FindFirstChild("Revolver") or char:FindFirstChild("Pistol")
-        or (bp and (bp:FindFirstChild("Gun") or bp:FindFirstChild("Revolver") or bp:FindFirstChild("Pistol")))
+    local gun = char:FindFirstChild("Gun") or char:FindFirstChild("Revolver")
+        or (bp and (bp:FindFirstChild("Gun") or bp:FindFirstChild("Revolver")))
     if not gun then return false end
 
     if gun.Parent == bp then
@@ -1101,36 +1098,40 @@ local function fireGunAt(target)
         task.wait(0.04)
     end
 
-    local damageRemote = gun:FindFirstChild("Damage") or gun:FindFirstChild("Hit")
-    if damageRemote and damageRemote:IsA("RemoteEvent") then
-        local ok = pcall(function()
-            damageRemote:FireServer(tHead, tHead.Position, myHrp.Position)
-        end)
-        if ok then return true end
+    local originCF
+    local gunServer = gun:FindFirstChild("GunServer")
+    if gunServer then
+        local att = gunServer:FindFirstChild("GunRaycastAttachment1")
+            or gunServer:FindFirstChild("RaycastAttachment")
+        if att then originCF = att.WorldCFrame end
     end
+    if not originCF then
+        local handle = gun:FindFirstChild("Handle") or gun:FindFirstChild("Gun")
+        if handle and handle:IsA("BasePart") then originCF = handle.CFrame end
+    end
+    if not originCF then
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp then originCF = hrp.CFrame end
+    end
+    if not originCF then return false end
 
     local shootRemote = gun:FindFirstChild("Shoot") or gun:FindFirstChild("Fire")
-        or gun:FindFirstChild("ShootGun") or gun:FindFirstChild("FireGun")
     if shootRemote then
         local ok = pcall(function()
-            if shootRemote:IsA("RemoteEvent") then
-                shootRemote:FireServer(
-                    CFrame.new(tHrp.Position, tHead.Position),
-                    CFrame.new(tHead.Position)
-                )
-            elseif shootRemote:IsA("RemoteFunction") then
-                shootRemote:InvokeServer(1, tHead.Position, tHead.Position)
-            end
+            shootRemote:FireServer(
+                CFrame.new(originCF.Position, targetPos),
+                CFrame.new(targetPos)
+            )
         end)
-        if ok then return true end
+        return ok
     end
 
     local rS = game:GetService("ReplicatedStorage")
     if rS:FindFirstChild("ShootGun") then
         local ok = pcall(function()
-            rS.ShootGun:InvokeServer(1, tHead.Position, tHead.Position)
+            rS.ShootGun:InvokeServer(1, targetPos, targetPos)
         end)
-        if ok then return true end
+        return ok
     end
     return false
 end
@@ -1148,29 +1149,26 @@ local function installSilentAim()
         silentAimOldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
             if silentAimActive and silentAimTarget and silentAimTarget.Character then
                 local tHrp = silentAimTarget.Character:FindFirstChild("HumanoidRootPart")
-                local tHead = silentAimTarget.Character:FindFirstChild("Head")
-                if tHrp and tHead then
+                if tHrp then
                     local method = getnamecallmethod()
                     local args = {...}
                     local char = LP.Character
-                    local myHrp = char and char:FindFirstChild("HumanoidRootPart")
-                    local spoof = tHrp.Position + Vector3.new(0, 1, 0) - (tHrp.CFrame.LookVector * 2)
-                    if method == "FireServer" then
+                    if method == "FireServer" and (self.Name == "Shoot" or self.Name == "Fire") then
                         local parent = self.Parent
                         if parent and parent:IsA("Tool") and char and parent:IsDescendantOf(char) then
-                            local n = self.Name
-                            if n == "Shoot" or n == "Fire" or n == "ShootGun" or n == "FireGun" then
+                            local origin = args[1] and args[1].Position
+                            if not origin and char:FindFirstChild("HumanoidRootPart") then
+                                origin = char.HumanoidRootPart.Position
+                            end
+                            if origin then
+                                local spoof = tHrp.Position + Vector3.new(0, 1, 0) - (tHrp.CFrame.LookVector * 2)
                                 args[1] = CFrame.new(spoof, tHrp.Position)
                                 args[2] = tHrp.Position
                                 return silentAimOldNamecall(self, unpack(args))
-                            elseif n == "Damage" or n == "Hit" then
-                                if myHrp then
-                                    local newArgs = {tHead, tHead.Position, myHrp.Position}
-                                    return silentAimOldNamecall(self, unpack(newArgs))
-                                end
                             end
                         end
-                    elseif method == "InvokeServer" and (self.Name == "ShootGun" or self.Name == "FireGun") then
+                    elseif method == "InvokeServer" and self.Name == "ShootGun" then
+                        local spoof = tHrp.Position + Vector3.new(0, 1, 0) - (tHrp.CFrame.LookVector * 2)
                         args[2] = spoof
                         args[3] = tHrp.Position
                         return silentAimOldNamecall(self, unpack(args))
@@ -2462,24 +2460,22 @@ local function setAimbot(state,silent)
                     if closest and closestPart then
                         local tPos=closestPart.Position
                         if tPos.X==tPos.X then
-                            local myMuzzle=myHrpPos+Vector3.new(0,1.5,0)
-                            if hasClearShot(myMuzzle,tPos) then
-                                local delta=(tPos-camPos).Magnitude
-                                if delta>0.5 then
-                                    Cam.CFrame=CFrame.lookAt(camPos,tPos)
-                                end
-                                local now=tick()
-                                if now-(S.aimLastShot or 0) > 0.08 then
-                                    S.aimLastShot = now
-                                    silentAimActive = true
-                                    silentAimTarget = closest
-                                    local packet = fireGunAt(closest)
-                                    if not packet then
+                            local delta=(tPos-camPos).Magnitude
+                            if delta>0.5 then
+                                Cam.CFrame=CFrame.lookAt(camPos,tPos)
+                            end
+                            local now=tick()
+                            if now-(S.aimLastShot or 0) > 0.08 then
+                                S.aimLastShot = now
+                                silentAimActive = true
+                                silentAimTarget = closest
+                                local packet = fireGunAt(closest)
+                                if not packet then
+                                    local myMuzzle = myHrp.Position + Vector3.new(0,1.5,0)
+                                    if hasClearShot(myMuzzle, tPos) then
                                         autoFireAtTarget(closest)
                                     end
                                 end
-                            else
-                                S.aimT=nil
                             end
                         end
                     end
@@ -2508,13 +2504,16 @@ end
 
 local function wallShootFire()
     if not S.wallShoot then return end
+    if S.aimbot then return end
     if getRole(LP)~="Sheriff" and not hasGunAnywhere() then return end
     local target = findMurdererSilent(true)
     if not target then return end
     silentAimActive = true
     silentAimTarget = target
-    pcall(fireGunAt, target)
-    pcall(silentFire, target)
+    local packetOk = fireGunAt(target)
+    if not packetOk then
+        silentFire(target)
+    end
     task.delay(0.5, function()
         silentAimActive = false
         silentAimTarget = nil
@@ -2527,6 +2526,7 @@ local function startWallShoot()
     S.wallShootConn = UIS.InputBegan:Connect(function(input, gp)
         if gp then return end
         if not S.wallShoot then return end
+        if S.aimbot then return end
         if input.UserInputType == Enum.UserInputType.MouseButton1
         or input.UserInputType == Enum.UserInputType.Touch then
             wallShootFire()
@@ -2618,8 +2618,7 @@ local function stopSpectate()
     spectate.touchId=nil
     pcall(function()
         Cam.CameraType=Enum.CameraType.Custom
-        local hum=LP.Character and LP.Character:FindFirstChildOfClass
-            ("Humanoid")
+        local hum=LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
         if hum then Cam.CameraSubject=hum end
     end)
 end
@@ -2673,7 +2672,7 @@ local function specBuildHUD()
     end)
 
     local nextB=hudBtn("▶",Color3.fromRGB(70,70,120),40,54)
-    nextB.MouseButton1Click:Connect(function()
+        nextB.MouseButton1Click:Connect(function()
         local t=getSpectateTargets()
         if #t==0 then return end
         spectate.idx=spectate.idx+1
